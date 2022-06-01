@@ -1,0 +1,473 @@
+TKPAINT 1.52     [ win95/NT/Linux ]
+---------------------------------------------------------
+Copyright (C) 1998,1999  Samy Zafrany [samy@netanya.ac.il]
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+OVERVIEW OF TKPAINT
+-----------------------------
+Tkpaint is an easy to use graphics utility based on the canvas widget of
+the tool command language Tcl/Tk. It can be very useful for drawing simple
+to complex figures, slide presentations, graphs, and diagrams that involve
+geometrical shapes, arrows, text, and colors.
+From version 1.3 it is also possible to insert bitmaps and gif/ppm/pgm images,
+and from version 1.5 more graphics formats are supported via the Img package.
+There is a large variety of operations that can be performed on a group of
+objects: scaling, rotation, relocation, reflection, and deformation with
+respect to inclination. 
+
+Among many possible uses, tkpaint can be very useful for books/papers writers
+who like to draw their figures by themselves (don't assume that someone else
+will do  it better than you!).  It is easy to get an encapsulated PostScript
+output (EPS), and then to include it inside TeX or LaTeX files (via the epsf
+macro package).
+
+Tkpaint is very easy to learn, and with little experience it is possible to
+produce book quality slides in a short time. With more experience it is
+possible to produce unbelievably complex figures. UNIX users who use XFIG
+or XPAINT may find TKPAINT more suitable for some of the things that they
+are trying to do.
+
+PLATFORMS
+---------------
+Tkpaint was developed on:
+1. Pentium/Win95/Linux     + wish 8.0 - 8.05
+2. PentiumPro/NT4/Linux    + wish 8.0 -8.05
+It should run well on such platforms.
+The Unix port of tkpaint is maintained by Victor B. Wagner (vitus@ice.ru),
+which has integrated the Img extension in it and has an Autoconf configure
+script. According to Victor B. Wagner, tkpaint 1.4 works well under BSDI,
+Solaris and Linux. The same is expected about tkpaint 1.5, 1.51, and 1.52.
+Please visit         http://www.ice.ru/~vitus/misc/tkpaint.html
+for more details and to download.                                    
+
+
+RESOURCES
+-----------------
+New versions of this program are availabe via:
+
+1.   http://www.netanya.ac.il/~samy/tkpaint.html    (Tkpaint homepage)
+2.   www.neosoft.com/tcl/ftparchive/sorted/graphics/tkpaint
+3.   ftp.neosoft.com/pub/tcl/sorted/graphics/tkpaint
+4.   It is recommended that you also install the "Img package"
+     of Jan Nijtmans:    http://home.wxs.nl/~nijtmans.
+     It is not necessary for tkpaint to work but it will enable you
+     to load more graphic formats to your slide.
+
+The first site is the "official" homepage of tkpaint. It has more info and some
+nice screen shots, and will always be more updated than the others.
+Those that are interested to be informed about new releases
+and news about tkpaint may enter their e-mail via the form there.
+(or send me your e-mail to: samy@netanya.ac.il, but I prefer you do it via
+the form)
+
+INSTALLATION
+---------------
+WIn95/NT:  There is not much to do. If you have tcl/tk 8.0 installed
+           then you may want to install the source package (tkpaint-src.zip).
+           Just unzip the package somewhere on your disk, and create
+           a shortcut to tkpaint.tcl.
+           If you do not have Tcl/Tk installed then you may install the
+           tkpaint-exe package anywhere you like and create a shortcut
+           to tkpaint.exe.
+           If you have an old installation of tkpaint, you may want to
+           save your tkpaint.ini file (if you have done any special changes
+           to it) before proceeding with the new installation, or else your
+           old tkpaint.ini will be overwritten by the default tkpaint.ini.
+           Note: the Img extension is not wrapped in tkpaint.exe. This means
+                 that only gif, ppm, pgm, and bitmap images can be loaded.
+                 If someone knows how to wrap the Img extension in tkpaint.exe
+                 I will be happy to hear how.
+
+Unix:      The Unix port of tkpaint is maintained by Victor B. Wagner
+           (vitus@ice.ru), which has integrated the Img extension in it
+           and has an Autoconf configure script. According to Victor B. Wagner,
+           tkpaint 1.4 worked well under BSDI, Solaris and Linux. So I expect
+           that version 1.5 will continue to work well on these Platforms.
+           Please visit   
+                         http://www.ice.ru/~vitus/misc/tkpaint.html
+           for more details and to download.      
+
+NEW FEATURES FOR VERSION 1.52:
+------------------------------
+* Replaced old gifs (for toolbar buttons) with new transparent gifs.
+* Some more bug fixes, mainly related to grabs on toplevel windows.
+* Looks quite stable by now.
+* Fixed path problems to make tkpaint run on macintosh too.
+
+NEW FEATURES FOR VERSION 1.51:
+------------------------------
+* Fixed the "Zoom/No snap" bug (graphics snap size somehow increased too
+  even if snap was off).
+* Fixed bug related to long file names with spaces
+  (like "c:/Program Files/tkpaint/...").
+  This problem occured with pic files, preference files, and image files.
+  Tkpaint did not open such files. Typical bug.
+
+NEW FEATURES FOR VERSION 1.5:
+-----------------------------
+*   ZOOM:
+    Now it is possible to zoom up your drawing and to perform sensitive
+    editing. Read more below.
+
+*   MORE IMAGE TYPES:
+    JPEG, BMP (windows!), XPM, TIFF, PNG, and POSTSCRIPT.
+    All these goodies are available only if you install the "Img package"
+    of Jan Nijtmans:    http://home.wxs.nl/~nijtmans
+    Win95/NT may have problems with POSTSCRIPT  loading though.
+    Tkpaint.exe does not have the Img extension.
+    I simply do not know yet how to compile it with the tclpro compiler.
+    If you know how to do it, I will be happy to get it from you. 
+
+*   SCROLLBARS!
+    Well, after too many requests from users, I have added
+    scrollbars to the tkpaint canvas. It's not so bad as I thought it will
+    look like (for myself, I still prefer the arrows keys!).
+
+*   TEXT SCALING
+    In earlier versions, when choosing a group of objects for scaling, text
+    objects were left unchanged while all other objects got resized.
+    This is no longer the case for version 1.5! From now on when scaling
+    a group of objects, the text objects are scaled with respect to the
+    X direction.
+
+*   IMPROVED GRID SELECTOR
+    Now it is much easier to select the grid and snap parameters (previously
+    slightly confusing). Note, however, that a distinction is made between
+    grid and snap. Mainly, they are independent of each other. Some people
+    like to have a grid with no snap . Othres prefer to have snap with no
+    grid, and sometimes you need a grid and snap with different sizes.
+    All is possible with the new grid selector.
+    It is also possible to select grid and snap sizes in cm, mm, or inches.
+    Also read the next item:
+
+*   IMPORTANT NEWS TO PEOPLE WHO USE PREFERENCE FILES! (*.INI)
+    New graphics parameters were added to tkpaint 1.5, and some old ones
+    were replaced. Sorry for the inconvenience but I am sure that the necessary
+    changes are very easy to do:
+    If you saved preferences files (*.ini or *.rc) edit them manually and
+    make the following changes:
+
+    Graphics parameters whose name has changed:
+    -------------------------------------------
+                    OLD                            NEW
+    replace   Graphics(gridcell)     by     Graphics(grid,size)
+    replace   Graphics(grid)         by     Graphics(grid,on)
+    replace   Graphics(ticks)        by     Graphics(ticks,on)
+    replace   Graphics(gspacing)     by     Graphics(grid,snap)
+
+    You should also add the following new graphics parameters:
+    New graphics parameters:
+    ------------------------
+    Graphics(snap,on)            default value: 0
+    Graphics(snap,size)          default value: 1
+
+    Please update your preferneces files (*.ini) with these values.
+    I appologize for the inconvenience this may cause to people with too many
+    preferences files, but these changes really make tkpaint much better.
+
+    If you overwrite your tkpaint.ini file with the new tkpaint.ini, then
+    you are set, and all is well.
+
+New features  for Tkpaint 1.51
+----------------------------------
+Mainly minor bug fixes.
+* Fixed the "Zoom/No snap" bug (graphics snap size somehow increased too
+  even if snap was off).
+* Fixed bug related to long file names with spaces
+  (like "c:/Program Files/tkpaint/...").
+  This problem occured with pic files, preference files, and image files.
+  Tkpaint did not open such files. Typical bug.
+* No more bad jokes at the message panel!
+
+
+MORE INFO ON TKPAINT
+-----------------------
+With Tkpaint it is possible to draw a variety of geometrical objects:
+ 1.  Polygons
+ 2.  Rectangles
+ 3.  Rounded rectangles
+ 4.  Circles
+ 5.  Ellipse
+ 6.  Splines
+ 7.  Arcs (of circles)
+ 8.  Chords (of circle)
+ 9.  Pie slices (of circle)
+10.  Free hand curves.
+11.  Text in any size, type, color, and stipple.
+12.  Since version 1.3 it is possible to insert images from files.
+     The supported formats are X BMP, GIF, PPM, PGM.
+     Since version 1.5: If you install the Img package of Jan Nijtmans
+                  http://home.wxs.nl/~nijtmans
+     then you can insert images of type: JPEG, WINDOWS BMP, XPM, TIFF, PNG, and
+     POSTSCRIPT. Win95/NT may have problems with POSTSCRIPT though.
+13.  Since version 1.4 it is possible to edit polygons and lines.
+     That is, it is possible to relocate vertices, add new vertices to
+     existing polygons and lines, and delete vertices.
+14.  Since version 1.4 you can save and load configuration files
+     (called preferences files). The default file is tkpaint.ini.
+15.  Since version 1.4 you can deform a group of objects. Read below.
+
+The arc, chord, and pieslice way of drawing is especially
+nice, and the author did not see anything like it in other similar prgrams.
+I do not know about other programs that support arrows on arcs too!
+
+The canvas environment of Tcl/Tk is based on objects, which means that
+every shape, line, text item, or image are treated as an undivisible unit.
+All actions are performed on these objects:
+you can create, move, copy, raise, lower, and delete
+each object as a graphical unit.
+
+However, in this application it is also possible to select a group of objects
+and perform various actions on all the objects in the group:
+
+1. Edit their outline width and outline color.
+2. Edit interiour color.
+3. Stretch the group of objects horizontaly, vertically, or in both directions.
+4. Copy, move, and delete of a group of objects.
+5. Reflect with respect to the x-axis or y-axis.
+6. And even rotate the group to any desired angle.
+7. It is possible to UNDO the last 50 operations, and then you can REDO the
+   last 50 undo actions.
+
+SINCE VERSION 1.4:
+
+8. It is possible to edit lines, polygons (including smooth
+   lines and polygons). This means that you can relocate vertices with
+   the mouse, create new vertices, and delete existing vertices.
+   See the help for more info.
+
+9. It is possible now to change the inclination (deform) of a group of
+   objects. (Like "Italics" in fonts). This is described by the
+   following figure:
+
+        -----------------                  -----------------
+        |               |    deform      /                /
+        |               |    ------>    /                /
+        -----------------              -----------------
+   This operation is very useful for special effects to make slides look
+   more impressive.
+
+10. It is possible to save and load prefernces files.
+   A new file "tkpaint.ini" added to the package.
+   Tkpaint will load this file when it starts if it exists.
+   However, the user may choose any file names for saving his preferences,
+   create multiple preferences files, load them whenever he wants to (even
+   at the midst of work). It is also easy to edit them by hand and thus
+   making it possible to choose special parameters that are hard to get via
+   the menus of tkpaint (like a huge arrow shape, precise color numbers,
+   grid parameters, etc).
+
+11. Tkpaint will accept one command line argumnet. The name of pic to load.
+    This is useful for Unix users or people who use Dos boxes.
+
+12. Some of the more frequently used operations have shortcuts ("accelerators")
+
+Not mentioned earlier: since version 1.3, the "Group" menu has the
+"Select 1 object" item which is useful for picking a single object
+that may be covered by tons of other objects and therefore the usual
+selction mechanism is incapable to isolate it for editing.
+
+SINCE VERSION 1.5:
+
+13. Zooming is now possible: 50%, 100%, 150%, 200%, 250%, ..., 500%.
+    It is now possible to enlarge the view of the canvas.
+    One warning in place though: since line widths and font sizes have
+    integer values, zooming by 50%, 75%, 150%, 250%, 350%, and 450% may not
+    be completely accurate. The design of the zoom operation in tkpaint
+    makes sure that you do not loose any precision by zooming into one
+    of this factors and then zooming back (no matter how many times you do it).
+    So no harm to the figure or to the precision will happen if you use these
+    zoom factors for viewing only.  However drawing any new items at this
+    factors may not be advised.
+    For work sake, it is best to work within the 200%, 300%, 400, and 500%
+    factors. This way, no precision will be lost, and the results will be
+    perfect!
+14. If you install the Img package of Jan Nijtmans
+                  http://home.wxs.nl/~nijtmans
+    then you can insert images of type: JPEG, windows BMP, XPM, TIFF, PNG, and
+    PostScript. Win95/NT may have problems with PostScript though.
+
+15. SCROLLBARS:
+    Well, after too many requests from users, I have added
+    scrollbars to the tkpaint canvas. It's not so bad as I thought it will
+    look like (for myself, I still prefer the arrows keys with no scrollbars!).
+
+16. IMPORTANT NEWS TO PEOPLE WHO USE PREFERENCE FILES! (*.INI)
+    ----------------------------------------------------------
+    For emphasis, I repeat here the following:
+    New graphics parameters were added to tkpaint 1.5, and some old ones
+    were replaced. Sorry for the inconvenience but I am sure that the necessary
+    changes are very easy to do:
+
+    Graphics parameters whose name has changed:
+    -------------------------------------------
+             OLD                                        NEW
+        Graphics(gridcell)    was replaced by     Graphics(grid,size)
+        Graphics(grid)        was replaced by     Graphics(grid,on)
+        Graphics(ticks)       was replaced by     Graphics(ticks,on)
+        Graphics(gspacing)    was replaced by     Graphics(grid,snap)
+
+    New graphics parameters:
+    ------------------------
+        Graphics(snap,on)            default value: 0
+        Graphics(snap,size)          default value: 1
+
+    Please update your preferneces files (*.ini) with these values.
+    I appologize for the inconvenience this may cause to people with too many
+    preferences files, but these changes really make tkpaint much better.
+
+PRINTING
+----------
+You may send output to printer if you have gsview installed, or get the output
+in EPS (encapsulated PostScript) file format or as a Tcl script.
+Or save as Encapsulated PostScript to be used in TeX/LaTeX files (or any
+application that supports EPS inclusion)
+
+For more information it is best to press the "Help" button or simply play
+with the program. It is quite easy to use.
+
+FILES
+-----------
+If you have downloaded the Tcl source package (tkpaint-src.zip),
+then you should find the following files:
+
+1.   tkpaint.tcl      (main program)
+2.   tkpaint.ini      (initialization file - from version 1.4 only)
+3.   help.tcl         (help file)
+4.   fontsel.tcl      (font selection box)
+5.   arrowshape.tcl   (arrow head editor)
+6.   gifs/*.gif       (GIF files directory, it should contain many gif files)
+7.   COPYING          (Gnu general public license)
+8.   readme           (this file)
+9.   demo.pic         (A demo slide)
+10.  changes          (changes made from version to version)
+
+The main file is of course tkpaint.tcl.
+And it should be fed to wish 8.0, 8.03, or prowish.
+
+if you have dowloaded the executable package (tkpaint-exe.zip),
+then you should find there the following files:
+
+1.  tkpaint.exe
+2.  tkpaint.ini
+3.  readme
+4.  copying
+5.  demo file
+6.  some gif and bitmap files (for the demos)
+
+CREDITS
+--------
+1. Donald K. Fellows (fellows@cs.man.ac.uk) for the wonderful font selection
+   box. It was modified a little to support color selection and some more
+   text size radio buttons.
+
+2. Brent Welsh for his excellent book "Practical Programming in Tcl/Tk".
+   Most of my Tcl education was acquired through this book.
+   Example 31-12 (Simple edit bindings for canvas text items) saved us
+   Lots of trouble. It was, of course, modified to suite tkpaint.
+
+3. My students: Michel Zohar, Yaniv Katan, and Amit Noph whose good ideas,
+   good source code, and especially their snagged gifs (;-), contributed a
+   lot to this program.
+
+4. Christopher Jay Cox (cjcox@acm.org) for his inspiring ImPress program.
+   playing with it on the Netscapes browser was really impressive and
+   motivating.  Some of the ideas like line width scale and manipulation of
+   group of objects were stollen from ImPress (not the code! just ideas).
+
+5. Since the release of tkpaint 1.0/1.1/1.2/1.3/1.4, I have received many good
+   suggestions and ideas for improvements from users all over the world.
+   Although I have very limited time to spend on tkpaint, I could not resist
+   the cute ones (like reshaping polygons/lins due to Markus Meng) or the
+   more urgent ones (like load/save preferences to file - very essential).
+   Many of the improvemnets in release 1.4 are based on their suggestions.
+   The motivation for the zoom feature in version 1.5 came from
+   David Alan Gilbert (dg@treblig.org) who convinced me about its importance.
+   It turned out that zoom is very easy to implement (contrary to what I
+   thought earlier).
+   Apologies for other people for not being able to implement their
+   suggestions. There are many more interesting improvements to be made,
+   but I have very limited time to devote to tkpaint, and regrettably I will
+   be able to implement only things that fit to this little time that I have.
+
+6. Special thanks goes to Victor B. Wagner for his contributions and for
+   maintaining the Unix port of tkpaint:
+           http://www.ice.ru/~vitus/misc/tkpaint.html
+   and thus making Tkpaint available to Unix users as well. I could not
+   have done it myself.
+-------
+This program could not have been written without the so many ideas and tips
+that I got from these sources, hence it is free and open as these sources are.
+
+BUGS
+----------
+I hate bugs! If you find any, please let me know as fast as lightning.
+I will do anything I can to fix them.
+
+
+HISOTORY
+----------
+Tkpaint started as an experiment for testing Tcl/Tk capabilities in a
+undergraduate course (on graphical user interfaces) given by me at
+Netanya Academic College, Israel, Fall 1997.
+I was just introduced to Tcl/Tk by a friend who thought that it would be
+a good choice for this course (and, frankly, considering the alternatives,
+I could not realy avoid it). one of the projects (among others)
+that came to my mind was to try to create a drawing tool that besides of making
+an interesting project, will also be useful for educational duties like
+preparing lecture slides and figures for lecture note, papers, and text books.
+I have had a long and bad experience with similar programs (which I will
+not mention here) which where either too simple and deficient or too large
+and complex to use or install or cost a lot of money.
+While many of my students worked on this project, I did work on it privately
+myself. At the end of term, during the grading of their projects, I have
+integrated many of their ideas and some of their source code to my tkpaint,
+and after some hard work came up with this final result (tkpaint 1.0).
+Since its release, more ideas and suggestions and bug fixes flow through
+internet lines, and hence releases 1.1, 1.2, 1.3, 1.4, 1.5, 1.51, 1.52.
+
+To conclude: I think that Tcl/Tk did provide me with almost anything that
+I initially wanted for tkpaint to have. My initial plan was to create a
+small, simple, easy to use tool for creating slides and book figures which does
+not suffer from the bugs and deficiencies of similar tools, yet this tool
+should not try to catch up with a monster as Corel Draw or have any of the
+capabilities of Adobe Photoshop (since these features ar rarely needed for
+creating simple figures or class slides).
+
+With this respect, I think that tkpaint did quite well.
+The program works very good for me and I am using it constantly with great
+results.  There are, as always, many features that can be added, and many
+other things can be improved. But one must draw a finish line somewhere.
+I will, of course, fix bugs and do some simple fix-ups from time to time,
+or even do a major change if it is strongly demnaded by users, but I do not
+intend to go ahead and make any major changes to the program (unless I will
+suddenly become a milioner and be completely relieved from my teachnig and
+other duties).
+The only deficiency that irritates me the most is the lack of dash lines
+in the canvas widget of Tcl/Tk. Hopefully, in the near future, the dash
+patch will be integrated to the tk core, and from that point tkpaint will
+get much better.
+
+Send bug reports to:
+------------------------------------------------------------------------
+Samy Zafrany                 School of Computer Science and Mathematics
+samy@netanya.ac.il           Netanya Academic College
+Phones:                      16 Kibutz-Galuyot Street
+972-9-8607738 (Office)       Kiriat Yizhack Rabin
+972-4-8258140 (Home)         Netanya 42365, ISRAEL
+------------------------------------------------------------------------
+
+Copyright © 1998,1999 Samy Zafrany. All rights reserved.
