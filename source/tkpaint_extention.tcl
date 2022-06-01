@@ -2268,7 +2268,8 @@ proc TP_saveOneImage {type} {
     set tobj [$TPtoolpath type $cur]
     puts "TP_saveOneImage: Current=$cur type=$tobj utags=[.c itemconfigure $cur -tags]"
     if {$tobj == "image" || $tobj == "pimage"} { return}
-    if {$tobj == "polygon"} {
+#    if {$tobj == "polygon" || $tobj == "rectangle"} {}
+    if {![idissvg $cur]} {
         $TPtoolpath  itemconfigure $cur -outline {}
     } else {
 	$TPtoolpath  itemconfigure $cur -stroke {} -strokewidth 0
