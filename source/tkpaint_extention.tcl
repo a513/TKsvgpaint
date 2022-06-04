@@ -1731,6 +1731,8 @@ DestroyWindow.tpcolorsel; eval $TPcolor(nocolor)}  -font {Helvetica 10}  -highli
 #if {$TPcolorCmd != ".c configure -background"} {}
 if {$type != "bgcanvas"} {
   pack .tpcolorsel.opacity  -expand 1  -fill x -anchor n
+} else {
+    set TPcolor(opacity) 1.0
 }
 if {$type == "image"} {
   pack .tpcolorsel.tintamount  -expand 1  -fill x -anchor n
@@ -1950,12 +1952,59 @@ puts "TP_saveImage type=$type: x=$x y=$y"
 #set ::_vwait 0; after idle {set ::_vwait 1}; vwait ::_vwait
     }
 }
+
+proc TP_saveGroupToPicture {type } {
+#type == 0 - save to file
+#type == 1 - save to image
+    set svgdata [can2svg::group2file ".c" "-image"]
+    if {$svgdata == ""} {
+	return ""
+    }
+    set newimg [image create photo -data $svgdata]
+
+    if {$type == 0} {
+	set File(img,types) {
+		    {{img png} {.png} }
+		    {{img gif} {.gif} }
+		    {{img jpg} {.jpg} }
+		    {{All files} * }
+	}
+        set type        "png"
+        set title       "Select file for image group"
+        set defaultName "tk_$newimg"
+        set command tk_getSaveFile
+        set filename [$command \
+                -title "$title" \
+                -filetypes $File(img,types) \
+                -initialfile $defaultName \
+                -defaultextension ".$type" ]
+        if {$filename==""} {return 0}
+
+    	$newimg write $filename -format "png"
+	image delete $newimg
+puts "TP_saveGroupToFicture: save to file - $filename"
+    }
+}
+
+proc TP_saveGroupFromRGB {type {cur ""}} {
+#Информация о задержки
+    catch {destroy .waitimage}
+    label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow
+    place .waitimage -in .tools.width -relx 0.0 -rely 0.5
+    tk busy hold ".tools"
+    tk busy hold ".svg"
+    set ret [TP_saveGroupToFileOrImage $type $cur]
+    tk busy forget ".tools"
+    tk busy forget ".svg"
+    destroy .waitimage
+}
 #SaveGroupToFile or SaveGroupToImage
 proc TP_saveGroupToFileOrImage {type {cur ""}} {
   global Graphics
     global cmddel
     global macos
     global Image
+#puts "Необходимо подождать! type=$type"
   set idgroup [.c find withtag Selected]
   if {[llength $idgroup] == 0} {return}
 
@@ -1971,27 +2020,25 @@ proc TP_saveGroupToFileOrImage {type {cur ""}} {
 #type 2 - пересоздать изображение, при прищании и других деформациях. При этом в cur лежит id изображения
 #LISSI
 set typeP $type
+    if {$cur == ""} {
+	set cmddel ""
+    }
     if {$type == 2} {
 	set idsel $cur
+	set tobj [$TPtoolpath type $idsel]
+	if {$tobj == "ppolygon"} {
+	    $TPtoolpath itemconfigure $idsel -fillopacity 0.0 -fill #000000
+	}
 	set TPbboxL [$TPtoolpath bbox $idsel]
 	set xP [lindex $TPbboxL 0]
 	set yP [lindex $TPbboxL 2]
 	set type 1
-    } else {
-	set TPbboxL [$TPtoolpath bbox Selected]
-	set idsel [$TPtoolpath find withtag Selected]
-    }
-    if {$cur != ""} {
 	set cmddel [subst ".c delete $idsel"]
     } else {
-	set cmddel ""
-    }
-    set tobj [$TPtoolpath type $idsel]
-    if {$tobj == "ppolygon"} {
-	$TPtoolpath itemconfigure $idsel -fillopacity 0.0 -fill #000000
+	set TPbboxL [$TPtoolpath bbox Selected]
     }
 #    puts "bboxl=$TPbboxL  id=[$TPtoolpath find withtag Selected]";
-puts "bboxl=$TPbboxL"
+#puts "bboxl=$TPbboxL"
     unselectGroup
 
     if {$TPbboxL == ""} {
@@ -2000,10 +2047,8 @@ puts "bboxl=$TPbboxL"
     }
     if {$TPbboxL == ""} { return}
 
-    set canbg [$TPtoolpath configure -background]
+    set canbg [$TPtoolpath cget -background]
 #    puts "Выделенный блок! \"$TPbboxL\", bg=$canbg cur=$cur"
-    set canbg [lindex $canbg end]
-#    puts "Выделенный блок! \"$TPbboxL\", bg=$canbg"
 
     if { [catch {winfo rgb . $canbg} rgb] } {
     	tk_messageBox -message "Invalid background color \"$canbg\""
@@ -2022,15 +2067,13 @@ puts "bboxl=$TPbboxL"
 	    puts "Нет выделенного блока!$TPbboxL"
 	    return
 	}
-	set x1 [lindex $bbox 0]
-	set y1 [lindex $bbox 1]
-	set x2 [lindex $bbox 2]
-	set y2 [lindex $bbox 3]
+    foreach {x1 y1 x2 y2} $bbox {break}
 set x1 [expr {$x1 + 3}]
 set y1 [expr {$y1 + 3}]
 
 set x2 [expr {$x2 - 2}]
 set y2 [expr {$y2 - 2}]
+#puts "Необходимо подождать!"
 #Копировать можно только видимую область!!!!
 #Ещё скролинг!!!!
 foreach xy {x1 y1 x2 y2} {
@@ -2046,21 +2089,53 @@ foreach xy {x1 y1 x2 y2} {
 # -pageanchor nw  -pagex 0  -pagey $y2_new  -pagewidth $x2 -pageheight $y2
 	set newimg [image create photo -format ps -data $ps1]
     } else {
+#Снимаем картинку только с видимой части холста
+	update
+	set canfull 0
+	set canimg [image create photo -format window -data $TPtoolpath]
+#Снимаем картинку из полного холста
+#	set canfull 1
+#	set canimg [fullcanvas $TPtoolpath]
+
+	if {$canfull == 0} {
+	    set hcanimg [image height $canimg]
+	    set wcanimg [image width $canimg]
+	    foreach {v1 v2} [.main.vscroll get] {break}
+	    foreach {h1 h2} [.main.hscroll get] {break}
+	    foreach {rx0 ry0 rwidth rheight} [.c cget -scrollregion] {break}
+	    set sy0 [expr {$rheight * $v1}]
+	    set sy1 [expr {$rheight * $v2}]
+	    set sx0 [expr {$rwidth * $h1}]
+	    set sx1 [expr {$rwidth * $h2}]
+	    set vcan [.c cget -height]
+#Проверка видимости выделенной области
+	    if {$y1 < $sy0 || $y2 > $sy1  } {
+#		tk_messageBox -title "Error create Image" -parent "." -icon error -message "Выделенная область в невидимой части по вертикали.\n"
+		tk_messageBox -title "Error create Image" -parent "." -icon error -message "The selected area in the invisible part vertically\n"
+    		image delete $canimg
+		return ""
+	    }
+	    if {$x1 < $sx0 || $x2 > $sx1  } {
+#		tk_messageBox -title "Error create Image" -parent "." -icon error -message "Выделенная область в невидимой части по горизонтали.\n"
+		tk_messageBox -title "Error create Image" -parent "." -icon error -message "The selected area in the invisible part horizontally.\n"
+    		image delete $canimg
+		return ""
+	    }
+#Учёт скроллинга
+	    set y1 [expr {$y1 - int($sy0) + 1}]
+	    set y2 [expr {$y2 - int($sy0) + 1}]
+	    set x1 [expr {$x1 - int($sx0) + 1}]
+	    set x2 [expr {$x2 - int($sx0) + 1}]
+	}
 # create image - пустая
 	set newimg [image create photo]
-	set canimg [image create photo -format window -data $TPtoolpath]
-puts "TP_saveGroupToFileOrImage: $newimg copy $canimg -from  $x1 $y1 $x2 $y2 -to 0 0 $x2_new $y2_new "
+#puts "TP_saveGroupToFileOrImage: sy0=$sy0 sy1=$sy1  $newimg copy $canimg -from  $x1 $y1 $x2 $y2 -to 0 0 $x2_new $y2_new "
 	$newimg copy $canimg -from  $x1 $y1 $x2 $y2 -to 0 0 $x2_new $y2_new
-#    	image delete $canimg
-$canimg write "/tmp/canimg.png" -format "png"
-$newimg write "/tmp/newimg0.png" -format "png"
-
     }
     set rgb2 [list [expr [lindex $rgb 0]/256] [expr [lindex $rgb 1]/256] [expr [lindex $rgb 2]/256]]
 
 	set h [image height $newimg]
 	set w [image width $newimg]
-#puts "Необходимо подождать! rgb2=$rgb2"
 set x1n -1
 set y1n -1
 set x2n -1
@@ -2117,18 +2192,15 @@ set y2n -1
         	}
     	    }
 	}
-puts "TP_saveGroupToFileOrImage NewCoord: x1n=$x1n y1n=$y1n x2n=$x2n y2n=$y2n x1=$x1 y1=$y1"
-set w_new [expr $x2n - $x1n + 1]
-set h_new [expr $y2n - $y1n + 1]
+#puts "TP_saveGroupToFileOrImage NewCoord: x1n=$x1n y1n=$y1n x2n=$x2n y2n=$y2n x1=$x1 y1=$y1"
 set x1n [expr {$x1n + $x1}]
 set y1n [expr {$y1n + $y1}]
 set x2n [expr {$x2n + $x1 + 1}]
 set y2n [expr {$y2n + $y1 + 1}]
 
-puts "TP_saveGroupToFileOrImage NewCopy: x1n=$x1n y1n=$y1n x2n=$x2n y2n=$y2n x1=$x1 y1=$y1"
+#puts "TP_saveGroupToFileOrImage NewCopy: x1n=$x1n y1n=$y1n x2n=$x2n y2n=$y2n x1=$x1 y1=$y1"
     	image delete $newimg
 	set newimg [image create photo]
-#	set canimg [image create photo -format window -data $TPtoolpath]
 	$newimg copy $canimg -from  $x1n $y1n $x2n $y2n -to 0 0
 #$newimg write "/tmp/newimg1.png" -format "png"
     	image delete $canimg
@@ -2542,6 +2614,104 @@ proc TP_rotateC { {deg 0} } {
     set Rotate(matrixLast) [.c itemcget $id -m]
     drawBoundingBox
 }
+#Image полного  canvas
+#proc ::canvas::snap {canvas} {}
+proc fullcanvas {canvas} {
+    # Ensure that the window is on top of everything else, so as not
+    # to get white ranges in the image, due to overlapped portions of
+    # the window with other windows...
+
+    raise [winfo toplevel $canvas] 
+    update
+    # XXX: Undo the raise at the end ?!
+
+    set border [expr {[$canvas cget -borderwidth] +
+                      [$canvas cget -highlightthickness]}]
+
+    set view_height [expr {[winfo height $canvas]-2*$border}]
+    set view_width  [expr {[winfo width  $canvas]-2*$border}]
+
+    lassign [$canvas bbox all] x1 y1 x2 y2
+    #foreach {x1 y1 x2 y2} [$canvas bbox all] break
+
+    set x1 [expr {int($x1-10)}]
+    set y1 [expr {int($y1-10)}]
+#Для полного совпадения и оригиналом холста
+set x1 0
+set y1 0
+    set x2 [expr {int($x2+10)}]
+    set y2 [expr {int($y2+10)}]
+
+    set width  [expr {$x2-$x1}]
+    set height [expr {$y2-$y1}]
+
+    set image [image create photo -height $height -width $width]
+
+    # Arrange the scrollregion of the canvas to get the whole window
+    # visible, so as to grab it into an image...
+
+    # Save the scrolling state, as this will be overidden in short order.
+    set scrollregion   [$canvas cget -scrollregion]
+    set xscrollcommand [$canvas cget -xscrollcommand]
+    set yscrollcommand [$canvas cget -yscrollcommand]
+#LISSI
+    set vscr [lindex $yscrollcommand 0]
+    set hscr [lindex $xscrollcommand 0]
+    set canvget [lindex [$vscr get] 0]
+    set canhget [lindex [$hscr get] 0]
+#puts "Сдаиг по y=$canvget по x=$canhget"
+
+    $canvas configure -xscrollcommand {}
+    $canvas configure -yscrollcommand {}
+
+    set grabbed_x $x1
+    set grabbed_y $y1
+    set image_x   0
+    set image_y   0
+
+    while {$grabbed_y < $y2} {
+	while {$grabbed_x < $x2} {
+	    set newregion [list \
+			       $grabbed_x \
+			       $grabbed_y \
+			       [expr {$grabbed_x + $view_width}] \
+			       [expr {$grabbed_y + $view_height}]]
+
+	    $canvas configure -scrollregion $newregion
+	    update
+
+	    # Take a screenshot of the visible canvas part...
+	    set tmp [image create photo -format window -data $canvas]
+
+	    # Copy the screenshot to the target image...
+	    $image copy $tmp -to $image_x $image_y -from $border $border
+
+	    # And delete the temporary image (leak in original code)
+	    image delete $tmp
+
+	    incr grabbed_x $view_width
+	    incr image_x   $view_width
+	}
+
+	set grabbed_x $x1
+	set image_x 0
+
+	incr grabbed_y $view_height
+	incr image_y   $view_height
+    }
+
+    # Restore the previous scrolling state of the canvas.
+
+    $canvas configure -scrollregion   $scrollregion
+    $canvas configure -xscrollcommand $xscrollcommand
+    $canvas configure -yscrollcommand $yscrollcommand
+    $canvas yview moveto $canvget 
+    $canvas xview moveto $canhget 
+
+    # At last, return the fully assembled snapshot
+    return $image
+}
+
 
 # Edit Radius Round Rectangle:
 proc editRadiusRoundRect {} {

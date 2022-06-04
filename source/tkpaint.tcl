@@ -1189,14 +1189,15 @@ set imageInfo {
   RegionScreenshot {$aa display}
   FreeSelection {TP_freehandSelect}
   UnFreeSelect {TP_unfreehandSelect}
-  SaveGroupToFile {TP_saveGroupToFileOrImage 0}
-  SaveGroupToImage {TP_saveGroupToFileOrImage 1}
+  SaveGroupToFile {TP_saveGroupFromRGB 0}
+  SaveGroupToImage {TP_saveGroupFromRGB 1}
   SaveOneToFile {TP_saveOneImage 0}
   SaveOneToImage {TP_saveOneImage  1}
   {Load Image} {Image image}
   {Load Image PATH} {Image pimage}
   BITMAP   {Image bitmap}
 }
+#  SaveGroupToFile {TP_saveGroupToPicture 0}
 
 } else {
 set imageInfo {
@@ -3330,7 +3331,7 @@ proc chooseBackgroudColor {} {
   set TPcurCanvas ".c"
   set propname "background"
   set TPcolorCmd "$TPcurWidget configure -$propname"
-  set TPcolor(rgb) [$TPcurWidget configure -$propname]
+  set TPcolor(rgb) [$TPcurWidget cget -$propname]
 set TPcolor(cancel) "$TPcurCanvas configure -$propname $Canv(bg)"
 #set TPcolor(nocolor) "$TPcurCanvas configure -$propname {}"
 
@@ -6555,11 +6556,11 @@ proc traceProc4 {v index op} {
       .c select clear
   }
 
-  .c delete graybox
   .c configure -cursor ""
 #LISSI
 #puts "traceProc4: Graphics(mode)=$Graphics(mode)"
 if {$Graphics(mode) != "SaveGroupToFile" && $Graphics(mode) != "SaveGroupToImage" && $Graphics(mode) != "SaveOneToFile" && $Graphics(mode) != "SaveOneToImage" && $Graphics(mode) != "SkewXYimage" && $Graphics(mode) != " SaveGroupToFile"} {
+ .c delete graybox
   unselectGroup
 }
   

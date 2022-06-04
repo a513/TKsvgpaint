@@ -2260,12 +2260,12 @@ proc can2svg::group2file {wcan path args} {
     
     # Need to make a fresh start for marker def's.
     unset -nocomplain defsArrowMarkerArr defsStipplePatternArr
-    if {[catch {set fd [open $path w]} ret]} {
-        tk_messageBox -title "Export group to SVG" -message "Cannot open file for write:\n$path" -detail $ret -icon error
-	return ""
-    }   
-#    set fd [open $path w]
-
+    if {$path != "-image"} {
+	if {[catch {set fd [open $path w]} ret]} {
+    	    tk_messageBox -title "Export group to SVG" -message "Cannot open file for write:\n$path" -detail $ret -icon error
+	    return ""
+	}
+    }
     # This could have been done line by line.
     set xml ""
 #LISSI
@@ -2307,9 +2307,15 @@ set groupY 0
     unset groupX
     unset groupY
 
-    puts $fd [makedocument $argsA(-width) $argsA(-height) $xml]
-    close $fd
-    return $path
+    set datasvg [makedocument $argsA(-width) $argsA(-height) $xml]
+
+    if {$path != "-image"} {
+	puts $fd $datasvg
+	close $fd
+	return $path
+    } else {
+	return $datasvg
+    }
 }
 
 
