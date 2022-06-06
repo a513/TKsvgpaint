@@ -1187,12 +1187,12 @@ menu .mbar.image.menu -tearoff 0
 if {$ImgAvaliable} {
 set imageInfo {
   RegionScreenshot {$aa display}
-  FreeSelection {TP_freehandSelect}
-  UnFreeSelect {TP_unfreehandSelect}
+  FreeSelectionArea {TP_freehandSelect}
+  UnFreeSelectArea {TP_unfreehandSelect}
   SaveGroupToFile {TP_saveGroupFromRGB 0}
   SaveGroupToImage {TP_saveGroupFromRGB 1}
-  SaveRegionToFile {TP_saveOneImage 0}
-  SaveRegionToImage {TP_saveOneImage  1}
+  SaveAreaToFile {TP_saveOneImage 0}
+  SaveAreaToImage {TP_saveOneImage  1}
   {Load Image} {Image image}
   {Load Image PATH} {Image pimage}
   BITMAP   {Image bitmap}
@@ -6559,7 +6559,7 @@ proc traceProc4 {v index op} {
   .c configure -cursor ""
 #LISSI
 #puts "traceProc4: Graphics(mode)=$Graphics(mode)"
-if {$Graphics(mode) != "SaveGroupToFile" && $Graphics(mode) != "SaveGroupToImage" && $Graphics(mode) != "SaveRegionToFile" && $Graphics(mode) != "SaveRegionToImage" && $Graphics(mode) != "SkewXYimage" && $Graphics(mode) != " SaveGroupToFile"} {
+if {$Graphics(mode) != "SaveGroupToFile" && $Graphics(mode) != "SaveGroupToImage" && $Graphics(mode) != "SaveAreaToFile" && $Graphics(mode) != "SaveAreaToImage" && $Graphics(mode) != "SkewXYimage" && $Graphics(mode) != " SaveGroupToFile"} {
  .c delete graybox
   unselectGroup
 }

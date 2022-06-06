@@ -2316,7 +2316,7 @@ return
         bind .c <Button-1> {}
 #parray Graphics
 #puts "TP_saveGroupToFileOrImage: cur=$cur "
-	    if {$Graphics(mode) == "SaveRegionToImage" && $Graphics(shape) == "Free Hand Select"} {
+	    if {$Graphics(mode) == "SaveAreaToImage" && $Graphics(shape) == "Free Hand Select"} {
 		.c delete freeHandImage
 		set Graphics(shape) {}
 		set Graphics(mode) {}
