@@ -2343,7 +2343,7 @@ proc TP_saveOneImage {type} {
 #    puts "TP_saveOneImage: Current=$cur type=$type utags=[.c itemconfigure $cur -tags]"
 #Информация о задержки
     catch {destroy .waitimage}
-    label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow
+    label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow -font {Times 16 bold italic}  -foreground blue
     place .waitimage -in .tools.width -relx 0.0 -rely 0.5
     tk busy hold ".tools"
     tk busy hold ".svg"
