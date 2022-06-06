@@ -2330,21 +2330,29 @@ return
 proc TP_saveOneImage {type} {
     set TPtoolpath ".c"
     set cur [.c find withtag Selected]
-    if {[llength $cur] != 1} {return}
+    if {[llength $cur] != 1} {
+        tk_messageBox -title "Save Area" -message "Missing highlighted area"  -icon info
+	return
+    }
     set tobj [.c type $cur]
 #    puts "TP_saveOneImage: Current=$cur type=$tobj utags=[.c itemconfigure $cur -tags]"
-    if {$tobj == "image" || $tobj == "pimage"} { return}
+    if {$tobj == "image" || $tobj == "pimage"} { 
+	unselectGroup
+        tk_messageBox -title "Save Area" -message "Incorrect area (image) selection"  -icon info
+	return
+    }
     if {![idissvg $cur]} {
         .c  itemconfigure $cur -outline {}
     } else {
+	unselectGroup
+        tk_messageBox -title "Save Area" -message "Incorrect area selection"  -icon info
 	return
-	.c  itemconfigure $cur -stroke {} -strokewidth 0
     }
 #    puts "TP_saveOneImage: Current=$cur type=$type utags=[.c itemconfigure $cur -tags]"
 #Информация о задержки
     catch {destroy .waitimage}
     label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow -font {Times 16 bold italic}  -foreground blue
-    place .waitimage -in .tools.width -relx 0.0 -rely 0.5
+    place .waitimage -in .tools.width -relx 0.0 -rely 0.25
     tk busy hold ".tools"
     tk busy hold ".svg"
 
