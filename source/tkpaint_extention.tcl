@@ -1657,8 +1657,6 @@ proc ShowWindow.tpcolorsel { type } {
 
   frame .tpcolorsel.top.right  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
 
-
-#  label .tpcolorsel.top.right.color  -activebackground {#dcdcdc}  -background {#000000}  -borderwidth {2}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -relief {groove}
 #Метку меняем на canvas prect
   tkp::canvas .tpcolorsel.top.right.color -relief flat -height 1c -width 1.5c  -background blue
 
@@ -1667,7 +1665,6 @@ proc ShowWindow.tpcolorsel { type } {
   frame .tpcolorsel.c  -borderwidth {2}  -relief {ridge}  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
 #Прозрачность
 #LISSI
-#if {$TPcolorCmd != ".c configure -background"} {}
 if {$type != "bgcanvas" } {
   scale .tpcolorsel.opacity -width 8 -command {TP_ColorSetSample {}} -font {Helvetica 10} -label {OPACITY:} -length {240} -orient {horizontal} -digits 2 -resolution {0.1}  -from {0.0} -to {1.0}  -troughcolor {skyblue}  -variable {TPcolor(opacity)}
 }
@@ -1989,8 +1986,8 @@ puts "TP_saveGroupToFicture: save to file - $filename"
 proc TP_saveGroupFromRGB {type {cur ""}} {
 #Информация о задержки
     catch {destroy .waitimage}
-    label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow
-    place .waitimage -in .tools.width -relx 0.0 -rely 0.5
+    label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow  -font {Times 16 bold italic}  -foreground blue
+    place .waitimage -in .tools.width -relx 0.0 -rely 0.25
     tk busy hold ".tools"
     tk busy hold ".svg"
     set ret [TP_saveGroupToFileOrImage $type $cur]
@@ -2022,9 +2019,11 @@ proc TP_saveGroupToFileOrImage {type {cur ""}} {
 set typeP $type
     if {$cur == ""} {
 	set cmddel ""
+    } else {
+	set idsel $cur
+	set cmddel [subst ".c delete $idsel"]
     }
     if {$type == 2} {
-	set idsel $cur
 	set tobj [$TPtoolpath type $idsel]
 	if {$tobj == "ppolygon"} {
 	    $TPtoolpath itemconfigure $idsel -fillopacity 0.0 -fill #000000
@@ -2033,11 +2032,9 @@ set typeP $type
 	set xP [lindex $TPbboxL 0]
 	set yP [lindex $TPbboxL 2]
 	set type 1
-	set cmddel [subst ".c delete $idsel"]
     } else {
 	set TPbboxL [$TPtoolpath bbox Selected]
     }
-#    puts "bboxl=$TPbboxL  id=[$TPtoolpath find withtag Selected]";
 #puts "bboxl=$TPbboxL"
     unselectGroup
 
@@ -2319,8 +2316,7 @@ return
         bind .c <Button-1> {}
 #parray Graphics
 #puts "TP_saveGroupToFileOrImage: cur=$cur "
-#parray Graphics
-	    if {$Graphics(mode) == "SaveOneToImage" && $Graphics(shape) == "Free Hand Select"} {
+	    if {$Graphics(mode) == "SaveRegionToImage" && $Graphics(shape) == "Free Hand Select"} {
 		.c delete freeHandImage
 		set Graphics(shape) {}
 		set Graphics(mode) {}
@@ -2333,22 +2329,29 @@ return
 
 proc TP_saveOneImage {type} {
     set TPtoolpath ".c"
-#    set cur [$TPtoolpath find withtag freeHandImage]
-    set cur [$TPtoolpath find withtag Selected]
-    if {[llength $cur] == 0} {return}
-#    $TPtoolpath  itemconfigure $cur -outline {}
-    set tobj [$TPtoolpath type $cur]
-    puts "TP_saveOneImage: Current=$cur type=$tobj utags=[.c itemconfigure $cur -tags]"
+    set cur [.c find withtag Selected]
+    if {[llength $cur] != 1} {return}
+    set tobj [.c type $cur]
+#    puts "TP_saveOneImage: Current=$cur type=$tobj utags=[.c itemconfigure $cur -tags]"
     if {$tobj == "image" || $tobj == "pimage"} { return}
-#    if {$tobj == "polygon" || $tobj == "rectangle"} {}
     if {![idissvg $cur]} {
-        $TPtoolpath  itemconfigure $cur -outline {}
+        .c  itemconfigure $cur -outline {}
     } else {
-	$TPtoolpath  itemconfigure $cur -stroke {} -strokewidth 0
+	return
+	.c  itemconfigure $cur -stroke {} -strokewidth 0
     }
 #    puts "TP_saveOneImage: Current=$cur type=$type utags=[.c itemconfigure $cur -tags]"
+#Информация о задержки
+    catch {destroy .waitimage}
+    label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow
+    place .waitimage -in .tools.width -relx 0.0 -rely 0.5
+    tk busy hold ".tools"
+    tk busy hold ".svg"
 
-    TP_saveGroupToFileOrImage $type $cur
+    set ret [TP_saveGroupToFileOrImage $type $cur]
+    tk busy forget ".tools"
+    tk busy forget ".svg"
+    destroy .waitimage
 }
 ###### FREE HAND SECTION
 proc TP_freehandSelect {} {

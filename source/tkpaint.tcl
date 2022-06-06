@@ -1191,8 +1191,8 @@ set imageInfo {
   UnFreeSelect {TP_unfreehandSelect}
   SaveGroupToFile {TP_saveGroupFromRGB 0}
   SaveGroupToImage {TP_saveGroupFromRGB 1}
-  SaveOneToFile {TP_saveOneImage 0}
-  SaveOneToImage {TP_saveOneImage  1}
+  SaveRegionToFile {TP_saveOneImage 0}
+  SaveRegionToImage {TP_saveOneImage  1}
   {Load Image} {Image image}
   {Load Image PATH} {Image pimage}
   BITMAP   {Image bitmap}
@@ -6559,7 +6559,7 @@ proc traceProc4 {v index op} {
   .c configure -cursor ""
 #LISSI
 #puts "traceProc4: Graphics(mode)=$Graphics(mode)"
-if {$Graphics(mode) != "SaveGroupToFile" && $Graphics(mode) != "SaveGroupToImage" && $Graphics(mode) != "SaveOneToFile" && $Graphics(mode) != "SaveOneToImage" && $Graphics(mode) != "SkewXYimage" && $Graphics(mode) != " SaveGroupToFile"} {
+if {$Graphics(mode) != "SaveGroupToFile" && $Graphics(mode) != "SaveGroupToImage" && $Graphics(mode) != "SaveRegionToFile" && $Graphics(mode) != "SaveRegionToImage" && $Graphics(mode) != "SkewXYimage" && $Graphics(mode) != " SaveGroupToFile"} {
  .c delete graybox
   unselectGroup
 }
