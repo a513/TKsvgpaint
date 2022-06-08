@@ -910,7 +910,7 @@ set TPfontCmd {}
 #catch {$TPcurWidget configure -$TPpropsInfo(propname) $TPpropsInfo(propval)}
 set TPshowFonts 0
 DestroyWindow.tpfontselect}
-  wm title .tpfontselect {TKproE font selection}
+  wm title .tpfontselect {TKsvgpaint font selection}
 
   # bindings
   bind .tpfontselect <ButtonRelease-1> {TP_ProcessClick %W %X %Y %x %y}
@@ -1236,7 +1236,7 @@ set TPcurCanvas ".c"
   wm maxsize .tpcmdedit 2560 1024
   wm minsize .tpcmdedit 424 210
   wm protocol .tpcmdedit WM_DELETE_WINDOW {DestroyWindow.tpcmdedit}
-  wm title .tpcmdedit {TKpaint: Edit ptext}
+  wm title .tpcmdedit {TKsvgpaint: Edit ptext}
 
   # bindings
   bind .tpcmdedit <ButtonRelease-1> {TP_ProcessClick %W %X %Y %x %y}
@@ -1436,8 +1436,8 @@ proc TP_tpskewGroup {} {
 	    unset dmat
 	    unset amM
 	} else {
-	    set $Rotate(skewXorig) ""
-	    set $Rotate(skewYorig) ""
+	    set Rotate(skewXorig) ""
+	    set Rotate(skewYorig) ""
 	    set Rotate(angleOrig) ""
 	}
 	
@@ -1564,7 +1564,7 @@ proc ShowWindow.tprotate { args} {
   wm maxsize .tprotate 280 140
   wm minsize .tprotate 280 140
   wm geometry .tprotate 280x140+200+100
-  wm title .tprotate {TKpaint angle rotate}
+  wm title .tprotate {TKsvgpaint angle rotate}
 
   frame .tprotate.top  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
 
@@ -1583,6 +1583,7 @@ proc ShowWindow.tprotate { args} {
     set Rotate(angle) 0; \
     destroy .tprotate; 
 #    unselectGroup;
+    drawBoundingBox
     unset Rotate; \
   } \
     -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
@@ -1591,6 +1592,7 @@ proc ShowWindow.tprotate { args} {
     .c itemconfigure $Rotate(id) -m $Rotate(matrix); \
     destroy .tprotate;
 #     unselectGroup; 
+    drawBoundingBox
     unset Rotate; \
   } \
      -background {#dcdcdc} -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Cancel}
@@ -1624,6 +1626,7 @@ proc ShowWindow.tpcolorsel { type } {
   set TPcolor(type) $type
 
   catch "destroy .tpcolorsel"
+  set tfill [filltype $TPcolor(rgb)]
 
   toplevel .tpcolorsel   -background {#dcdcdc}  -highlightbackground {#dcdcdc}
 
@@ -1631,8 +1634,13 @@ proc ShowWindow.tpcolorsel { type } {
   wm positionfrom .tpcolorsel ""
   wm sizefrom .tpcolorsel ""
   wm maxsize .tpcolorsel 280 994
-  wm minsize .tpcolorsel 280 340
-  wm geometry .tpcolorsel 280x670+200+50
+  if {$tfill != "gradient"} {
+    wm minsize .tpcolorsel 280 340
+    wm geometry .tpcolorsel 280x670+200+50
+  } else {
+    wm minsize .tpcolorsel 280 110
+    wm geometry .tpcolorsel 280x70+200+50
+  }
   wm protocol .tpcolorsel WM_DELETE_WINDOW {.tpcolorsel.frame0.button2 invoke}
   
   if {$type == "image"} {
@@ -1704,9 +1712,10 @@ DestroyWindow.tpcolorsel; eval $TPcolor(cancel); unset TPcolor}  -font {Helvetic
   pack configure .tpcolorsel.top.right.label0
 
   # pack master .tpcolorsel.c
+  if {$tfill != "gradient"} {
   pack configure .tpcolorsel.c.sy  -fill y  -side right
   pack configure .tpcolorsel.c.canvas  -expand 1  -fill both
-
+  }
   # pack master .tpcolorsel.frame0
   pack configure .tpcolorsel.frame0.button1  -expand 1  -side left
 #LISSI
@@ -1723,7 +1732,9 @@ DestroyWindow.tpcolorsel; eval $TPcolor(nocolor)}  -font {Helvetica 10}  -highli
   pack configure .tpcolorsel.frame0.button2  -expand 1  -side left
 
   # pack master .tpcolorsel
-  pack configure .tpcolorsel.top  -fill x
+  if {$tfill != "gradient"} {
+    pack configure .tpcolorsel.top  -fill x
+  }
 #LISSI
 #if {$TPcolorCmd != ".c configure -background"} {}
 if {$type != "bgcanvas"} {
@@ -1734,7 +1745,9 @@ if {$type != "bgcanvas"} {
 if {$type == "image"} {
   pack .tpcolorsel.tintamount  -expand 1  -fill x -anchor n
 }
+  if {$tfill != "gradient"} {
   pack configure .tpcolorsel.c  -expand 1  -fill both  -anchor n
+  }
   pack configure .tpcolorsel.frame0  -fill x  -side bottom
 #Метку меняем на canvas prect
   update idle
@@ -1744,11 +1757,13 @@ if {$type == "image"} {
           -width $w \
           -height $h \
           -image author
-  .tpcolorsel.top.right.color create prect 0 0 $w $h \
+    if {$tfill != "gradient"} {
+	.tpcolorsel.top.right.color create prect 0 0 $w $h \
           -tags labelColor \
           -fill $TPcolor(rgb) \
           -fillopacity $TPcolor(opacity) \
           -strokewidth 0
+    }
 EndSrc.tpcolorsel
 }
 

@@ -425,7 +425,12 @@ proc Zoom {z} {
       if {[catch {.c itemcget $id -fontsize} result]==0} {
         set u [Utag find $id]
         if ![info exists Zoom($u,font,size)] {
-          set Zoom($u,font,size) [lindex $result 1]
+#LISSI
+	  if {[llength $result] > 1} {
+            set Zoom($u,font,size) [lindex $result 1]
+          } else {
+            set Zoom($u,font,size) $result
+          }
         }
         set Zoom($u,font,size) [expr $Zoom($u,font,size)*$ratio]
         set fsize [expr round($Zoom($u,font,size))]
@@ -2371,10 +2376,10 @@ proc makeArc {x y} {
   catch {.c delete $Arc(id)}
 #LISSI 
   if {$Graphics(type) == "SVG"} {
-	parray Arc
+#	parray Arc
 	set lrad [TP_radiuscoords]
 	set rad [lindex $lrad 0]
-puts "lrad=$lrad"
+#puts "lrad=$lrad"
 	set Arc(radius) $rad
 	set coordsR [lrange $lrad 1 2]
         if {$Graphics(shape) == "pieslice" } {
@@ -5315,7 +5320,7 @@ proc TextFocus {x y} {
 
    if {$Text(utag) != ""} {
 #LISSI
-    if {$Graphics(type) == "SVG" } {
+    if {[idissvg $Text(utag)] } {
         foreach opt {text textanchor fontfamily fontsize fontweight fill fillopacity tags} {
             set Text($opt)  [.c itemcget $Text(utag) -$opt]
         } 
@@ -5340,16 +5345,18 @@ proc TextFocus {x y} {
          set Text(stipple) $Graphics(font,stipple)
          set Text(anchor)  $Graphics(text,anchor)
 #LISSI
-parray Text
 	if {$Graphics(type) == "SVG" } {
     	    set id [.c create ptext $x $y -text "" \
-    		-fontfamily [lindex $Text(font) 0] \
-    		-fontsize [lindex $Text(font) 1] \
-    		-fontweight [lindex $Text(font) 2] \
+    		-fontfamily "Helvetica" \
+    		-fontsize 10 \
+    		-fontweight "normal" \
                 -fill    $Text(color) \
                 -fillopacity    1.0 \
                 -textanchor  $Text(anchor) \
                 -tags {text obj svg}]
+#    		-fontfamily [lindex $Text(font) 0] 
+#    		-fontsize [lindex $Text(font) 1] 
+#    		-fontweight [lindex $Text(font) 2] 
 if {0} {
             set iddup [.c create text $x $y -text "xxx" \
                          -font    $Text(font) \
@@ -5367,9 +5374,9 @@ if {0} {
                          -anchor $Graphics(text,anchor)]
         }
 	if {$Graphics(type) == "SVG" } {
-puts "Отдельное окно"
-         set Text(utag) [Utag assign $id]
-         set TextInfo($Text(utag)) {}
+#puts "Отдельное окно"
+            set Text(utag) [Utag assign $id]
+            set TextInfo($Text(utag)) {}
 	    ShowWindow.tpcmdedit $id
 	    return
 	}
@@ -5379,8 +5386,6 @@ puts "Отдельное окно"
          .c focus $Text(utag)
          .c select clear
          .c icursor $Text(utag) 0
-#LISSI
-parray Text
    }
 }
 
