@@ -3658,7 +3658,7 @@ proc setEditGroupMode {} {
       set lastX [.c canvasx %x $Graphics(grid,snap)]
       set lastY [.c canvasy %y $Graphics(grid,snap)]
 #LISSI
-puts "lastX=$lastX lastY=$lastY"
+#puts "lastX=$lastX lastY=$lastY"
    }
 
    bind .c <B1-Motion> {
@@ -4984,6 +4984,7 @@ proc reflect {mode} {
 #LISSI
 set id [lindex $group 0]
    if {[idissvg $id] } {
+	foreach {cx0 cy0} [id2coordscenter $id] {break}
 global lastX
 global lastY
 	set xS [lindex [.c bbox mainBBox] 0]
@@ -5028,8 +5029,27 @@ set lastY $yS
 		while {$i < [llength $coords]} {
         	    foreach {sym} $coords1 {break}
 		    if {[string is alpha -strict $sym]} {
+			set ar ""
+			switch $sym {
+			    C -  L - M {
+				puts "reflect x M - C - L: sym=$sym"
+			    }
+			    A  {
+				puts "reflect x A: sym=$sym"
+				set i1 [expr {$i + 1}]
+				set i2 [expr {$i + 5}]
+				set ar [lrange $coords $i1 $i2]
+			    }
+			    default {
+				puts "reflect x default: sym=$sym"
+			    }
+			}
 			incr i
             		lappend new_coords $sym
+			if {$ar != ""}  {
+            		    append new_coords " $ar "
+            		    incr i 5
+            		}
 			set csvg [lrange $coords $i end]
 			set coords1 [lrange $coords $i end]
 			continue
@@ -5045,8 +5065,27 @@ set lastY $yS
 		while {$i < [llength $coords]} {
         	    foreach {sym} $coords1 {break}
 		    if {[string is alpha -strict $sym]} {
+			set ar ""
+			switch $sym {
+			    C - L - M {
+				puts "reflect y M-C-L: sym=$sym"
+			    }
+			    A  {
+				puts "reflect y A: sym=$sym"
+				set i1 [expr {$i + 1}]
+				set i2 [expr {$i + 5}]
+				set ar [lrange $coords $i1 $i2]
+			    }
+			    default {
+				puts "reflect y default: sym=$sym"
+			    }
+			}
 			incr i
             		lappend new_coords $sym
+			if {$ar != ""}  {
+            		    append new_coords " $ar "
+            		    incr i 5
+            		}
 			set csvg [lrange $coords $i end]
 			set coords1 [lrange $coords $i end]
 			continue
@@ -5095,12 +5134,16 @@ set id [lindex $group 0]
    if {[idissvg $id] } {
 	set x1 [lindex [.c bbox mainBBox] 0]
 	set y1 [lindex [.c bbox mainBBox] 1]
-	moveGroupSVG $x1 $y1
+#	moveGroupSVG $x1 $y1
+    foreach {cx1 cy1} [id2coordscenter $id] {break}
+    moveid2dxdy $id [expr {-1.0 * ($cx1 - $cx0)}] [expr {-1.0 * ($cy1 - $cy0)}] 
 
 unset lastX
 unset lastY
 
    }
+   drawBoundingBox
+
 
    History add $cmd
    Undo add $undo
