@@ -1021,10 +1021,12 @@ menu .mbar.file.menu.save_as -tearoff 0
 .mbar.file.menu.save_as add command \
         -label "Save group as SVG"\
         -command {TP_Group2SVGfile}
-
+if {0} {
 .mbar.file.menu add command \
          -label Print \
          -command {File print}
+}
+         
 .mbar.file.menu add command \
          -label Exit \
          -accelerator "Ctrl+x" \
@@ -5426,7 +5428,11 @@ proc TextHist {} {
 }
 
 proc TextDrag {x y} {
-   .c select to current @$x,$y
+#puts "TextDrag: tags=[.c itemcget current -tags]"
+#LISSI
+    if {![idissvg "current"]} {
+	.c select to current @$x,$y
+    }
 }
 
 proc TextDelete {} {
