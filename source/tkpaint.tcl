@@ -5039,6 +5039,12 @@ set lastY $yS
 				set i1 [expr {$i + 1}]
 				set i2 [expr {$i + 5}]
 				set ar [lrange $coords $i1 $i2]
+				set last [lindex $ar 4]
+				if {$last == 0} {
+				    set ar [lreplace $ar 4 4 1]
+				} else {
+				    set ar [lreplace $ar 4 4 0]
+				}
 			    }
 			    default {
 				puts "reflect x default: sym=$sym"
@@ -5075,6 +5081,12 @@ set lastY $yS
 				set i1 [expr {$i + 1}]
 				set i2 [expr {$i + 5}]
 				set ar [lrange $coords $i1 $i2]
+				set last [lindex $ar 4]
+				if {$last == 0} {
+				    set ar [lreplace $ar 4 4 1]
+				} else {
+				    set ar [lreplace $ar 4 4 0]
+				}
 			    }
 			    default {
 				puts "reflect y default: sym=$sym"
