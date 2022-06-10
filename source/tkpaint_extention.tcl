@@ -441,6 +441,30 @@ set mOrig [.c itemcget $id -m]
     }
     return
 }
+#scale id -  масштабировать объект по x и y
+proc scaleid2xy {id x y {retm 0}} {
+#Матрица для scale
+    set m1 [::tkp::matrix scale $x $y]
+#puts "rotateid2angle id=$id deg=$deg phi=$phi coors=$xr $yr m=$m1"
+    if {$retm != 0} {
+	return $m1
+    }
+    set mOrig [.c itemcget $id -m]
+    if {$mOrig != ""} {
+	    set m1 [::tkp::matrix mult $mOrig $m1]
+    }
+#сохраняем координаты центра масштабируемого объекта
+    foreach {xc yc} [id2coordscenter $id] {break}
+    .c itemconfigure $id -m $m1
+    if {$id == "Selected"} {
+	drawBoundingBox
+    }
+#сохраняем координаты центра объекта после масштабирования
+    foreach {xe ye} [id2coordscenter $id] {break}
+#Возвращаем объект в исходную точку 
+    moveid2dxdy $id [expr {$xc - $xe}] [expr {$yc - $ye}]
+    return
+}
 #skewy id - сдвиг по оси y
 proc skewyid2angle {id deg {retm 0}} {
     set pi [expr 2*asin(1)]

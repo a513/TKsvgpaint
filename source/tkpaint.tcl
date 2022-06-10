@@ -4981,25 +4981,24 @@ proc reflect {mode} {
    set x0 [expr ($BBox(x1)+$BBox(x2))/2.0]
    set y0 [expr ($BBox(y1)+$BBox(y2))/2.0]
    set cmd ""
-#LISSI
-set id [lindex $group 0]
-   if {[idissvg $id] } {
-	foreach {cx0 cy0} [id2coordscenter $id] {break}
-global lastX
-global lastY
-	set xS [lindex [.c bbox mainBBox] 0]
-	set yS [lindex [.c bbox mainBBox] 1]
-set lastX $xS
-set lastY $yS
-    }
 
    foreach id $group {
 #LISSI
        if {![idissvg $id] } {
 
 	    set id [shape2spline $id]
-       
+#LISSI
+       } else {
+    	    set utag [Utag find $id]
+    	    lappend utags $utag
+    	    if {$mode=="x"} {
+		scaleid2xy $id 1 -1 
+    	    } else {
+		scaleid2xy $id -1 1
+    	    }
+    	    continue
        }
+       
        set utag [Utag find $id]
        lappend utags $utag
        append cmd ".c delete $utag \;"
@@ -5141,21 +5140,6 @@ set lastY $yS
        .c addtag Selected withtag $u
    }
    drawBoundingBox
-#LISSI
-set id [lindex $group 0]
-   if {[idissvg $id] } {
-	set x1 [lindex [.c bbox mainBBox] 0]
-	set y1 [lindex [.c bbox mainBBox] 1]
-#	moveGroupSVG $x1 $y1
-    foreach {cx1 cy1} [id2coordscenter $id] {break}
-    moveid2dxdy $id [expr {-1.0 * ($cx1 - $cx0)}] [expr {-1.0 * ($cy1 - $cy0)}] 
-
-unset lastX
-unset lastY
-
-   }
-   drawBoundingBox
-
 
    History add $cmd
    Undo add $undo
