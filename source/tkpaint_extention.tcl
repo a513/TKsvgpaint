@@ -443,6 +443,9 @@ set mOrig [.c itemcget $id -m]
 }
 #scale id -  масштабировать объект по x и y
 proc scaleid2xy {id x y {retm 0}} {
+    if {[.c type $id] == ""} {
+	return
+    } 
 #Матрица для scale
     set m1 [::tkp::matrix scale $x $y]
 #puts "rotateid2angle id=$id deg=$deg phi=$phi coors=$xr $yr m=$m1"
@@ -1383,8 +1386,89 @@ proc TP_tpGradientGroup {group} {
 	catch {unset TPcolor}
     }
 }
+#Редактирование fill у группы
+proc TP_tpcolorlineGroup {group} {
+    global Canv Graphics
+    global TPcolor
+    global TPcolorCmd
+    global TPcurCanvas
+    set TPcurCanvas ".c"
+    set TPcolor(group) [list]
+    set TPcolor(svggroup) [list]
+    set TPcolorCmd ""
+    foreach id $group {
+	set t [.c type $id]
+	if {$t == "image" || $t == "pimage" || $t == "text"} {
+	    continue
+	}
+	set TPcolor($id,nocolor) [subst ".c itemconfigure $id -fill  {}"]
+
+	if {![idissvg $id]} {
+	    lappend TPcolor(group) $id
+	    lappend TPcolor(svggroup) $id
+	    .c addtag svggroup withtag $id
+	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -fill \\\$rgb"]
+#puts "TP_tpcolorlineGroup: type=[.c type $id] id=$id"
+	    set TPcolor($id,opacity)  [.c itemcget $id -stipple]
+	    if {[.c type $id] != "line"} {
+		set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -outline \\\$rgb"]
+		set TPcolor($id,nocolor) [subst ".c itemconfigure $id -outline  {}"]
+		set idfill [.c itemcget $id -outline]
+		if {$idfill == ""} {
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -outline {}"]
+		} else {
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -outline $idfill"]
+		}
+		set TPcolor(rgb) [.c itemcget $id -outline]
+	    } else {
+		set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -fill \\\$rgb"]
+		set TPcolor($id,nocolor) [subst ".c itemconfigure $id -fill  {}"]
+		set idfill [.c itemcget $id -fill]
+		if {$idfill == ""} {
+		    set TPcolor(rgb) black
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill {}"]
+		} else {
+		    set TPcolor(rgb) $idfill
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill"]
+		}
+	    }
+	} else {
+	    lappend TPcolor(svggroup) $id
+	    .c addtag svggroup withtag $id
+	    set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -stroke \\\$rgb -strokeopacity \\\$TPcolor(opacity)"]
+	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -strokeopacity \\\$TPcolor(opacity)"]
+	    set TPcolor($id,opacity)  [.c itemcget $id -fillopacity]
+	    set TPcolor($id,nocolor) [subst ".c itemconfigure $id -stroke  {}"]
+	    set idfill [.c itemcget $id -stroke]
+	    set strop [.c itemcget $id -strokeopacity]
+	    if {$idfill == ""} {
+		set TPcolor($id,cancel) [subst ".c itemconfigure $id -stroke {}"]
+		set TPcolor(rgb) black
+	    } else {
+		set TPcolor($id,cancel) [subst ".c itemconfigure $id -stroke $idfill -strokeopacity $strop"]
+		set TPcolor(rgb) $idfill
+	    }
+	}
+	continue
+    }
+    if {[llength $TPcolor(svggroup)] == 0} {
+	return
+    }
+    set id svggroup
+    set TPcolor(opacity) 1.0
+    set svggroup $TPcolor(svggroup)
+	set color [ShowWindow.tpcolorsel "line"]
+#puts "editGroupLineColor: group=$group"
+    	tkwait window .tpcolorsel
+	catch {unset TPcolor}
+
+##############
+    foreach id $svggroup {
+	.c dtag $id svggroup
+    }
 
 
+}
 #Редактирование fill у группы
 proc TP_tpfillGroup {group} {
     global Canv Graphics
@@ -1397,13 +1481,45 @@ proc TP_tpfillGroup {group} {
     set TPcurWidget ".c"
     set TPcurCanvas ".c"
     set propname "fill"
+    set TPcolor(group) [list]
+    set TPcolor(svggroup) [list]
     foreach id $group {
-#	set TPcanvasID $id
+	set idfill [.c itemcget $id -fill]
+	set TPcolor(rgb) $idfill
+	if {$idfill == ""} {
+	    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill {}"]
+	} else {
+	    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill"]
+	}
+	set TPcolor($id,nocolor) [subst ".c itemconfigure $id -fill  {}"]
+
+	if {![idissvg $id]} {
+	    lappend TPcolor(group) $id
+	    lappend TPcolor(svggroup) $id
+	    .c addtag svggroup withtag $id
+	    set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -fill \\\$rgb"]
+	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -fill \\\$rgb"]
+#	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -stipple \$TPcolor(opacity)"]
+	    set TPcolor($id,opacity)  [.c itemcget $id -stipple]
+	} else {
+	    lappend TPcolor(svggroup) $id
+	    .c addtag svggroup withtag $id
+	    set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -fill \\\$rgb -fillopacity \\\$TPcolor(opacity)"]
+	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -fillopacity \\\$TPcolor(opacity)"]
+	    set TPcolor($id,opacity)  [.c itemcget $id -fillopacity]
+	    set TPcolor(opacity)  [.c itemcget $id -fillopacity]
+	}
+    }
+    if {[llength $TPcolor(svggroup)] == 0} {
+	return
+    }
+    set id svggroup
+    set svggroup $TPcolor(svggroup)
+############
 	set Canv(fill)  [.c itemcget $id -fill]
-	set TPcolor(rgb) $Canv(fill)
+#	set TPcolor(rgb) $Canv(fill)
 	set TPcolor(varname) "Canv(fill)"
-	if {[idissvg $id]} {
-	set TPcolorCmd ".c itemconfigure $id -fill \$rgb -fillopacity \$TPcolor(opacity)"
+	    set TPcolorCmd ".c itemconfigure $id -fill \$rgb -fillopacity \$TPcolor(opacity)"
 	    set TPcolor(cmdopacity) ".c itemconfigure $id -fillopacity \$TPcolor(opacity)"
 #puts "editGroupFillColor: $TPcolorCmd; group=$group"
 	    if {$Canv(fill) == ""} {
@@ -1413,42 +1529,33 @@ proc TP_tpfillGroup {group} {
 	    }
 	    set TPcolor(nocolor) "$TPcurCanvas itemconfigure $id -fill  {}"
 #puts "editGroupFillColor: group=$group type=[.c type $id]"
-	    set TPcolor(opacity)  [.c itemcget $id -fillopacity]
-	    if {[.c type $id] == "pimage"} {
-#puts "->ShowWindow.tpcolorsel \"image\" type=[.c type $id]"
-    		set Canv(fill)  [.c itemcget $id -tintcolor]
-    		set TPcolor(tintcolor)  [.c itemcget $id -tintcolor]
-    		set TPcolor(tintamount)  [.c itemcget $id -tintamount]
-		set TPcolor(rgb) $TPcolor(tintcolor)
-		set TPcolorCmd ".c itemconfigure $id -tintcolor \$rgb -fillopacity \$TPcolor(opacity) -tintamount  \$TPcolor(tintamount)"
-		set TPcolor(nocolor) ".c itemconfigure $id -tintcolor {} "
-		set TPcolor(cancel) [subst ".c itemconfigure $id -fillopacity $TPcolor(opacity) -tintcolor $TPcolor(tintcolor) -tintamount $TPcolor(tintamount)"]
     		set color [ShowWindow.tpcolorsel "image"]
     		tkwait window .tpcolorsel
-	    } else {
-    		set color [ShowWindow.tpcolorsel "fill"]
-    		tkwait window .tpcolorsel
-	    }
-	} else {
-	    set TPcolor(opacity) 1.0
-	    set TPcolorCmd ".c itemconfigure $id -fill \$rgb"
-#puts "editGroupFillColor: $TPcolorCmd; group=$group"
-	    set TPcolor(cancel) ".c itemconfigure $id -fill $Canv(fill)"
-	    set TPcolor(nocolor) ".c itemconfigure $id -fill  {}"
-	    set color [ShowWindow.tpcolorsel "fill"]
-    	    tkwait window .tpcolorsel
-	}
+
+
+##############
+    foreach id $svggroup {
+	.c dtag $id svggroup
     }
+
 }
 
 proc TP_tpskewGroup {} {
     global Rotate
+    catch {unset Rotate}
+    set Rotate(svggroup) [list]
+    set Rotate(group) [list]
     foreach id [.c find withtag Selected] {
-	catch {unset Rotate}
 	if {![idissvg $id]} {
 #	    deformGroupMode
+	    lappend Rotate(group) $id
 	    continue
+	} else {
+	    lappend Rotate(svggroup) $id
+	    .c addtag svggroup withtag $id
 	}
+	continue
+	
 	set Rotate(id) $id
 	set Rotate(matrix) [.c itemcget $id -m]
 	set Rotate(matrixLast) [.c itemcget $id -m]
@@ -1482,7 +1589,34 @@ proc TP_tpskewGroup {} {
 	tkwait window .tpskew
 	drawBoundingBox
     }
+    if {[llength $Rotate(svggroup)] == 0} {
+	return
+    }
+    set id svggroup
+    set Rotate(id) $id
+    set Rotate(matrix) [.c itemcget $id -m]
+    set Rotate(matrixLast) [.c itemcget $id -m]
+    set bb [.c bbox $id]
+    set Rotate(xi) [expr {([lindex $bb 0] + [lindex $bb 2]) / 2}]
+    set Rotate(yi) [expr {([lindex $bb 1] + [lindex $bb 3]) / 2}]
 
+
+    set Rotate(skewX) 0
+    set Rotate(skewY) 0
+    set Rotate(angle) 0
+    set Rotate(skewXlast) 0
+    set Rotate(skewYlast) 0
+    set Rotate(anglelast) 0
+
+    foreach {Rotate(xi) Rotate(yi)} [id2coordscenter svggroup] {break}
+    set svggroup $Rotate(svggroup)
+
+    ShowWindow.tpskew
+    tkwait window .tpskew
+    drawBoundingBox
+    foreach id $svggroup {
+	.c dtag $id svggroup
+    }
 #    drawBoundingBox
 }
 
@@ -1716,17 +1850,17 @@ if {$type == "image"} {
 
   frame .tpcolorsel.frame0  -borderwidth {2}  -relief {ridge}  -background {#dcdcdc}  -height {34}  -highlightbackground {#dcdcdc}  -width {280}
 
-  button .tpcolorsel.frame0.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {global TPcolor ;if {![catch {winfo rgb . $TPcolor(rgb)}]} {
-    set $TPcolor(varname) $TPcolor(rgb)
-   }
-.tpcolorsel.c.canvas delete all
-DestroyWindow.tpcolorsel;unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
+  button .tpcolorsel.frame0.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {global TPcolor 
+    .tpcolorsel.c.canvas delete all
+    DestroyWindow.tpcolorsel;unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
 
-  button .tpcolorsel.frame0.button2  -activebackground {gray75}  -background {#dcdcdc}  -command {if {![catch "set $TPcolor(varname)" TPtemp]} {
-   TP_ColorSetSample $TPtemp
-  }
-.tpcolorsel.c.canvas delete all
-DestroyWindow.tpcolorsel; eval $TPcolor(cancel); unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Cancel}
+  button .tpcolorsel.frame0.button2  -activebackground {gray75}  -background {#dcdcdc}  -command {
+    .tpcolorsel.c.canvas delete all
+    DestroyWindow.tpcolorsel;
+    foreach id $TPcolor(svggroup) {
+	eval $TPcolor($id,cancel)
+    }
+    unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Cancel}
 
   # pack master .tpcolorsel.top
   pack configure .tpcolorsel.top.left  -fill both  -side left
@@ -1743,21 +1877,22 @@ DestroyWindow.tpcolorsel; eval $TPcolor(cancel); unset TPcolor}  -font {Helvetic
 
   # pack master .tpcolorsel.c
   if {$tfill != "gradient"} {
-  pack configure .tpcolorsel.c.sy  -fill y  -side right
-  pack configure .tpcolorsel.c.canvas  -expand 1  -fill both
+    pack configure .tpcolorsel.c.sy  -fill y  -side right
+    pack configure .tpcolorsel.c.canvas  -expand 1  -fill both
   }
   # pack master .tpcolorsel.frame0
   pack configure .tpcolorsel.frame0.button1  -expand 1  -side left
 #LISSI
-#if {$TPcolorCmd != ".c configure -background"} {}
-if {$type != "bgcanvas"} {
-  button .tpcolorsel.frame0.button3  -activebackground {gray75}  -background {#dcdcdc}  -command {if {![catch "set $TPcolor(varname)" TPtemp]} {
-   TP_ColorSetSample $TPtemp
+  if {$type != "bgcanvas"} {
+    button .tpcolorsel.frame0.button3  -activebackground {gray75}  -background {#dcdcdc}  -command {
+	.tpcolorsel.c.canvas delete all
+	DestroyWindow.tpcolorsel;
+	foreach id $TPcolor(svggroup) {
+	    eval $TPcolor($id,nocolor)
+	}
+    unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {No color}
+    pack configure .tpcolorsel.frame0.button3  -expand 1  -side left
   }
-.tpcolorsel.c.canvas delete all
-DestroyWindow.tpcolorsel; eval $TPcolor(nocolor)}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {No color}
-  pack configure .tpcolorsel.frame0.button3  -expand 1  -side left
-}
 
   pack configure .tpcolorsel.frame0.button2  -expand 1  -side left
 
@@ -1766,17 +1901,16 @@ DestroyWindow.tpcolorsel; eval $TPcolor(nocolor)}  -font {Helvetica 10}  -highli
     pack configure .tpcolorsel.top  -fill x
   }
 #LISSI
-#if {$TPcolorCmd != ".c configure -background"} {}
-if {$type != "bgcanvas"} {
-  pack .tpcolorsel.opacity  -expand 1  -fill x -anchor n
-} else {
+  if {$type != "bgcanvas"} {
+    pack .tpcolorsel.opacity  -expand 1  -fill x -anchor n
+  } else {
     set TPcolor(opacity) 1.0
-}
-if {$type == "image"} {
-  pack .tpcolorsel.tintamount  -expand 1  -fill x -anchor n
-}
+  }
+  if {$type == "image"} {
+    pack .tpcolorsel.tintamount  -expand 1  -fill x -anchor n
+  }
   if {$tfill != "gradient"} {
-  pack configure .tpcolorsel.c  -expand 1  -fill both  -anchor n
+    pack configure .tpcolorsel.c  -expand 1  -fill both  -anchor n
   }
   pack configure .tpcolorsel.frame0  -fill x  -side bottom
 #Метку меняем на canvas prect
@@ -1794,7 +1928,7 @@ if {$type == "image"} {
           -fillopacity $TPcolor(opacity) \
           -strokewidth 0
     }
-EndSrc.tpcolorsel
+    EndSrc.tpcolorsel
 }
 
 proc DestroyWindow.tpcolorsel {} {
@@ -1803,13 +1937,11 @@ proc DestroyWindow.tpcolorsel {} {
 }
 
 proc EndSrc.tpcolorsel {} {
-global TPcolor
+    global TPcolor
 
-wm iconphoto .tpcolorsel tkpaint_icon
-TP_ColorCanvasFill .tpcolorsel.c.canvas
-#TP_ColorCanvasFill .c
-#puts "EndSrc.tpcolorsel ::$TPcolor(varname)"
-TP_ColorSetSample [set ::$TPcolor(varname)]
+    wm iconphoto .tpcolorsel tkpaint_icon
+    TP_ColorCanvasFill .tpcolorsel.c.canvas
+    TP_ColorSetSample $TPcolor(rgb)
 }
 
 # Procedure: TP_CVpropsValueSel
@@ -1917,11 +2049,17 @@ if {![catch {winfo rgb . $rgb}]} {
 	$TPcolor(label) config -bg $rgb
     }
 
-    if {[string length $TPcolorCmd] > 0} { 
+#    if {[string length $TPcolorCmd] > 0} {}
+    if {1} {
+if {0} { 
 	if {$tfill == "color"} {
 	    catch "$TPcolorCmd" 
 	} elseif {$tfill == "gradient"} {
 	    catch "$TPcolor(cmdopacity)" 
+	}
+}
+	foreach id $TPcolor(svggroup) {
+	    catch "$TPcolor($id,colorCmd)" 
 	}
 #LISSI	
 	set id [.tpcolorsel.top.right.color find withtag labelColor]

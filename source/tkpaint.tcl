@@ -4603,63 +4603,17 @@ proc deformGroupMode {} {
 
 ######## GROUP LINE COLOR:
 proc editGroupLineColor {} {
-#LISSI
-  global Canv
-  global TPcolor
-  global TPcolorCmd
-  global TPcurCanvas
-
    set undo [getGroupCommand 1]
    set group [.c find withtag Selected]
    if {[llength $group]==0} {
      Message "First you need to select a group of objects!"
      return
    }
-###############
 #LISSI
-  if {[.c type $group] == "pimage" } {return}
-   foreach id $group {
-	set TPcolor(varname) "Canv(outline)"
-	set TPcolor(label) ".c"
-	set TPcurCanvas $id
-#Цвет строки
-	set svg 0
-	set utagid [.c itemcget $id -tags]
-	if {[lsearch $utagid "svg"] != -1} {
-	    set svg 1
-	    set propname "stroke"
-	} else {
-	    set propname "outline"
-	}
-	set Canv(outline)  [.c itemcget $id -$propname]
-	set TPcolor(rgb) $Canv(outline)
-	if {$svg == 1} {
-	    set stropa [.c itemcget $id -strokeopacity]
-	    set TPcolorCmd ".c itemconfigure $id -$propname \$rgb -strokeopacity \$TPcolor(opacity)"
-	    set TPcolor(opacity) $stropa
-	    if {$Canv(outline) == ""} {
-		set TPcolor(cancel) ".c itemconfigure $id -$propname {} -strokeopacity $stropa"
-	    } else {
-		set TPcolor(cancel) ".c itemconfigure $id -$propname $Canv(outline) -strokeopacity $stropa"
-	    }
-	} else {
-	    set TPcolorCmd ".c itemconfigure $id -$propname \$rgb"
-	    set TPcolor(cancel) ".c itemconfigure $id -$propname $Canv(outline)"
-	    set TPcolor(opacity) 1.0
-	}
-#puts "editGroupLineColor: $TPcolorCmd; group=$group"
-
-	set TPcolor(nocolor) ".c itemconfigure $id -$propname  {}"
-
-	set color [ShowWindow.tpcolorsel "line"]
-#puts "editGroupLineColor: group=$group"
-    	tkwait window .tpcolorsel
-	catch {unset TPcolor}
-    }
+TP_tpcolorlineGroup $group
 return
-################   
-
-
+   
+   set color [tk_chooseColor -title "Choose Group Outline Color"]
    if {$color==""} {return}
    set cmd ""
    foreach id $group {
@@ -4824,12 +4778,12 @@ proc editGroupLineWidth {} {
         set cmd ""
         foreach id [.c find withtag Selected] {
             set type [.c type $id]
-            if {$type=="text" || $type=="image" || $type=="bitmap"} {
+            if {$type=="text" || $type=="image" || $type=="pimage" || $type=="bitmap"} {
               continue
             }
             set utag [Utag find $id]
-	    set utagid [.c itemcget $id -tags]
-	    if {[lsearch $utagid "svg"] != -1} {
+#puts "editGroupLineWidth: id=$id type=[.c type $id]"
+	    if {[idissvg $id]} {
         	set lw [.c itemcget $id -strokewidth]
         	append cmd [list .c itemconfigure $utag -strokewidth $lw]\;
             } else {
@@ -4981,24 +4935,33 @@ proc reflect {mode} {
    set x0 [expr ($BBox(x1)+$BBox(x2))/2.0]
    set y0 [expr ($BBox(y1)+$BBox(y2))/2.0]
    set cmd ""
+#LISSI
+set utags [list]
+   set groupsvg [list]
+   if {[llength $groupsvg] > -1} {
+    set idrect [.c create prect [.c bbox mainBBox] -stroke ""]
+    .c itemconfigure $idrect -tags "Prect svg obj utag$idrect Selected"
+    append group " $idrect"
+    drawBoundingBox
+   }
+   foreach id $group {
+	if {![idissvg $id] } {
+    	    continue
+	}
+    	set utag [Utag find $id]
+    	lappend utags $utag
+    	lappend groupsvg $id
+    	.c addtag svggroup withtag $id
+    	.c dtag $id Selected
+   }
 
    foreach id $group {
 #LISSI
-       if {![idissvg $id] } {
-
-	    set id [shape2spline $id]
-#LISSI
-       } else {
-    	    set utag [Utag find $id]
-    	    lappend utags $utag
-    	    if {$mode=="x"} {
-		scaleid2xy $id 1 -1 
-    	    } else {
-		scaleid2xy $id -1 1
-    	    }
+       if {[idissvg $id] } {
     	    continue
        }
        
+       set id [shape2spline $id]
        set utag [Utag find $id]
        lappend utags $utag
        append cmd ".c delete $utag \;"
@@ -5006,9 +4969,6 @@ proc reflect {mode} {
        append cmd ".c create $type "
        set coords [.c coords $id]
        set new_coords {}
-#LISSI
-       if {![idissvg $id] } {
-
        if {$mode=="x"} {
            foreach {x y} $coords {
               lappend new_coords $x [expr (2*$y0)-$y]
@@ -5018,101 +4978,6 @@ proc reflect {mode} {
               lappend new_coords [expr (2*$x0)-$x] $y
            }
        }
-       
-       } else {
-#Разбор PATH
-    	    set csvg $coords
-    	    set i 0
-    	    set coords1 $coords
-    	    if {$mode=="x"} {
-		while {$i < [llength $coords]} {
-        	    foreach {sym} $coords1 {break}
-		    if {[string is alpha -strict $sym]} {
-			set ar ""
-			switch $sym {
-			    C -  L - M {
-				puts "reflect x M - C - L: sym=$sym"
-			    }
-			    A  {
-				puts "reflect x A: sym=$sym"
-				set i1 [expr {$i + 1}]
-				set i2 [expr {$i + 5}]
-				set ar [lrange $coords $i1 $i2]
-				set last [lindex $ar 4]
-				if {$last == 0} {
-				    set ar [lreplace $ar 4 4 1]
-				} else {
-				    set ar [lreplace $ar 4 4 0]
-				}
-			    }
-			    default {
-				puts "reflect x default: sym=$sym"
-			    }
-			}
-			incr i
-            		lappend new_coords $sym
-			if {$ar != ""}  {
-            		    append new_coords " $ar "
-            		    incr i 5
-            		}
-			set csvg [lrange $coords $i end]
-			set coords1 [lrange $coords $i end]
-			continue
-		    }
-        	    foreach {x y} $csvg {break}
-        	    incr i 2
-            	    lappend new_coords $x [expr (2*$y0)-$y]
-		    set csvg [lrange $coords $i end]
-		    set coords1 [lrange $coords $i end]
-		}
-		set new_coords "\"$new_coords\""
-    	    } else {
-		while {$i < [llength $coords]} {
-        	    foreach {sym} $coords1 {break}
-		    if {[string is alpha -strict $sym]} {
-			set ar ""
-			switch $sym {
-			    C - L - M {
-				puts "reflect y M-C-L: sym=$sym"
-			    }
-			    A  {
-				puts "reflect y A: sym=$sym"
-				set i1 [expr {$i + 1}]
-				set i2 [expr {$i + 5}]
-				set ar [lrange $coords $i1 $i2]
-				set last [lindex $ar 4]
-				if {$last == 0} {
-				    set ar [lreplace $ar 4 4 1]
-				} else {
-				    set ar [lreplace $ar 4 4 0]
-				}
-			    }
-			    default {
-				puts "reflect y default: sym=$sym"
-			    }
-			}
-			incr i
-            		lappend new_coords $sym
-			if {$ar != ""}  {
-            		    append new_coords " $ar "
-            		    incr i 5
-            		}
-			set csvg [lrange $coords $i end]
-			set coords1 [lrange $coords $i end]
-			continue
-		    }
-        	    foreach {x y} $csvg {break}
-        	    incr i 2
-            	    lappend new_coords [expr (2*$x0)-$x] $y
-		    set csvg [lrange $coords $i end]
-		    set coords1 [lrange $coords $i end]
-		}
-		set new_coords "\"$new_coords\""
-    	    }
-    
-       }
-       
-       
        append cmd $new_coords " "
        set options [getObjectOptions $utag 1]
        if {$type=="text" || $type=="image" || $type=="bitmap"} {
@@ -5139,6 +5004,19 @@ proc reflect {mode} {
    foreach u $utags {
        .c addtag Selected withtag $u
    }
+#   drawBoundingBox
+   if {[llength $groupsvg] > 0} {
+    	if {$mode=="x"} {
+	    scaleid2xy svggroup 1 -1
+    	} else {
+	    scaleid2xy svggroup -1 1
+    	}
+	foreach id $groupsvg {
+	    .c dtag $id svggroup
+	}
+   }
+    .c delete $idrect
+
    drawBoundingBox
 
    History add $cmd
