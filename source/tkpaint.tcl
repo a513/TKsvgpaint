@@ -2578,16 +2578,12 @@ puts "proc Image - УБРАТЬ 0"
 	        if {$Image(embed)} {
             	    set imcmd ""
             	    $Image(name) configure -file {}
-            	    $Image(name) configure -height [image height $Image(name)]
-            	    $Image(name) configure -width  [image width $Image(name)]
 		}
-            	.c itemconfigure $id -height [image height $Image(name)]
-            	.c itemconfigure $id -width  [image width $Image(name)]
             } err]
          }
          pimage {
 	     set extf [file extension $Image(file)]
-puts "Image extf=$extf"
+#puts "Image extf=$extf"
 	     if {$Image(embed) && [string tolower $extf] != ".svg"} {
 #puts "proc Image - УБРАТЬ 0 for PIMAGE"
 		      set fin [open $Image(file)]

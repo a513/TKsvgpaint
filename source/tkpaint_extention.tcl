@@ -1484,14 +1484,33 @@ proc TP_tpfillGroup {group} {
     set TPcolor(group) [list]
     set TPcolor(svggroup) [list]
     foreach id $group {
-	set idfill [.c itemcget $id -fill]
+	if {[.c type $id] == "image"} {
+	    continue
+	}
+	if {[.c type $id] == "pimage"} {
+	    set idfill [.c itemcget $id -tintcolor]
+	} else {
+	    set idfill [.c itemcget $id -fill]
+	}
 	set TPcolor(rgb) $idfill
 	if {$idfill == ""} {
-	    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill {}"]
+	    if {[.c type $id] == "pimage"} {
+		set TPcolor($id,cancel) [subst ".c itemconfigure $id -tintcolor {}"]
+	    } else {
+		set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill {}"]
+	    }
 	} else {
-	    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill"]
+	    if {[.c type $id] == "pimage"} {
+		set TPcolor($id,cancel) [subst ".c itemconfigure $id -tintcolor $idfill"]
+	    } else {
+		set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill"]
+	    }
 	}
-	set TPcolor($id,nocolor) [subst ".c itemconfigure $id -fill  {}"]
+	if {[.c type $id] == "pimage"} {
+	    set TPcolor($id,nocolor) [subst ".c itemconfigure $id -tintcolor  {}"]
+	} else {
+	    set TPcolor($id,nocolor) [subst ".c itemconfigure $id -fill  {}"]
+	}
 
 	if {![idissvg $id]} {
 	    lappend TPcolor(group) $id
@@ -1504,10 +1523,16 @@ proc TP_tpfillGroup {group} {
 	} else {
 	    lappend TPcolor(svggroup) $id
 	    .c addtag svggroup withtag $id
-	    set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -fill \\\$rgb -fillopacity \\\$TPcolor(opacity)"]
-	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -fillopacity \\\$TPcolor(opacity)"]
 	    set TPcolor($id,opacity)  [.c itemcget $id -fillopacity]
 	    set TPcolor(opacity)  [.c itemcget $id -fillopacity]
+	    if {[.c type $id] == "pimage"} {
+		set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -tintcolor \\\$rgb -tintamount \\\$TPcolor(tintamount) -fillopacity \\\$TPcolor(opacity)"]
+		set TPcolor($id,tintamount)  [.c itemcget $id -fillopacity]
+		set TPcolor(tintamount)  [.c itemcget $id -fillopacity]
+	    } else {
+		set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -fill \\\$rgb -fillopacity \\\$TPcolor(opacity)"]
+		set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -fillopacity \\\$TPcolor(opacity)"]
+	    }
 	}
     }
     if {[llength $TPcolor(svggroup)] == 0} {
@@ -1517,7 +1542,6 @@ proc TP_tpfillGroup {group} {
     set svggroup $TPcolor(svggroup)
 ############
 	set Canv(fill)  [.c itemcget $id -fill]
-#	set TPcolor(rgb) $Canv(fill)
 	set TPcolor(varname) "Canv(fill)"
 	    set TPcolorCmd ".c itemconfigure $id -fill \$rgb -fillopacity \$TPcolor(opacity)"
 	    set TPcolor(cmdopacity) ".c itemconfigure $id -fillopacity \$TPcolor(opacity)"
@@ -1529,11 +1553,18 @@ proc TP_tpfillGroup {group} {
 	    }
 	    set TPcolor(nocolor) "$TPcurCanvas itemconfigure $id -fill  {}"
 #puts "editGroupFillColor: group=$group type=[.c type $id]"
-    		set color [ShowWindow.tpcolorsel "image"]
-    		tkwait window .tpcolorsel
+    if {[llength $svggroup] == 1} {
+	if {[.c type [lindex $svggroup 0]] == "pimage"} {
+#puts "TP_tpfillGroup: TPcolor(rgb)=$TPcolor(rgb)"
+	    set color [ShowWindow.tpcolorsel "image"]
+	} else {
+	    set color [ShowWindow.tpcolorsel "fill"]
+	}
+    } else {
+	set color [ShowWindow.tpcolorsel "fill"]
+    }
+    tkwait window .tpcolorsel
 
-
-##############
     foreach id $svggroup {
 	.c dtag $id svggroup
     }
@@ -1790,7 +1821,7 @@ proc ShowWindow.tpcolorsel { type } {
 
   catch "destroy .tpcolorsel"
   set tfill [filltype $TPcolor(rgb)]
-
+#puts "ShowWindow.tpcolorsel: TPcolor(rgb)=$TPcolor(rgb)"
   toplevel .tpcolorsel   -background {#dcdcdc}  -highlightbackground {#dcdcdc}
 
   # Window manager configurations
@@ -1808,6 +1839,7 @@ proc ShowWindow.tpcolorsel { type } {
   
   if {$type == "image"} {
     wm title .tpcolorsel "Image tintcolor selection"
+    wm iconphoto .tpcolorsel tkpaint_icon
   } else {
     wm title .tpcolorsel "$type color selection"
   }
