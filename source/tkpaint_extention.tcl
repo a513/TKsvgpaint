@@ -1492,7 +1492,9 @@ proc TP_tpfillGroup {group} {
 	} else {
 	    set idfill [.c itemcget $id -fill]
 	}
-	set TPcolor(rgb) $idfill
+	if {[filltype $idfill] != "gradient"} {
+	    set TPcolor(rgb) $idfill
+	}
 	if {$idfill == ""} {
 	    if {[.c type $id] == "pimage"} {
 		set TPcolor($id,cancel) [subst ".c itemconfigure $id -tintcolor {}"]
@@ -1820,21 +1822,18 @@ proc ShowWindow.tpcolorsel { type } {
   set TPcolor(type) $type
 
   catch "destroy .tpcolorsel"
-  set tfill [filltype $TPcolor(rgb)]
 #puts "ShowWindow.tpcolorsel: TPcolor(rgb)=$TPcolor(rgb)"
+
+  if {![winfo exists TPcolor(rgb)] } {
+    set TPcolor(rgb) #00FFFF
+  }
+
   toplevel .tpcolorsel   -background {#dcdcdc}  -highlightbackground {#dcdcdc}
 
   # Window manager configurations
   wm positionfrom .tpcolorsel ""
   wm sizefrom .tpcolorsel ""
   wm maxsize .tpcolorsel 280 994
-  if {$tfill != "gradient"} {
-    wm minsize .tpcolorsel 280 340
-    wm geometry .tpcolorsel 280x670+200+50
-  } else {
-    wm minsize .tpcolorsel 280 110
-    wm geometry .tpcolorsel 280x70+200+50
-  }
   wm protocol .tpcolorsel WM_DELETE_WINDOW {.tpcolorsel.frame0.button2 invoke}
   
   if {$type == "image"} {
@@ -1842,6 +1841,14 @@ proc ShowWindow.tpcolorsel { type } {
     wm iconphoto .tpcolorsel tkpaint_icon
   } else {
     wm title .tpcolorsel "$type color selection"
+  }
+  set tfill [filltype $TPcolor(rgb)]
+  if {$tfill != "gradient"} {
+    wm minsize .tpcolorsel 280 340
+    wm geometry .tpcolorsel 280x570+200+50
+  } else {
+    wm minsize .tpcolorsel 280 110
+    wm geometry .tpcolorsel 280x70+200+50
   }
 
   # bindings
@@ -1875,7 +1882,7 @@ if {$type == "image"} {
   scale .tpcolorsel.tintamount -width 8 -command {TP_ColorSetSample {}} -font {Helvetica 10} -label {TINTAMOUNT:} -length {240} -orient {horizontal} -digits 2 -resolution {0.1}  -from {0.0} -to {1.0}  -troughcolor {skyblue}  -variable {TPcolor(tintamount)}
 }
 
-  canvas .tpcolorsel.c.canvas  -background {#ffffff}  -borderwidth {2}  -height {350}  -highlightbackground {#ffffff}  -relief {raised}  -scrollregion {0 0 200 19500}  -width {200}  -yscrollcommand {.tpcolorsel.c.sy set}
+  canvas .tpcolorsel.c.canvas  -background {#ffffff}  -borderwidth {2}  -height {250}  -highlightbackground {#ffffff}  -relief {raised}  -scrollregion {0 0 200 19500}  -width {200}  -yscrollcommand {.tpcolorsel.c.sy set}
 
 #  scrollbar .tpcolorsel.c.sy  -activebackground {#dcdcdc}  -background {#dcdcdc}  -borderwidth {2}  -command {.tpcolorsel.c.canvas yview}  -cursor {left_ptr}  -highlightbackground {#dcdcdc}  -troughcolor {#dcdcdc}  -width {15}
   ttk::scrollbar .tpcolorsel.c.sy -command {.tpcolorsel.c.canvas yview} 
