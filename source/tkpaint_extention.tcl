@@ -1422,29 +1422,33 @@ proc TP_tpcolorlineGroup {group} {
 	    lappend TPcolor(group) $id
 	    lappend TPcolor(svggroup) $id
 	    .c addtag svggroup withtag $id
-	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -fill \\\$rgb"]
 #puts "TP_tpcolorlineGroup: type=[.c type $id] id=$id"
 	    set TPcolor($id,opacity)  [.c itemcget $id -stipple]
+#	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -outlinestipple \\\$rgb"]
 	    if {[.c type $id] != "line"} {
+		set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -outlinestipple \\\$stipple"]
 		set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -outline \\\$rgb"]
 		set TPcolor($id,nocolor) [subst ".c itemconfigure $id -outline  {}"]
-		set idfill [.c itemcget $id -outline]
+		set idout [.c itemcget $id -outline]
+		set idfill [.c itemcget $id -fill]
 		if {$idfill == ""} {
-		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -outline {}"]
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -outline {} -fill \"$idfill\""]
 		} else {
-		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -outline $idfill"]
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -outline $idout -fill \"$idfill\""]
 		}
 		set TPcolor(rgb) [.c itemcget $id -outline]
 	    } else {
+		set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -stipple \\\$stipple"]
 		set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -fill \\\$rgb"]
 		set TPcolor($id,nocolor) [subst ".c itemconfigure $id -fill  {}"]
 		set idfill [.c itemcget $id -fill]
+		set idopa [.c itemcget $id -stipple]
 		if {$idfill == ""} {
 		    set TPcolor(rgb) black
 		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill {}"]
 		} else {
 		    set TPcolor(rgb) $idfill
-		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill"]
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill -stipple $idopa "]
 		}
 	    }
 	} else {
@@ -1452,7 +1456,8 @@ proc TP_tpcolorlineGroup {group} {
 	    .c addtag svggroup withtag $id
 	    set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -stroke \\\$rgb -strokeopacity \\\$TPcolor(opacity)"]
 	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -strokeopacity \\\$TPcolor(opacity)"]
-	    set TPcolor($id,opacity)  [.c itemcget $id -fillopacity]
+#	    set TPcolor($id,opacity)  [.c itemcget $id -fillopacity]
+	    set TPcolor($id,opacity)  [.c itemcget $id -strokeopacity]
 	    set TPcolor($id,nocolor) [subst ".c itemconfigure $id -stroke  {}"]
 	    set idfill [.c itemcget $id -stroke]
 	    set strop [.c itemcget $id -strokeopacity]
@@ -2130,7 +2135,15 @@ if {![catch {winfo rgb . $rgb}]} {
 	    if {$TPcolor(opacity) == 0.0} {
 		set stipple ""
 #		catch "TPcolor($id,nocolor)"
-		.c itemconfigure $id -fill {} -stipple {}
+		if {$TPcolor(type) == "fill"} {
+		    .c itemconfigure $id -fill {} -stipple {}
+		} elseif {$TPcolor(type) == "line"} {
+		    if {[.c type $id] == "line"} { 
+			.c itemconfigure $id -fill {} -stipple {}
+		    } else {
+			.c itemconfigure $id -outline {} -outlinestipple {}
+		    }
+		} 
 	    } elseif {$TPcolor(opacity) < 0.13} {
 		set stipple "gray12"
 		catch "$TPcolor($id,cmdopacity)" 
