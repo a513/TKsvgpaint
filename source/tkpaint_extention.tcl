@@ -1397,6 +1397,9 @@ proc TP_tpGradientGroup {group} {
     set TPcolor(gradlast) ""
     
     foreach id $group {
+	if {[.c type $id] == "pimage"} {
+	    continue
+	}
 	if {![idissvg $id]} {
 	    continue
 	}
