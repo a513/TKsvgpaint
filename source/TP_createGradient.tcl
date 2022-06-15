@@ -200,9 +200,9 @@ frame .tpgradient.frameStops -borderwidth {1} -relief {raised}  -borderwidth 2 -
 
     incr i
 frame .tpgradient.frameStops.buts -borderwidth {2} -relief {flat} -background {#d6d2d0} -height {30} -highlightbackground {#d6d2d0} -highlightcolor {#221f1e} -width {30}
-    button .tpgradient.frameStops.buts.butadd -activebackground {skyblue} -background {#d6d2d0} -command {global Gradient; createstop ".tpgradient.frame6" $Gradient(i)} -padx {2} -pady {0} -text "Add stop" -width 10
+    button .tpgradient.frameStops.buts.butadd -activebackground {skyblue} -background {#d6d2d0} -command {global Gradient; createstop ".tpgradient.frame6" $Gradient(i);viewgradient ".tpgradient.frameFirst.canvas18"} -padx {2} -pady {0} -text "Add stop" -width 10
     button .tpgradient.frameStops.buts.butview -activebackground {skyblue} -background {#d6d2d0} -command {viewgradient ".tpgradient.frameFirst.canvas18"} -padx {2} -pady {0} -text "View" -width 10
-    button .tpgradient.frameStops.buts.butok -activebackground {skyblue} -background {#d6d2d0} -command {puts "OK"; okgradient} -padx {2} -pady {0} -text "Ok" -width 10
+    button .tpgradient.frameStops.buts.butok -activebackground {skyblue} -background {#d6d2d0} -command {okgradient} -padx {2} -pady {0} -text "Ok" -width 10
     button .tpgradient.frameStops.buts.butcan -activebackground {skyblue} -background {#d6d2d0} -command {cancelgradient} -padx {2} -pady {0} -text "Cancel" -width 10
     button .tpgradient.frameStops.buts.butdel -activebackground {skyblue} -background {#d6d2d0} -command {deletestop ".tpgradient.frame6"} -padx {2} -pady {0} -text "Delete last" -width 10
 
@@ -233,7 +233,7 @@ frame .tpgradient.frameStops.buts -borderwidth {2} -relief {flat} -background {#
     settransition
     set newgr [creategradient .tpgradient.frameFirst.canvas18]
     puts "newgr=$newgr"
-    
+    gradientcan
 }
 proc TP_selcolorgr {but ind} {
     global Gradient
@@ -245,6 +245,7 @@ proc TP_selcolorgr {but ind} {
     $but configure -background $color
     set Gradient(color$ind) $color
     changestops .tpgradient.frameFirst.canvas18
+    gradientcan
 }
 proc updategradient {} {
     global Gradient
@@ -252,6 +253,7 @@ proc updategradient {} {
     set newgr [creategradient .tpgradient.frameFirst.canvas18]
     set Gradient(newgr) $newgr
     .tpgradient.frameFirst.canvas18 itemconfigure $Gradient(viewgr) -fill $Gradient(newgr)
+    gradientcan
 }
 proc viewgradient {can } {
     changetransition $can
@@ -261,19 +263,39 @@ proc viewgradient {can } {
 proc okgradient {} {
     global Gradient
     global TPcolor
-#    catch {    .tpgradient.frameFirst.canvas18 gradient delete $Gradient(newgr)}
-    set newgr [creategradient .c]
-#    set Gradient(newgr) $newgr
-    .c itemconfigure $TPcolor(id) -fill $newgr
+#    set newgr [creategradient .c]
+#    .c itemconfigure $TPcolor(id) -fill $newgr
     destroy .tpgradient;
     unset Gradient
     unset TPcolor
 }
+
+proc gradientcan {} {
+    global Gradient
+    global TPcolor
+#    catch {    .tpgradient.frameFirst.canvas18 gradient delete $Gradient(newgr)}
+    if {$TPcolor(gradlast) != ""} {
+	.c gradient delete $TPcolor(gradlast)
+    }
+    set newgr [creategradient .c]
+    set TPcolor(gradlast) $newgr
+#    set Gradient(newgr) $newgr
+    foreach id $TPcolor(svggroup) {
+	.c itemconfigure $id -fill $newgr
+    }
+#    destroy .tpgradient;
+#    unset Gradient
+#    unset TPcolor
+}
+
 proc cancelgradient {} {
     global Gradient
     global TPcolor
-    puts "Cancel";
-    eval $TPcolor(cancel)
+puts "cancelgradient: Cancel"
+    foreach id $TPcolor(svggroup) {
+	eval $TPcolor($id,cancel)
+    }
+#    eval $TPcolor(cancel)
     destroy .tpgradient;
     unset Gradient
     unset TPcolor
@@ -295,6 +317,8 @@ proc deletestop {w} {
     set Gradient(i) $i
     incr i -1
     $w.frame$i.spinbox1 configure -to 1.0
+    updategradient
+    gradientcan
 }
 
 
@@ -396,6 +420,7 @@ proc createstop {wfr i} {
     if {$i >= $Gradient(i)} {
 	incr Gradient(i)
     }
+    gradientcan
 }
 proc creategradient {can} {
     global Gradient
@@ -423,6 +448,7 @@ proc changetransition {can} {
     }
     set cmd "$can gradient configure $Gradient(newgr) $tran"
     eval $cmd
+    gradientcan
 }
 proc changestops {can {ind -1} {w ""} } {
     global Gradient
@@ -443,6 +469,7 @@ proc changestops {can {ind -1} {w ""} } {
 	    $w$i.spinbox1 configure -from $Gradient(offset$ind)
 	}
     }
+    gradientcan
 }
 
 proc parsegradient {can grad} {

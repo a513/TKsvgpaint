@@ -1355,7 +1355,7 @@ proc editGroupFillGradient {} {
     return
 }
 
-proc TP_tpGradientGroup {group} {
+proc TP_tpGradientGroup_OLD {group} {
     global TPcolor
     catch {unset TPcolor}
     
@@ -1386,6 +1386,50 @@ proc TP_tpGradientGroup {group} {
 	catch {unset TPcolor}
     }
 }
+proc TP_tpGradientGroup {group} {
+    global TPcolor
+    catch {unset TPcolor}
+    global TPcolorCmd
+    global TPcurCanvas
+    set TPcurCanvas ".c"
+    set TPcolor(svggroup) [list]
+    set TPcolorCmd ""
+    set TPcolor(gradlast) ""
+    
+    foreach id $group {
+	if {![idissvg $id]} {
+	    continue
+	}
+	lappend TPcolor(svggroup) $id
+	.c addtag svggroup withtag $id
+	set idfill  [.c itemcget $id -fill]
+	set TPcolor(rgb)  $idfill
+	if {$idfill == ""} {
+	    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill {}"]
+	} else {
+	    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill"]
+	}
+##################
+	set TPcolor(rgb)  [.c itemcget $id -fill]
+    }
+    if {[llength $TPcolor(svggroup)] < 1} {
+	return
+    }
+    set id svggroup
+    set tfill [filltype $TPcolor(rgb)]
+    set svggroup $TPcolor(svggroup)
+    if {$tfill != "gradient"} {
+	set color [ShowWindow.tpgradient $id ""]
+    } else {
+	set color [ShowWindow.tpgradient $id $TPcolor(rgb)]
+    }
+    tkwait window .tpgradient
+    catch {unset TPcolor}
+    foreach id $svggroup {
+	.c dtag $id svggroup
+    }
+}
+
 #Редактирование fill у группы
 proc TP_tpcolorlineGroup {group} {
     global Canv Graphics
