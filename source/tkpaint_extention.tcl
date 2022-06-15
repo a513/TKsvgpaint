@@ -1448,7 +1448,7 @@ proc TP_tpcolorlineGroup {group} {
 		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill {}"]
 		} else {
 		    set TPcolor(rgb) $idfill
-		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill -stipple $idopa "]
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill -stipple \"$idopa\" "]
 		}
 	    }
 	} else {
