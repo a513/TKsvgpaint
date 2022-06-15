@@ -1354,38 +1354,6 @@ proc editGroupFillGradient {} {
     TP_tpGradientGroup $group
     return
 }
-
-proc TP_tpGradientGroup_OLD {group} {
-    global TPcolor
-    catch {unset TPcolor}
-    
-    foreach id $group {
-	if {![idissvg $id]} {
-	    continue
-	}
-	set TPcolor(rgb)  [.c itemcget $id -fill]
-#  set TPcolorCmd ".c itemconfigure $id -fill \$rgb -fillopacity \$TPcolor(opacity)"
-#	    set TPcolor(cmdopacity) ".c itemconfigure $id -fillopacity \$TPcolor(opacity)"
-#puts "editGroupFillColor: $TPcolorCmd; group=$group"
-	if {$TPcolor(rgb) == ""} {
-	    set TPcolor(cancel) ".c itemconfigure $id -fill {}"
-	} else {
-	    set TPcolor(cancel) ".c itemconfigure $id -fill $TPcolor(rgb)"
-	}
-#	    set TPcolor(nocolor) ".c itemconfigure $id -fill  {}"
-	set TPcolor(id) $id
-	set tfill [filltype $TPcolor(rgb)]
-	if {$tfill != "gradient"} {
-    	    set color [ShowWindow.tpgradient $id "" ]
-#	    puts "TP_ColorSetSample: bad fill=$rgb"
-#	    return
-	} else {
-    	    set color [ShowWindow.tpgradient $id $TPcolor(rgb)]
-	}
-    	tkwait window .tpgradient
-	catch {unset TPcolor}
-    }
-}
 proc TP_tpGradientGroup {group} {
     global TPcolor
     catch {unset TPcolor}
@@ -1552,7 +1520,13 @@ proc TP_tpfillGroup {group} {
 	    if {[.c type $id] == "pimage"} {
 		set TPcolor($id,cancel) [subst ".c itemconfigure $id -tintcolor $idfill"]
 	    } else {
-		set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill"]
+		if {[idissvg $id]} {
+		    set idopa [.c itemcget $id -fillopacity]
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill -fillopacity $idopa"]
+		} else {
+		    set idopa [.c itemcget $id -stipple]
+		    set TPcolor($id,cancel) [subst ".c itemconfigure $id -fill $idfill -stipple \"$idopa\""]
+		}
 	    }
 	}
 	if {[.c type $id] == "pimage"} {
@@ -1566,9 +1540,23 @@ proc TP_tpfillGroup {group} {
 	    lappend TPcolor(svggroup) $id
 	    .c addtag svggroup withtag $id
 	    set TPcolor($id,colorCmd) [subst ".c itemconfigure $id -fill \\\$rgb"]
-	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -fill \\\$rgb"]
-#	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -stipple \$TPcolor(opacity)"]
-	    set TPcolor($id,opacity)  [.c itemcget $id -stipple]
+#	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -fill \\\$rgb"]
+	    set TPcolor($id,cmdopacity) [subst ".c itemconfigure $id -stipple \\\$stipple"]
+	    set stopa  [.c itemcget $id -stipple]
+	    if {$stopa == ""} {
+		set TPcolor($id,opacity)  1.0
+	    } elseif  {$stopa == "gray12"} {
+		set TPcolor($id,opacity)  0.12
+	    } elseif  {$stopa == "gray25"} {
+		set TPcolor($id,opacity)  0.25
+	    } elseif  {$stopa == "gray50"} {
+		set TPcolor($id,opacity)  0.50
+	    } elseif  {$stopa == "gray75"} {
+		set TPcolor($id,opacity)  0.75
+	    } else {
+		set TPcolor($id,opacity)  1.0
+	    }
+	    set TPcolor(opacity) $TPcolor($id,opacity)
 	} else {
 	    lappend TPcolor(svggroup) $id
 	    .c addtag svggroup withtag $id
@@ -1869,9 +1857,8 @@ proc ShowWindow.tpcolorsel { type } {
   set TPcolor(type) $type
 
   catch "destroy .tpcolorsel"
-#puts "ShowWindow.tpcolorsel: TPcolor(rgb)=$TPcolor(rgb)"
 
-  if {![winfo exists TPcolor(rgb)] } {
+  if {![info exists TPcolor(rgb)] } {
     set TPcolor(rgb) #00FFFF
   }
 
@@ -2137,15 +2124,34 @@ if {![catch {winfo rgb . $rgb}]} {
 
 #    if {[string length $TPcolorCmd] > 0} {}
     if {1} {
-if {0} { 
-	if {$tfill == "color"} {
-	    catch "$TPcolorCmd" 
-	} elseif {$tfill == "gradient"} {
-	    catch "$TPcolor(cmdopacity)" 
-	}
-}
 	foreach id $TPcolor(svggroup) {
 	    catch "$TPcolor($id,colorCmd)" 
+	  if {![idissvg $id]} {	        
+	    if {$TPcolor(opacity) == 0.0} {
+		set stipple ""
+#		catch "TPcolor($id,nocolor)"
+		.c itemconfigure $id -fill {} -stipple {}
+	    } elseif {$TPcolor(opacity) < 0.13} {
+		set stipple "gray12"
+		catch "$TPcolor($id,cmdopacity)" 
+	    } elseif {$TPcolor(opacity) < 0.26} {
+		set stipple "gray25"
+		catch "$TPcolor($id,cmdopacity)" 
+	    } elseif {$TPcolor(opacity) < 0.51} {
+		set stipple "gray50"
+		catch "$TPcolor($id,cmdopacity)" 
+	    } elseif {$TPcolor(opacity) < 0.76} {
+		set stipple "gray75"
+		catch "$TPcolor($id,cmdopacity)" 
+	    } else {
+		set stipple ""
+		catch "$TPcolor($id,cmdopacity)" 
+	    }
+	  } else {
+	    if {[.c type $id] != "pimage"} {
+		catch "$TPcolor($id,cmdopacity)" 
+	    }
+	  }
 	}
 #LISSI	
 	set id [.tpcolorsel.top.right.color find withtag labelColor]
