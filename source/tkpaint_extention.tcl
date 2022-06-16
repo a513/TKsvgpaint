@@ -916,7 +916,7 @@ global TPfontStyle
   set fslantOrig [.c itemcget $id -fontslant]
   set fweightOrig [.c itemcget $id -fontweight]
   set TPfontStyle [list $fweightOrig $fslantOrig]
-  set fontCmdCancel [subst ".c itemconfigure $id  -fontfamily $ffamOrig -fontsize $fsizeOrig -fontweight $fweightOrig -fontslant $fslantOrig"]
+  set fontCmdCancel [subst ".c itemconfigure $id  -fontfamily \"$ffamOrig\" -fontsize $fsizeOrig -fontweight $fweightOrig -fontslant $fslantOrig"]
   set fontCmdItem "if {\[llength \$TPfontStyle] < 2} {lappend TPfontStyle normal};"
 #  set fontCmdItem [subst ".c itemconfigure $id"]
   append fontCmdItem [subst ".c itemconfigure $id"]
