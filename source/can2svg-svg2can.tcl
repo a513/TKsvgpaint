@@ -2172,8 +2172,16 @@ proc can2svg::makedocument {width height xml} {
 	set viewbox " viewBox='$x1 $y1 $width $height'"
     }
 #puts "can2svg::makedocument: viewvox=$viewbox"
+    switch -- $::tcl_platform(platform) {
+	"windows"        {
+	    set enc " encoding='cp1251'"
+	}
+	"unix" - default {
+	    set enc "encoding='utf-8'"
+	}
+    }
 
-    set pre "<?xml version='1.0'?>\n\
+    set pre "<?xml version='1.0' $enc?>\n\
       <!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\
       \"Graphics/SVG/1.1/DTD/svg11.dtd\">"
     set svgStart "<svg width='$width' height='$height' $viewbox version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'>"
