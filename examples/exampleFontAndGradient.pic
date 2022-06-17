@@ -45,8 +45,8 @@ set utagCounter 4
 set Image(ctr) 1
 
 
-set Canv(H) 396
-set Canv(W) 763
+set Canv(H) 398
+set Canv(W) 765
 set Canv(SH) 1500
 set Canv(SW) 1500
 set Canv(bg) white
@@ -957,7 +957,7 @@ image create photo image3 -data {
 	} -gamma 1.0 -height 0 -width 0
 
 
-set gradient65 [.c gradient create linear -method pad -units bbox -stops { { 0.0 #ffd800 0.5} { 0.5 #00d600 0.8} { 1.0 #f80453 1.0}} -lineartransition {0.0 0.0 1.0 0.0} ]
+set gradient0 [.c gradient create linear -method pad -units bbox -stops { { 0.0 #ffd800 0.5} { 0.5 #00d600 0.8} { 1.0 #f80453 1.0}} -lineartransition {0.0 0.0 1.0 0.0} ]
 
 
 set Image(hist) {
@@ -965,7 +965,7 @@ set Image(hist) {
 }
 
 
-.c create prect {81.0 116.0 290.0 212.0} -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #A50000 -strokewidth 2.0 -rx 10.0 -tags {RoundRect obj svg utag1} -fill $gradient65
+.c create prect {81.0 116.0 290.0 212.0} -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #A50000 -strokewidth 2.0 -rx 10.0 -tags {RoundRect obj svg utag1} -fill $gradient0
 .c create pimage {365.0 202.0} -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -fillopacity 0.8 -height 99.0 -image Tkpaint_image1 -width 209.0 -anchor c -tintcolor #00BC00 -tintamount 0.1 -tags {image photo obj svg utag2 spline}
 .c create polygon {438.0 80.0 438.0 80.0 591.0 80.0 591.0 80.0 616.0 80.0 616.0 105.0 616.0 105.0 616.0 173.0 616.0 173.0 616.0 198.0 591.0 198.0 591.0 198.0 438.0 198.0 438.0 198.0 413.0 198.0 413.0 173.0 413.0 173.0 413.0 105.0 413.0 105.0 413.0 80.0} -fill #009F00 -outline #A50000 -smooth true -stipple gray50 -width 2.0 -tags {RoundRect obj utag3}
-.c create ptext {306.0 295.0} -fill #00FFB1 -fillopacity 0.4 -matrix {{0.9334965869011103 0.3585318061135976} {-0.35858406730157566 0.9335183641106578} {320.6219144008424 -116.67876418772073}} -stroke #FF9A00 -strokelinejoin miter -strokewidth 3.0 -fontfamily {Nimbus Sans L} -fontsize 40.0 -fontweight bold -text {Это Я!} -textanchor c -filloverstroke 0 -tags {text obj svg utag4}
+.c create ptext {306.0 295.0} -fill #00FFB1 -fillopacity 0.4 -matrix {{0.9334965869011103 0.3585318061135976} {-0.35858406730157566 0.9335183641106578} {320.6219144008424 -116.67876418772073}} -stroke #FF9A00 -strokelinejoin miter -strokewidth 3.0 -fontfamily Z003 -fontsize 68.0 -fontweight bold -text {Это Я!} -textanchor c -filloverstroke 0 -tags {text obj svg utag4}

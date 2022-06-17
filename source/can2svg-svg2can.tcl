@@ -1304,6 +1304,11 @@ proc can2svg::MakeStyleAttr {type opts} {
     }
     if {$svg && ($type == "ellipse" || $type == "pimage" || $type == "path" || $type == "polyline" || $type == "prect" || $type == "ppolygon" || $type == "ptext")} {
 	foreach {key value} [lrange $opts 0 end] {
+	    if {$type == "prect"} {
+		if {$key == "-rx" || $key == "-ry"} {
+		    continue
+		}
+	    }
 	    if {$key == "-tags" || $key == "-parent" || $key == "-state"} {continue}
 #puts "can2svg::MakeStyleAttr key=$key value=$value"    
 	    if {[string length $key] > 7 && [string range $key 0 6]  == "-stroke"} {
@@ -1311,6 +1316,16 @@ proc can2svg::MakeStyleAttr {type opts} {
 	    }
 	    if {[string length $key] > 5 && [string range $key 0 4]  == "-font"} {
 		set key [string replace $key 0 4 "-font-"]
+		if {$key == "-font-size"} {
+    		    if {$value > 0} {
+        		# pixels (actually user units)
+        		set funit pt
+    		    } else {
+        		# points
+        		set funit px
+    		    }        
+    		    set  value "[expr abs($value)]$funit"
+		}
 	    }
 	    if {$key  == "-fillopacity"} {
 		set key "-fill-opacity"
@@ -1325,8 +1340,10 @@ proc can2svg::MakeStyleAttr {type opts} {
 #	return [string trim $style]
     }
     
-#puts "can2svg::MakeStyleAttr: opts=$opts"
+#puts "can2svg::MakeStyleAttr: type=$type opts=$opts"
+#puts "can2svg::MakeStyleAttr: style=$style"
     foreach {key value} [MakeStyleList $type $opts] {
+#puts "can2svg::MakeStyleAttr: key=$key value=$value"
         append style "${key}: ${value}; "
     }
 #puts "can2svg::MakeStyleAttr: style=$style"
