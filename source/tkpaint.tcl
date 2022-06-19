@@ -6034,6 +6034,13 @@ puts "Файл $File(img,name) записан!"
          foreach name [lsort [array names Zoom]] {
             puts $fd [list set Zoom($name) $Zoom($name)]
          }
+#LISSI
+	 puts $fd "\n"
+	 puts $fd "set Canv(system) \[tk windowingsystem\]"
+         puts $fd "set Canv(enctek) \[encoding system\]"
+         puts $fd "set Canv(encpic) [encoding system]"
+         puts $fd "set Canv(enccmd) \"encoding convertfrom [encoding system] \"\n"
+
          puts $fd "set utagCounter $utagCounter\n\n"
          puts $fd "set Image(ctr) $Image(ctr)\n\n"
          puts $fd "set Canv(H) $Canv(H)"
@@ -6049,10 +6056,22 @@ puts "Файл $File(img,name) записан!"
          puts $fd ".c xview moveto 0"
          puts $fd ".c yview moveto 0"
 
+set ticount 0
          foreach name [array names TextInfo] {
             puts $fd [list set TextInfo($name) $TextInfo($name)]
+            incr ticount
          }
 #LISSI
+	if {$ticount > 0} {
+    	    puts $fd "if {\$Canv(enctek) != \$Canv(encpic)} {"
+    	    puts $fd "   if {\$Canv(system) == \"win32\"} {"
+    	    puts $fd "      foreach name \[array names TextInfo\] { "
+	    puts $fd "		set TextInfo(\$name) \[subst {\$Canv(enccmd) \"\[encoding convertto \$Canv(enctek) \$TextInfo(\$name)\]\"}\]"
+    	    puts $fd "      }"
+    	    puts $fd "   }"
+    	    puts $fd "}"
+	}
+
 	 set imagesall [TP_Clone_images]
          puts $fd "$imagesall"
 	 set gradientsall [TP_CloneGradients]
@@ -6072,7 +6091,7 @@ puts "Файл $File(img,name) записан!"
          foreach id [.c find withtag obj] {
 #LISSI
 	    set cmd [getObjectCommand $id 1]
-#puts "File cmd=$cmd"
+#puts "File type=$type cmd=$cmd"
 	    set ind [lsearch $cmd "-fill"]
 	    if {$ind > -1} {
 		set indo $ind
@@ -6085,7 +6104,31 @@ puts "Файл $File(img,name) записан!"
 		    append cmd " -fill \$$grad"
 		}
 	    }
-            puts $fd $cmd
+	    set tid [.c type $id]
+	    if {$tid == "ptext" || $tid == "text"} {
+        	puts $fd "if {\$Canv(enctek) != \$Canv(encpic)} {"
+#Encoding for Win32: from utf-8 to cp1251
+        	puts $fd "   if {\$Canv(system) == \"win32\" } {"
+#		set cmdtext "eval \[eval \[subst \"\$Canv(enccmd)  \{$cmd\}\"\]\]"
+		set cmdtext "eval \[eval \[subst \"\$Canv(enccmd) \{\[eval \[subst \{encoding convertto cp1251 \{$cmd\}\}\]\]\}\"\]\]"
+        	puts $fd "      $cmdtext"
+        	
+        	
+        	puts $fd "   } else {"
+
+
+		set cmdtext "eval \[eval \[subst \"\$Canv(enccmd) \{$cmd\}\"\]\]"
+        	puts $fd "     $cmdtext"
+        	puts $fd "   }"
+        	
+        	puts $fd "} else {"
+        	puts $fd  "      $cmd"
+        	puts $fd "}"
+#eval [eval [subst "$Canv(enccmd) \".c create ptext {200.0 350.0} -matrix {{1.0 0.0} {0.0 1.0} {-41.0 -248.0}} -fontsize 10.0 -text {ptext ÐÓÑÑÊÈÉ / ENGLISH} -textanchor c -filloverstroke 0 -tags {text obj svg utag1} \""]]
+
+	    } else {
+        	puts $fd "     $cmd"
+            }
 
 #            puts $fd [getObjectCommand $id 1]
          }
