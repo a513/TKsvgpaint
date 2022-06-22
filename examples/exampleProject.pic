@@ -52,8 +52,8 @@ set utagCounter 42
 set Image(ctr) 9
 
 
-set Canv(H) 540
-set Canv(W) 962
+set Canv(H) 544
+set Canv(W) 966
 set Canv(SH) 1500
 set Canv(SW) 1500
 set Canv(bg) white
@@ -1579,7 +1579,7 @@ Zm1zg/eDGBUGtDo9FnnBdayTM5CXkuWyAK0/voI/Xv9v18Vo7M4urvju//wuO0/3GF0ueOv7
 b3F+du61lcArtwdsd/x4tv8NWbUM+TOKTKEAAAAASUVORK5CYII=} -gamma 1.0 -height 105 -width 166
 
 
-set gradient5942 [.c gradient create linear -method pad -units bbox -stops { { 0.05 red 1.0} { 0.2 black 0.7} { 0.4 #06ceeb 1.0} { 0.68 #f60838 0.8} { 0.85 skyblue 1.0} { 0.95 #24ce36 1.0}} -lineartransition {0.0 0.0 1.0 0.0} ]
+set gradient3 [.c gradient create linear -method pad -units bbox -stops { { 0.05 red 1.0} { 0.2 black 0.7} { 0.4 #06ceeb 1.0} { 0.68 #f60838 0.8} { 0.85 skyblue 1.0} { 0.95 #24ce36 1.0}} -lineartransition {0.0 0.0 1.0 0.0} ]
 
 
 set Image(hist) {
@@ -1593,7 +1593,7 @@ set Image(hist) {
      .c create ppolygon {127.0 397.0 382.0 397.0 382.0 516.0 127.0 516.0} -fill #1AA8CB -fillopacity 0.7 -matrix {{0.9135456015508376 -0.40673631985245445} {0.40673631985245445 0.9135456015508376} {-163.67248560733364 142.98082629449226}} -stroke #00A800 -strokeopacity 0.8 -strokewidth 14.0 -tags {Polygon obj svg utag22 spline}
      .c create prect {489.0 426.0 806.0 570.0} -fillopacity 0.7 -matrix {{0.9743701078966711 0.22495086760763883} {-0.22495086760763883 0.9743701078966711} {128.62088720550963 -132.89200050848837}} -stroke #FF0000 -strokelinejoin bevel -strokewidth 24.0 -tags {Rectangle obj svg utag23 spline utag24}
      .c create pimage {293.0 166.0} -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -fillopacity 0.7 -height 105.0 -image image6 -width 166.0 -anchor c -tintamount 0.7 -tags {image photo obj svg utag26 spline}
-     .c create polyline {343.6582317112556 291.90270905574516 343.85588648701287 291.72764339721715} -fillopacity 0.7 -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #FF0000 -strokeopacity 0.5 -strokewidth 5.0 -startarrow 1 -endarrow 1 -tags {Line obj svg utag27}
+     .c create polyline {343.65823171125567 291.90270905574516 343.8558864870129 291.7276433972172} -fillopacity 0.7 -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #FF0000 -strokeopacity 0.5 -strokewidth 5.0 -startarrow 1 -endarrow 1 -tags {Line obj svg utag27}
      .c create path {M 342.0 264.0 C 342.0 264.0 396.0 227.0 502.0 231.0 C 608.0 235.0 547.0 287.0 537.0 350.0 C 527.0 413.0 487.0 370.0 387.0 377.0 C 287.0 384.0 336.0 317.0 336.0 317.0 Z} -fill #D6B931 -fillopacity 0.7 -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #FF4500 -strokewidth 2.0 -tags {Polygon obj svg utag28}
 if {$Canv(enctek) != $Canv(encpic)} {
    if {$Canv(system) == "win32" } {
@@ -1604,12 +1604,12 @@ if {$Canv(enctek) != $Canv(encpic)} {
 } else {
       .c create ptext {240.0 171.0} -fill #FF0000 -fillopacity 0.7 -matrix {{0.987688361350774 -0.15643433399424453} {0.15643433399424453 0.987688361350774} {-23.717260670204453 39.643374548311726}} -stroke #FFFF34 -fontfamily Times -fontsize 72.0 -fontweight bold -text SVG -textanchor c -filloverstroke 0 -tags {text obj svg utag31}
 }
-     .c create polyline {455.0 136.0 609.0 136.0} -fillopacity 0.7 -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #248000 -strokeopacity 0.8 -strokewidth 49.0 -endarrow 1 -tags {Line obj svg utag20}
+     .c create polyline {455.0 136.0 599.0 136.0} -fillopacity 0.7 -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #248000 -strokeopacity 0.8 -strokewidth 49.0 -endarrow 1 -tags {Line obj svg utag20}
      .c create polygon {47.0 373.0 47.0 373.0 65.0 340.0 119.0 343.0 98.0 370.0 106.0 402.0 64.0 402.0} -fill #FF0000 -outline #240000 -tags {Polygon obj utag33}
      .c create line {708.0 145.0 735.0 126.0 762.0 140.0 782.0 155.0 803.0 125.0 825.0 146.0} -arrow both -arrowshape {8 10 4} -fill #FF1103 -joinstyle miter -smooth true -width 3.0 -tags {Line obj utag34}
      .c create path {M 48.0 111.0 C 48.0 111.0 91.0 86.0 134.0 121.0 C 177.0 156.0 165.0 99.0 165.0 99.0} -fillopacity 0.7 -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #4600FF -strokewidth 4.0 -tags {Line obj svg utag35}
-     .c create polyline {73.61755040270297 161.2371436201904 90.0 141.0 112.20101012677667 163.20101012677665} -fillopacity 0.7 -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #26C500 -strokelinejoin miter -strokewidth 4.0 -startarrow 1 -endarrow 1 -tags {Line obj svg utag39}
-     .c create prect {66.0 230.0 270.0 315.0} -fillopacity 0.7 -matrix {{1.0 0.0} {0.0 1.0} {76.0 25.0}} -stroke #E24B00 -strokelinejoin miter -strokewidth 3.0 -rx 23.0 -tags {Rectangle obj svg utag21} -fill $gradient5942
+     .c create polyline {78.6511362320467 155.0191846545306 90.0 141.0 106.5441558772843 157.5441558772843} -fillopacity 0.7 -matrix {{1.0 0.0} {-0.0 1.0} {0.0 0.0}} -stroke #26C500 -strokelinejoin miter -strokewidth 4.0 -startarrow 1 -endarrow 1 -tags {Line obj svg utag39}
+     .c create prect {66.0 230.0 270.0 315.0} -fillopacity 0.7 -matrix {{1.0 0.0} {0.0 1.0} {76.0 25.0}} -stroke #E24B00 -strokelinejoin miter -strokewidth 3.0 -rx 23.0 -tags {Rectangle obj svg utag21} -fill $gradient3
 if {$Canv(enctek) != $Canv(encpic)} {
    if {$Canv(system) == "win32" } {
       eval [eval [subst "$Canv(enccmd) {[eval [subst {encoding convertto cp1251 {.c create text {530.0 107.0} -angle 11.309932474020213 -fill #409AFF -font {Helvetica 18 bold} -text {Это не SVG-текст} -tags {text obj utag40 spline}}}]]}"]]

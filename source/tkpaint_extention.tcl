@@ -2129,6 +2129,8 @@ if {![catch {winfo rgb . $rgb}]} {
 
 #    if {[string length $TPcolorCmd] > 0} {}
     if {1} {
+#LISSI	
+      if {[info exists TPcolor(svggroup)]} {
 	foreach id $TPcolor(svggroup) {
 	    catch "$TPcolor($id,colorCmd)" 
 	  if {![idissvg $id]} {	        
@@ -2166,7 +2168,7 @@ if {![catch {winfo rgb . $rgb}]} {
 	    }
 	  }
 	}
-#LISSI	
+      }
 	set id [.tpcolorsel.top.right.color find withtag labelColor]
 	if {$tfill == "gradient"} {
 	    set cmd [CloneGradForCanvad $TPcolor(rgb) ".tpcolorsel.top.right.color"]
@@ -2297,7 +2299,7 @@ proc TP_saveGroupToFileOrImage {type {cur ""}} {
 
     set TPtoolpath ".c"
 #type 0 - сохранить в файле. 1 - создать image png, усли $cur!= "", то снимок одиночного объекта
-#type 2 - пересоздать изображение, при прищании и других деформациях. При этом в cur лежит id изображения
+#type 2 - пересоздать изображение, при вращении и других деформациях. При этом в cur лежит id изображения
 #LISSI
 set typeP $type
     if {$cur == ""} {

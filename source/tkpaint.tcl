@@ -5773,9 +5773,9 @@ set File(saved) 1
 
 #LISSI
 set File(img,types) {
-   {{img gif} {.gif} }
    {{img png} {.png} }
    {{img jpg} {.jpg} }
+   {{img gif} {.gif} }
    {{All files} * }
 }
 
@@ -5960,7 +5960,10 @@ Would you like to exit tkpaint?" \
 	    }
 	    raise [winfo toplevel .c]
 	    update
-    	    set canimg [image create photo -format window -data .c]
+#Снимаем картинку из полного холста
+	    set canimg [fullcanvas .c]
+#Снимок только видимой части холств
+#    	    set canimg [image create photo -format window -data .c]
             switch -- [file extension $File(img,name)] {
         	".png" {set fformat "PNG"}
                 ".gif" {set fformat "GIF"}
@@ -5976,12 +5979,20 @@ Would you like to exit tkpaint?" \
     		}
 		set rgb2 [list [expr [lindex $rgb 0]/256] [expr [lindex $rgb 1]/256] [expr [lindex $rgb 2]/256]]
 # create image - пустая
-		global bboxL
-		set bbox $bboxL
+		selectAll
+		set bbox [.c bbox Selected]
 		if {$bbox == ""} {
 		    puts "Нет выделенного блока!$bboxL"
 		    return
 		}
+#Информация о задержки
+		catch {destroy .waitimage}
+		label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow -font {Times 16 bold italic}  -foreground blue
+    		place .waitimage -in .tools.width -relx 0.0 -rely 0.25
+		update idle
+		tk busy hold ".tools"
+		tk busy hold ".svg"
+
 		set x1 [lindex $bbox 0]
 		set y1 [lindex $bbox 1]
 		set x2 [lindex $bbox 2]
@@ -5993,7 +6004,6 @@ Would you like to exit tkpaint?" \
 
 		set h [image height $newimg]
 		set w [image width $newimg]
-puts "Необходимо подождать!"
 		for { set x 0 } {$x < $w} {incr x} {
     		    for {set y 0} {$y < $h} {incr y} {
 #            		update
@@ -6003,8 +6013,12 @@ puts "Необходимо подождать!"
             	    }
     		}
     		$newimg write $File(img,name) -format $fformat
+		tk busy forget ".tools"
+		tk busy forget ".svg"
+		destroy .waitimage
+		unselectGroup
             }
-puts "Файл $File(img,name) записан!"
+#puts "Файл $File(img,name) записан!"
        }
 
        if {$type=="eps"} {
