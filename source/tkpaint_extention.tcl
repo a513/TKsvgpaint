@@ -1928,16 +1928,24 @@ if {$type == "image"} {
 
   frame .tpcolorsel.frame0  -borderwidth {2}  -relief {ridge}  -background {#dcdcdc}  -height {34}  -highlightbackground {#dcdcdc}  -width {280}
 
-  button .tpcolorsel.frame0.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {global TPcolor 
-    .tpcolorsel.c.canvas delete all
+  if {$type == "bgcanvas" } {
+    button .tpcolorsel.frame0.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {global TPcolor 
+	.tpcolorsel.c.canvas delete all
+	set Canv(bg) [.c cget -background]
     DestroyWindow.tpcolorsel;unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
-
+  }  else {
+    button .tpcolorsel.frame0.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {global TPcolor 
+	.tpcolorsel.c.canvas delete all
+    DestroyWindow.tpcolorsel;unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
+  }
   button .tpcolorsel.frame0.button2  -activebackground {gray75}  -background {#dcdcdc}  -command {
     .tpcolorsel.c.canvas delete all
     DestroyWindow.tpcolorsel;
-    foreach id $TPcolor(svggroup) {
-	eval $TPcolor($id,cancel)
-    }
+    if {[info exists TPcolor(svggroup)]} {
+	foreach id $TPcolor(svggroup) {
+	    eval $TPcolor($id,cancel)
+	}
+    } else {global Canv(bg);.c configure -background $Canv(bg)}
     unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Cancel}
 
   # pack master .tpcolorsel.top
