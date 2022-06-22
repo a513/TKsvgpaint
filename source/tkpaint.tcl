@@ -669,18 +669,18 @@ foreach {btype var col row gif command} $ButtonsSVG {
              -variable Graphics($var) \
              -value $value \
              -relief flat \
-	     -activebackground {#77F7FF} \
+	     -activebackground {skyblue} \
        -highlightthickness 1 \
-       -highlightbackground {#77F7FF} \
+       -highlightbackground {chocolate1} \
              -command "TPselectAction $butt1; $command"
 #             -command $command
     }
     if {$btype=="B"} {
        button $butt -image $im -bd 0 \
              -relief flat \
-	     -activebackground {#77F7FF} \
+	     -activebackground {skyblue} \
        -highlightthickness 1 \
-       -highlightbackground {#77F7FF} \
+       -highlightbackground {chocolate1} \
              -command "TPselectAction $butt1; $command"
 #             -command $command
     }
@@ -689,12 +689,13 @@ foreach {btype var col row gif command} $ButtonsSVG {
              -indicatoron false \
              -selectcolor "" \
              -relief flat \
-	     -activebackground {#77F7FF} \
+	     -activebackground {skyblue} \
        -highlightthickness 1 \
-       -highlightbackground {#77F7FF} \
+       -highlightbackground {chocolate1} \
              -variable Graphics(grid,on)
     }
     grid config $butt -row $row -column $col -columnspan 1 -rowspan 1 -sticky "snew"
+    $butt configure -bg gray93
 }
 ################################
 
@@ -845,6 +846,7 @@ incr col 2
     }
     grid config $butt -row $row -column $col\
                 -columnspan 1 -rowspan 1 -sticky "snew"
+    $butt configure -bg gray93
 }
 
 foreach {btype row col gif command value} $textButtons {
@@ -883,6 +885,7 @@ incr col 2
    }
    grid config $butt -row $row -column $col\
          -columnspan 1 -rowspan 1 -sticky "snew"
+    $butt configure -bg gray93
 }
 
 ####### LINE WIDTH DEMO SCALE
