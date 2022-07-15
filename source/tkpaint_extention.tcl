@@ -601,6 +601,15 @@ proc moveGroupSVG {x y} {
 }
 #Экспорт group в SVG-формат
 proc TP_Group2SVGfile {} {
+    global File
+#LISSI
+       set initdir  [file dirname $File(img,name)]
+       if {$initdir == "."} {
+#	set initdir  [pwd]
+	set initdir $::env(HOME)
+       }
+       set prefNameTail [file tail $File(img,name)]
+
 #Если нет выделенной группы, то сохраняется весь проект
     if {[llength [.c find withtag Selected]] == 0} {
 	selectAll
@@ -611,11 +620,14 @@ proc TP_Group2SVGfile {} {
 	{{All files} * }
     }
     set type        "svg"
-        set title       "Select file for SVG"
-        set command tk_getSaveFile
+        set title [mc "Select file for SVG"]
+#        set command ttk::getSaveFile
+        set command FE::fe_getsavefile
         set filename [$command \
                 -title "$title" \
                 -filetypes $File(img,types) \
+                -initialdir $initdir \
+                -width 450 -height 500 -sepfolders 1 -details 1 \
                 -defaultextension ".$type" ]
         if {$filename==""} {return 0}
 
@@ -2244,8 +2256,17 @@ proc TP_saveImage {id type} {
 }
 
 proc TP_saveGroupToPicture {type } {
+    global File
 #type == 0 - save to file
 #type == 1 - save to image
+#LISSI
+       set initdir  [file dirname $File(img,name)]
+       if {$initdir == "."} {
+#	set initdir  [pwd]
+	set initdir $::env(HOME)
+       }
+       set prefNameTail [file tail $File(img,name)]
+
     set svgdata [can2svg::group2file ".c" "-image"]
     if {$svgdata == ""} {
 	return ""
@@ -2261,12 +2282,15 @@ proc TP_saveGroupToPicture {type } {
 	}
         set type        "png"
         set title       "Select file for image group"
-        set defaultName "tk_$newimg"
-        set command tk_getSaveFile
+        set defaultName "tk_$newimg.png"
+#        set command ttk::getSaveFile
+        set command FE::fe_getsavefile
         set filename [$command \
                 -title "$title" \
                 -filetypes $File(img,types) \
                 -initialfile $defaultName \
+                -initialdir -initdir \
+                -width 450 -height 500 -sepfolders 1 -details 1 \
                 -defaultextension ".$type" ]
         if {$filename==""} {return 0}
 
@@ -2523,6 +2547,14 @@ if {$typeP == 2} {
 }
 
     if {$type == 0} {
+	global File
+#LISSI
+       set initdir  [file dirname $File(img,name)]
+       if {$initdir == "."} {
+#	set initdir  [pwd]
+	set initdir $::env(HOME)
+       }
+       set prefNameTail [file tail $File(img,name)]
 	set File(img,types) {
 		    {{img png} {.png} }
 		    {{img gif} {.gif} }
@@ -2531,12 +2563,15 @@ if {$typeP == 2} {
 	}
         set type        "png"
         set title       "Select file for image group"
-        set defaultName "tk_$newimg"
-        set command tk_getSaveFile
+        set defaultName "tk_$newimg.png"
+#        set command ttk::getSaveFile
+        set command FE::fe_getsavefile
         set filename [$command \
                 -title "$title" \
                 -filetypes $File(img,types) \
                 -initialfile $defaultName \
+                -initialdir $initdir \
+                -width 450 -height 500 -sepfolders 1 -details 1 \
                 -defaultextension ".$type" ]
         if {$filename==""} {return 0}
 
@@ -3155,6 +3190,14 @@ proc ScaleImage {img1 targetwidth} {
 
 
 proc SaveScreenShot {wparent capture_img} {
+    global File
+#LISSI
+       set initdir  [file dirname $File(img,name)]
+       if {$initdir == "."} {
+#	set initdir  [pwd]
+	set initdir $::env(HOME)
+       }
+       set prefNameTail [file tail $File(img,name)]
 
 	# finally, write image to file and we are done...
 	set filetypes {
@@ -3165,9 +3208,12 @@ proc SaveScreenShot {wparent capture_img} {
 	set re {\.(gif|png)$}
 	set LASTDIR [pwd]
 			
-	set file [tk_getSaveFile \
+#	set file [ttk::getSaveFile 
+	set file [FE::fe_getsavefile \
 		-parent $wparent -title "Save Image to File" \
-		-initialdir $LASTDIR -filetypes $filetypes]
+                -width 450 -height 500 -sepfolders 1 -details 1 \
+		-initialdir $initdir -filetypes "$filetypes"]
+#		-initialdir $LASTDIR -filetypes $filetypes]
 			
 	if {$file ne ""} {
 			
@@ -3213,7 +3259,7 @@ if { $dev_mode } {
 set t [toplevel .t]
 
 wm geometry $t "+50+50"
-set aa [screenshot::screenshot $t.scrnshot \
+set cmdscreenshot [screenshot::screenshot $t.scrnshot \
 		-background LightYellow -foreground DarkGreen \
 		-alpha 0.5 \
 		-width 800 -height 600 \

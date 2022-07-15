@@ -4,6 +4,9 @@
 
 package require tkpath 0.3.3
 package require tksvg
+package require msgcat
+namespace import ::msgcat::mc
+::msgcat::mcload [file join [file dirname [info script]] ""]
 
 set tksvgpaint_ver 2.0
 set ImgAvaliable [expr {![catch {package require Img}]}]
@@ -16,6 +19,8 @@ source [file join [file dirname [info script]] help.tcl]
 source [file join [file dirname [info script]] arrowshape.tcl]
 source [file join [file dirname [info script]] can2svg-svg2can.tcl]
 source [file join [file dirname [info script]] TP_createGradient.tcl]
+#source [file join [file dirname [info script]] fsdialog.tcl]
+source [file join [file dirname [info script]] tkfe.tcl]
 
 global TPtekbut
 #set TPtekbut .tools.button0_0
@@ -521,12 +526,23 @@ proc savePreferences {file} {
 
 proc Preferences {mode} {
   global File
+#LISSI
+       set initdir  [file dirname $File(pref,name)]
+       if {$initdir == "."} {
+#	set initdir  [pwd]
+	set initdir $::env(HOME)
+       }
+       set prefNameTail [file tail $File(pref,name)]
+
   switch $mode {
      load {
-        set filename [tk_getOpenFile \
+#        set filename [ttk::getOpenFile  ]
+        set filename [::FE::fe_getopenfile \
                  -title "Select preferences file" \
                  -filetypes $File(pref,types) \
-                 -initialfile $File(pref,name) \
+                 -initialfile $prefNameTail \
+                 -initialdir $initdir \
+                 -width 450 -height 500 -sepfolders 1 -details 1 \
                  -defaultextension ".ini" ]
         if {$filename==""} {
            Message "Did not pick a file? why?"
@@ -537,10 +553,12 @@ proc Preferences {mode} {
         Message "Preferences loaded from $File(pref,name)"
      }
      save {
-        set filename [tk_getSaveFile \
+        set filename [::FE::fe_getsavefile \
                  -title "Save preferences to file" \
                  -filetypes $File(pref,types) \
-                 -initialfile $File(pref,name) \
+                 -initialfile $prefNameTail \
+                 -initialdir $initdir \
+                 -width 450 -height 500 -sepfolders 1 -details 1 \
                  -defaultextension ".ini" ]
         if {$filename==""} {
            Message "Did not save!?"
@@ -637,7 +655,8 @@ C  grid,size 1  7  grid.gif    {set Graphics(grid,on) 1}
 R  mode  1 8  reconf.gif       {.mbar.group.menu invoke 0}
 B  dumm  1 9 undo.gif          {.mbar.edit.menu invoke "Undo last change"}
 B  dumm  1 10 unundo.gif       {.mbar.edit.menu invoke "Undo last undo"}
-B  dumm  1 11 createpath.gif   {.mbar.shape.menu invoke "Create PATH"}
+B  dumm  1 11 createpath.gif   {
+.mbar.shape.menu invoke "Create PATH"}
 B  dumm  0 12 select1obj.gif   {.mbar.group.menu invoke "Select 1 object"}
 }
 #B  dumm  1 11  savefile.gif    {.mbar.file.menu invoke "Save"}
@@ -723,23 +742,33 @@ foreach {menub text menu under} {
    .mbar.line    Line   .mbar.line.menu    0
    .mbar.image   Image  .mbar.image.menu   0
    .mbar.fill    Fill   .mbar.fill.menu    2
-   .mbar.edit    Edit   .mbar.edit.menu    0
+   .mbar.edit    Edit   .mbar.edit.menu    1
    .mbar.group   Group  .mbar.group.menu   0
    .mbar.text    Text   .mbar.text.menu    0
 } {
-    menubutton $menub -text $text -underline $under -menu $menu -activebackground {#77F7FF}
+#LISSI
+    set tshape $text
+    set text [mc $tshape]
+    
+
+    if {$tshape == "Shape"} {
+	menubutton $menub -text $text  -menu $menu -activebackground {#77F7FF}
+	continue
+    } else {
+	menubutton $menub -text $text -underline $under -menu $menu -activebackground {#77F7FF}
+    }
 
     pack $menub -side left
 }
 
-button .mbar.grid -text Grid -font $Font(buttonNormal) \
+button .mbar.grid -text [mc Grid] -font $Font(buttonNormal) \
        -relief flat \
        -activebackground {#77F7FF} \
        -command {gridSelector .gridsel}
 pack .mbar.grid -side left
-menubutton .mbar.zoom -text Zoom -underline 0 -menu .mbar.zoom.menu -activebackground {#77F7FF}
+menubutton .mbar.zoom -text [mc Zoom] -underline 0 -menu .mbar.zoom.menu -activebackground {#77F7FF}
 pack .mbar.zoom -side left
-menubutton .mbar.help -text Help -underline 1 -menu .mbar.help.menu -activebackground {#77F7FF}
+menubutton .mbar.help -text [mc Help] -underline 0 -menu .mbar.help.menu -activebackground {#77F7FF}
 pack .mbar.help -side right
 
 entry .mbar.zoomentry \
@@ -893,10 +922,21 @@ frame .tools.width -relief raised -bd 1
 canvas .tools.widthcanvas -relief flat -height 5m -width 4c
 .tools.widthcanvas create text 1 1 \
        -anchor nw \
-       -text "Line Width" \
+       -text [mc "Line Width"] \
        -font $Font(lineWidthDemo)
-       
-.tools.widthcanvas create line 1.8c .3c 4c .3c \
+#LISSI language
+set tlang [string range [msgcat::mclocale] 0 1]
+#set tlang "ru"
+if {$tlang == "ru"} {
+    set lstart 2.3c
+    set lend 4.5c
+} else {
+    set lstart 1.8c
+    set lend 4c
+}
+
+#.tools.widthcanvas create line 2.8c .3c 4c .3c  
+.tools.widthcanvas create line $lstart .3c $lend .3c \
        -tags demoLine \
        -fill "$Graphics(line,color)" \
        -stipple "$Graphics(line,style)" \
@@ -922,9 +962,9 @@ pack .tools.widthcanvas .tools.widthscale -in .tools.width \
 grid config .tools.width -row 0 -column 17 -columnspan 1 -rowspan 2 -sticky "snew"
 
 ####### HERE WE BUILD THE FILL AND OUTLINE COLORS BUTTONS AND SAMPLES
-button .tools.but_outline -text Outline: -anchor e \
+button .tools.but_outline -text "[mc Outline]:" -anchor w \
       -command {chooseOutlineColor}
-button .tools.but_fill -text Fill: -anchor e \
+button .tools.but_fill -text "[mc {Fill color}]:" -anchor w \
       -command {chooseFillColor}
 frame  .tools.fr_outline -bg $Graphics(line,color)
 frame  .tools.fr_fill
@@ -984,45 +1024,45 @@ set g7 [.anim gradient create radial -stops {{0 white} {1 black}}  \
 menu .mbar.file.menu -tearoff 0
 
 .mbar.file.menu add command \
-         -label New \
+         -label [mc New] \
          -accelerator "Ctrl+n" \
          -command {File new}
 
 .mbar.file.menu add command \
-         -label Open \
+         -label [mc Open] \
          -accelerator "Ctrl+o" \
          -command {File open}
 
 .mbar.file.menu add command \
-         -label Close  \
+         -label [mc Close]  \
          -command {File close}
 
 .mbar.file.menu add command \
-         -label Save \
+         -label [mc Save] \
          -command {File save auto}
 
-.mbar.file.menu add cascade -label "Save as" -menu .mbar.file.menu.save_as
+.mbar.file.menu add cascade -label [mc "Save as"] -menu .mbar.file.menu.save_as
 
 menu .mbar.file.menu.save_as -tearoff 0
 
 .mbar.file.menu.save_as add command \
-         -label "Save as Image" \
+         -label [mc "Save as Image" ] \
          -command {File save img}
 
 .mbar.file.menu.save_as add command \
-         -label "Save as Image Transparency" \
+         -label [mc "Save as Image Transparency" ] \
          -command {global bboxL; set bboxL [.c bbox Selected];File save imgtrans}
 
 .mbar.file.menu.save_as add command \
-         -label "Save as Encapsulated PostScript" \
+         -label [mc "Save as Encapsulated PostScript"] \
          -command {File save eps}
 
 .mbar.file.menu.save_as add command \
-         -label "Save as Tcl script" \
+         -label [mc "Save as Tcl script"] \
          -command {File save pic}
 #LISSI
 .mbar.file.menu.save_as add command \
-        -label "Save group as SVG"\
+        -label [mc "Save group as SVG"] \
         -command {TP_Group2SVGfile}
 if {0} {
 .mbar.file.menu add command \
@@ -1031,20 +1071,20 @@ if {0} {
 }
          
 .mbar.file.menu add command \
-         -label Exit \
+         -label [mc Exit] \
          -accelerator "Ctrl+x" \
          -command {File exit}
 
-.mbar.file.menu add cascade -label "Preferences" -menu .mbar.file.menu.pref
+.mbar.file.menu add cascade -label [mc "Preferences"] -menu .mbar.file.menu.pref
 
 menu .mbar.file.menu.pref -tearoff 0
 
 .mbar.file.menu.pref add command \
-         -label "Load" \
+         -label [mc "Load"] \
          -command {Preferences load}
 
 .mbar.file.menu.pref add command \
-         -label "Save" \
+         -label [mc "Save"] \
          -command {Preferences save}
 
 
@@ -1054,7 +1094,7 @@ menu .mbar.file.menu.pref -tearoff 0
 menu .mbar.shape.menu -tearoff 0
 
 .mbar.shape.menu add radiobutton \
-     -label Rectangle \
+     -label [mc Rectangle] \
      -variable Graphics(mode) \
      -value Rectangle \
      -command {startRectagle}
@@ -1196,7 +1236,7 @@ foreach s {butt projecting round} {
 menu .mbar.image.menu -tearoff 0
 if {$ImgAvaliable} {
 set imageInfo {
-  RegionScreenshot {$aa display}
+  RegionScreenshot {$cmdscreenshot display}
   FreeSelectionArea {TP_freehandSelect}
   UnFreeSelectArea {TP_unfreehandSelect}
   SaveGroupToFile {TP_saveGroupFromRGB 0}
@@ -2512,6 +2552,7 @@ proc Image {type} {
       image {
            set Image(types) {
               {{PNG file} {.png} }
+              {{SVG file} {.svg} }
               {{GIF file} {.gif} }
               {{JPEG file} {.jpg} }
               {{BMP file} {.bmp} }
@@ -2521,7 +2562,6 @@ proc Image {type} {
               {{TIFF file} {.tif} }
               {{PS file} {.ps} }
               {{EPS file} {.eps} }
-              {{SVG file} {.svg} }
               {{All files} * }
            }
            set default_ext ".png"
@@ -2541,8 +2581,12 @@ proc Image {type} {
 
 
   cd $Image(wd)
-  set Image(file) [tk_getOpenFile -title "Image file" \
+  set initdir $::env(HOME)
+#  set Image(file) [ttk::getOpenFile -title "Image file" ]
+  set Image(file) [FE::fe_getopenfile -title "Image file" \
                 -filetypes $Image(types) \
+                -initialdir $initdir \
+                -width 450 -height 500 -sepfolders 1 -details 1 \
                 -defaultextension $default_ext ]
   if {$Image(file)==""} {return}
 
@@ -5807,13 +5851,27 @@ switch -exact -- $cmnd {
        set type        [lindex $args 1]
        set title       [lindex $args 2]
        set defaultName [lindex $args 3]
-       if {$mode=="save"} { set command tk_getSaveFile }
-       if {$mode=="open"} { set command tk_getOpenFile }
+#LISSI
+       set initdir  [file dirname $defaultName]
+       if {$initdir == "."} {
+#	set initdir  [pwd]
+	set initdir $::env(HOME)
+       }
+       set defaultNameTail [file tail $defaultName]
+#       if {$mode=="save"} { set command tk_getSaveFile }
+#       if {$mode=="open"} { set command tk_getOpenFile }
+#       if {$mode=="save"} { set command ttk::getSaveFile }
+#       if {$mode=="open"} { set command ttk::getOpenFile }
+       if {$mode=="save"} { set command "::FE::fe_getsavefile" }
+       if {$mode=="open"} { set command "::FE::fe_getopenfile" }
        set filename [$command \
                 -title "$title" \
                 -filetypes $File($type,types) \
-                -initialfile $defaultName \
-                -defaultextension ".$type" ]
+                -initialfile $defaultNameTail \
+                -defaultextension ".$type" \
+                -initialdir $initdir \
+                -width 450 -height 500 -sepfolders 1 -details 1 \
+	 ]
        if {$filename==""} {return 0}
        set File($type,name) $filename
        set File(wd) [file dirname $File(pic,name)]
@@ -5967,7 +6025,13 @@ Would you like to exit tkpaint?" \
 	    set canimg [fullcanvas .c]
 #Снимок только видимой части холств
 #    	    set canimg [image create photo -format window -data .c]
-            switch -- [file extension $File(img,name)] {
+	    set fext [file extension $File(img,name)]
+puts "WRITE fext=\"$fext\" File(img,name=$File(img,name))" 
+	    if {$fext == ""} {
+		set File(img,name) [file join $File(img,name) ".png"]
+		set fext ".png"
+	    }	
+            switch -- $fext {
         	".png" {set fformat "PNG"}
                 ".gif" {set fformat "GIF"}
                 ".jpg" {set fformat "JPEG"}
@@ -5975,6 +6039,7 @@ Would you like to exit tkpaint?" \
             }
             if {$type=="img"} {
     		$canimg write $File(img,name) -format $fformat
+    		tk_messageBox -title "Save as Image" -message "Canvas save to file\n$File(img,name)\n" -icon info
             } else {
 		if { [catch {winfo rgb . $Canv(bg)} rgb] } {
     		    tk_messageBox -message "Invalid color \"$Canv(bg)\""
@@ -6016,6 +6081,7 @@ Would you like to exit tkpaint?" \
             	    }
     		}
     		$newimg write $File(img,name) -format $fformat
+    		tk_messageBox -title "Save as Image Transparency" -message "Canvas transparency save to file\n$File(img,name)\n" -icon info
 		tk busy forget ".tools"
 		tk busy forget ".svg"
 		destroy .waitimage
@@ -6236,7 +6302,10 @@ proc balloon { w text } {
    regsub -all {\.} $w _ temp 
    set Balloon($w,name) .balloon$temp
    set b $Balloon($w,name)
-   set job1  "toplevel $b -bg black
+#puts "balloon=$b"
+
+   set job1  "catch {destroy $b}
+	toplevel $b -bg black
         wm geometry $b +$x+$y 
         wm overrideredirect $b 1
         label $b.label -text \"$text\" \
@@ -6289,6 +6358,8 @@ set ButtonsHelp {
 }
 
 foreach {row col dummy text} $ButtonsHelp {
+    set text [mc $text]
+
 set colsvg $col
 incr col 2
     global macos 
@@ -6300,9 +6371,9 @@ if {$colsvg < 13} {
    if {$macos} {
 	TP_popupHint $w $text
 if {$colsvg < 12} {
-	TP_popupHint $wsvg $text
+	TP_popupHint $wsvg "[mc $text] (svg)"
 } elseif {$colsvg == 12} {
-	TP_popupHint $wsvg "Select one object"
+	TP_popupHint $wsvg [mc "Select one object"]
 }
    } else {
 
@@ -6315,9 +6386,11 @@ if {$colsvg < 12} {
    }
 if {$colsvg < 12 || ($colsvg == 12 && $row == 0)  } {
     if {$row == 1 && $colsvg == 11} {
-	set text "Create PATH"
+	set text "[mc {Create PATH}] (svg)"
     } elseif {$row == 0 && $colsvg == 12} {
-	set text "Select one object"
+	set text [mc "Select one object"]
+    } else {
+	set text "[mc $text] (svg)"
     }
    bind $wsvg <Enter> [list balloon %W $text]
    bind $wsvg  <Leave>  {catch {
@@ -6331,7 +6404,7 @@ if {$colsvg < 12 || ($colsvg == 12 && $row == 0)  } {
 }
 
 bind  .tools.but_outline  <Enter> {
-     balloon %W  "Choose line color"
+     balloon %W  [mc "Choose line color"]
 }
 
 bind  .tools.but_outline  <Leave> {catch {
@@ -6342,7 +6415,7 @@ bind  .tools.but_outline  <Leave> {catch {
 }
 
 bind  .tools.but_fill  <Enter> {
-     balloon %W  "Choose fill color"
+     balloon %W  [mc "Choose fill color"]
 }
 
 bind  .tools.but_fill  <Leave> {catch {
@@ -6628,17 +6701,20 @@ proc traceProc10 {v index op} {
 }
 
 ########## MENU BAR KEY BINDINGS:
-bind all <Alt-Key-f> { tkMbPost .mbar.file }
-bind all <Alt-Key-s> { tkMbPost .mbar.shape }
-bind all <Alt-Key-e> { tkMbPost .mbar.edit }
-bind all <Alt-Key-l> { tkMbPost .mbar.line }
-bind all <Alt-Key-i> { tkMbPost .mbar.image }
-bind all <Alt-Key-i> { tkMbPost .mbar.fill }
-bind all <Alt-Key-e> { tkMbPost .mbar.edit}
-bind all <Alt-Key-g> { tkMbPost .mbar.group}
-bind all <Alt-Key-r> { tkMbPost .mbar.grid}
-bind all <Alt-Key-t> { tkMbPost .mbar.text}
-bind all <Alt-Key-h> { tkMbPost .mbar.help}
+bind all <Alt-Key-f> { ::tk::MbPost .mbar.file }
+#bind all <Alt-Key-s> { ::tk::MbPost .mbar.shape }
+bind all <Alt-Key-e> { ::tk::MbPost .mbar.edit }
+bind all <Alt-Key-d> { ::tk::MbPost .mbar.edit }
+bind all <Alt-Key-l> { ::tk::MbPost .mbar.line }
+#Большая I вместе с Alt для вызова меню Image
+bind all <Alt-Key-i> { ::tk::MbPost .mbar.image }
+#Маленькая i вместе с Alt для вызова меню Fill
+bind all <Alt-Key-i> { ::tk::MbPost .mbar.fill }
+
+bind all <Alt-Key-g> { ::tk::MbPost .mbar.group}
+bind all <Alt-Key-r> { ::tk::MbPost .mbar.grid}
+bind all <Alt-Key-t> { ::tk::MbPost .mbar.text}
+bind all <Alt-Key-h> { ::tk::MbPost .mbar.help}
 ########## ACCELERATORS:
 bind all <Control-Key-u> {.mbar.edit.menu invoke "Undo last change"}
 bind all <Control-Key-l> {.mbar.edit.menu invoke "Undo last undo"}
