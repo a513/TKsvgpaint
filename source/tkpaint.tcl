@@ -56,6 +56,23 @@ set Font(groupLineWidthDemo) [Platform {Arial 12 bold} {Helvetica 12 bold}]
 set Font(gridTicks) [Platform {Arial 7} {Courier 8}]
 set Font(about) [Platform {"Times New Roman" 12 bold} {Helvetica 12 bold}]
 set Font(zoomEntry) [Platform {Arial 10} {Helvetica 10}]
+#Разбираемся с Виндой
+set typesys [tk windowingsystem]
+global ::myHOME
+set ::myHOME ""
+switch $typesys {
+  win32        {
+    set ::myHOME $::env(USERPROFILE)
+    #Заменяем обратную косую в пути на нормальную косую
+    set ::myHOME [string map {"\\" "/"} $myHOME]
+    set ::myHOME [encoding convertfrom cp1251 $::myHOME]
+  }
+  default {
+    set ::myHOME $::env(HOME)
+  }
+}
+
+
 
 wm title . "TKsvgpaint $tksvgpaint_ver"
 wm iconphoto . tkpaint_icon
@@ -314,9 +331,9 @@ proc Message {msg} {
 # OF COURSE, IT IS POSSIBLE TO CREATE AN UNLIMITED NUMBER OF PREFERECES FILES
 # AND LOAD THEM AT ANY TIME (THIS IS THE ADVISED METHOD), WHILE KEEPING
 # TKPAINT.INI ONLY FOR THE MOST STANDARD PARAMETERS.
-set File(pref,name) [Platform tkpaint.ini [file join $env(HOME) .tkpaintrc]]
-if {[info exist $env(HOME)]} {
-    set File(pref,name) [file join $env(HOME) $File(pref,name)]
+set File(pref,name) [Platform tkpaint.ini [file join $::myHOME .tkpaintrc]]
+if {[info exist $::myHOME]} {
+    set File(pref,name) [file join $::myHOME $File(pref,name)]
 }     
 set File(pref,types) {
    {{INI file} {.ini} }
@@ -530,7 +547,7 @@ proc Preferences {mode} {
        set initdir  [file dirname $File(pref,name)]
        if {$initdir == "."} {
 #	set initdir  [pwd]
-	set initdir $::env(HOME)
+	set initdir $::myHOME
        }
        set prefNameTail [file tail $File(pref,name)]
 
@@ -2581,7 +2598,7 @@ proc Image {type} {
 
 
   cd $Image(wd)
-  set initdir $::env(HOME)
+  set initdir $::myHOME
 #  set Image(file) [ttk::getOpenFile -title "Image file" ]
   set Image(file) [FE::fe_getopenfile -title "Image file" \
                 -filetypes $Image(types) \
@@ -5855,7 +5872,7 @@ switch -exact -- $cmnd {
        set initdir  [file dirname $defaultName]
        if {$initdir == "."} {
 #	set initdir  [pwd]
-	set initdir $::env(HOME)
+	set initdir $::myHOME
        }
        set defaultNameTail [file tail $defaultName]
 #       if {$mode=="save"} { set command tk_getSaveFile }

@@ -606,7 +606,7 @@ proc TP_Group2SVGfile {} {
        set initdir  [file dirname $File(img,name)]
        if {$initdir == "."} {
 #	set initdir  [pwd]
-	set initdir $::env(HOME)
+	set initdir $::myHOME
        }
        set prefNameTail [file tail $File(img,name)]
 
@@ -2263,7 +2263,7 @@ proc TP_saveGroupToPicture {type } {
        set initdir  [file dirname $File(img,name)]
        if {$initdir == "."} {
 #	set initdir  [pwd]
-	set initdir $::env(HOME)
+	set initdir $::myHOME
        }
        set prefNameTail [file tail $File(img,name)]
 
@@ -2552,7 +2552,7 @@ if {$typeP == 2} {
        set initdir  [file dirname $File(img,name)]
        if {$initdir == "."} {
 #	set initdir  [pwd]
-	set initdir $::env(HOME)
+	set initdir $::myHOME
        }
        set prefNameTail [file tail $File(img,name)]
 	set File(img,types) {
@@ -3195,7 +3195,7 @@ proc SaveScreenShot {wparent capture_img} {
        set initdir  [file dirname $File(img,name)]
        if {$initdir == "."} {
 #	set initdir  [pwd]
-	set initdir $::env(HOME)
+	set initdir $::myHOME
        }
        set prefNameTail [file tail $File(img,name)]
 
