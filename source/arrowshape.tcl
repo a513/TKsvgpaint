@@ -110,7 +110,7 @@ proc arrowShapeTool {} {
   set w .arrowshape
   catch {destroy $w}
   toplevel $w
-  wm title $w "Arrowhead Editor"
+  wm title $w "[mc {Arrowhead Editor}]"
   wm iconname $w "arrow"
   #positionWindow $w
   #bind $w <FocusOut> "raise $w; focus -force $w"
@@ -121,15 +121,15 @@ proc arrowShapeTool {} {
   set c $w.c
   
   label $w.msg -font {Helvetica 14 bold} -wraplength 5i -justify left \
-               -text "Design your favourite arrow shape."
+               -text [mc "Design your favourite arrow shape."]
   pack $w.msg -side top
   
   frame $w.buttons
   pack $w.buttons -side bottom -fill x -pady 2m
-  button $w.buttons.cancel -text Cancel \
+  button $w.buttons.cancel -text [mc Cancel] \
          -font $butfont \
          -command "grab release $w ; destroy $w"
-  button $w.buttons.apply -text "Apply" \
+  button $w.buttons.apply -text [mc Apply] \
          -command "applyArrowShape" -font $butfont
   pack $w.buttons.cancel $w.buttons.apply -side left -expand 1
   

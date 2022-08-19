@@ -1678,8 +1678,12 @@ FCQgIOCPkIcQIwrRgcLDiRVbQFQYAOCPjyAgQ4rMEUJDFi5dtDgJ0PHPjh4wY8a0YeKDhRJaDhgg0HKR
 		lappend files_list [file join $path $f1]
 	}
 
-
+set files_list [lsort -dictionary $files_list]
       foreach f $files_list {
+#Например, ссылка link на несуществующий файл
+	if {![file exists $f]} {
+	    continue
+	}
         set type [file type $f]
         if {$typefb == "fileopen"} {
           #Можно было бы задать -types {f r}, но тогда бы мы не увидели часть файлов в списке (denied)

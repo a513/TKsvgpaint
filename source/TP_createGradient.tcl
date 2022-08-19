@@ -41,7 +41,7 @@ proc ShowWindow.tpgradient { id grad} {
 	set Gradient(y1) 0
     }
 
-    puts "ShowWindow.tpgradient: Gradient(i)=$Gradient(i)"
+#    puts "ShowWindow.tpgradient: Gradient(i)=$Gradient(i)"
   }
 
   toplevel .tpgradient   -background {#dcdcdc}  -highlightbackground {#dcdcdc}
@@ -232,7 +232,7 @@ frame .tpgradient.frameStops.buts -borderwidth {2} -relief {flat} -background {#
     }
     settransition
     set newgr [creategradient .tpgradient.frameFirst.canvas18]
-    puts "newgr=$newgr"
+#    puts "newgr=$newgr"
     gradientcan
 }
 proc TP_selcolorgr {but ind} {
@@ -291,7 +291,7 @@ proc gradientcan {} {
 proc cancelgradient {} {
     global Gradient
     global TPcolor
-puts "cancelgradient: Cancel"
+#puts "cancelgradient: Cancel"
     foreach id $TPcolor(svggroup) {
 	eval $TPcolor($id,cancel)
     }
@@ -304,7 +304,7 @@ puts "cancelgradient: Cancel"
 proc deletestop {w} {
     global Gradient
     global TPcolor
-    puts "Delete last stop";
+#    puts "Delete last stop";
     if {$Gradient(i) < 3} {
 	return
     }
@@ -403,9 +403,7 @@ proc createstop {wfr i} {
     } else {
 	set max 1.0
     }
-#    set Gradient(offset$l) 1.0
 #puts "lll Gradient(offset$l)=$Gradient(offset$l) j=$j j_gr=$Gradient(offset$j)"
-#unset Gradient(offset$l)
     eval [subst "spinbox $w.spinbox1 -background {white} -textvariable Gradient(offset$i) -from $min  -increment {0.1} -to $max  -width {3} -command {changestops .tpgradient.frameFirst.canvas18 $i $wfr.frame}"]
 
     pack $w.spinbox1 -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 4 -pady 0 -side left
@@ -436,7 +434,7 @@ proc creategradient {can} {
 	append cmd " \{ $Gradient(offset$i) $Gradient(color$i) $Gradient(opacity$i)\}"
     }
     append cmd "\}"
-puts "creategradient can=$can: cmd=$cmd"
+#puts "creategradient can=$can: cmd=$cmd"
     return [eval $cmd]
 }
 proc changetransition {can} {

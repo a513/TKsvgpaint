@@ -5,13 +5,48 @@
 package require tkpath 0.3.3
 package require tksvg
 package require msgcat
+#Временно
+#msgcat::mclocale en
+
 namespace import ::msgcat::mc
 ::msgcat::mcload [file join [file dirname [info script]] ""]
+#puts "DIRscript= [file join [file dirname [info script]]]"
 
 set tksvgpaint_ver 2.0
 set ImgAvaliable [expr {![catch {package require Img}]}]
 #LISSI
-source [file join [file dirname [info script]] screenshot.tcl]
+if {$argc > 0} {
+#Параметры -lang язык интерфейса ru или en , по умолчанию язык системы
+# -file - файл с проектом
+# -lib - папка с библиотеками, с конфигом
+    set specs {
+	{-lib "" "" ""}
+	{-lang "" "" ""}
+	{-file "" "" ""}
+    }
+    tclParseConfigSpec ::tksvgconf $specs "" $argv
+#    parray ::tksvgconf
+    if {$::tksvgconf(-lang) != ""}  {
+	set LIBDIR $::tksvgconf(-lib)
+	set CONFIGDIR $LIBDIR		
+    }
+    if {$::tksvgconf(-lang) != ""} {
+	msgcat::mclocale $::tksvgconf(-lang)
+    }
+}
+
+set ::importcmd ""
+if {[string equal $::tcl_platform(platform) "unix"]} {
+#    set ::importcmd [lindex [auto_execok import] 0]
+    set ::importcmd [lindex [auto_execok scrot] 0]
+    if {[llength $::importcmd]} {
+	puts "ImageMagic import command bindings for taking screenshots on X11"
+	set cmdscreenshot "TP_imagicScreen"
+    }
+}
+if {![llength $::importcmd]} {
+    source [file join [file dirname [info script]] screenshot.tcl]
+}
 source [file join [file dirname [info script]] tkpaint_extention.tcl]
 source [file join [file dirname [info script]] icons_tkpaint.tcl]
 source [file join [file dirname [info script]] fontsel.tcl]
@@ -21,6 +56,10 @@ source [file join [file dirname [info script]] can2svg-svg2can.tcl]
 source [file join [file dirname [info script]] TP_createGradient.tcl]
 #source [file join [file dirname [info script]] fsdialog.tcl]
 source [file join [file dirname [info script]] tkfe.tcl]
+
+#  package provide ttk::theme::Breeze
+  source [file join [file dirname [info script]] breeze.tcl]
+  ttk::style theme use Breeze
 
 global TPtekbut
 #set TPtekbut .tools.button0_0
@@ -56,23 +95,10 @@ set Font(groupLineWidthDemo) [Platform {Arial 12 bold} {Helvetica 12 bold}]
 set Font(gridTicks) [Platform {Arial 7} {Courier 8}]
 set Font(about) [Platform {"Times New Roman" 12 bold} {Helvetica 12 bold}]
 set Font(zoomEntry) [Platform {Arial 10} {Helvetica 10}]
+set Font(dash) [Platform {Consolas 12 bold} {Consolas 12 bold}]
 #Разбираемся с Виндой
 set typesys [tk windowingsystem]
 global ::myHOME
-set ::myHOME ""
-switch $typesys {
-  win32        {
-    set ::myHOME $::env(USERPROFILE)
-    #Заменяем обратную косую в пути на нормальную косую
-    set ::myHOME [string map {"\\" "/"} $myHOME]
-    set ::myHOME [encoding convertfrom cp1251 $::myHOME]
-  }
-  default {
-    set ::myHOME $::env(HOME)
-  }
-}
-
-
 
 wm title . "TKsvgpaint $tksvgpaint_ver"
 wm iconphoto . tkpaint_icon
@@ -82,6 +108,22 @@ wm protocol . WM_DELETE_WINDOW {File exit}
 #LISSI
 wm state . normal
 wm geometry . 450x150+100+50
+update
+
+set ::myHOME ""
+switch $typesys {
+  win32        {
+    source [file join [file dirname [info script]] ru.msg]
+    set ::myHOME $::env(USERPROFILE)
+    #Заменяем обратную косую в пути на нормальную косую
+    set ::myHOME [string map {"\\" "/"} $myHOME]
+    encoding dirs "/tcl8.6/encoding"
+    set ::myHOME [encoding convertfrom cp1251 $::myHOME]
+  }
+  default {
+    set ::myHOME $::env(HOME)
+  }
+}
 
 ###### DEFAULT VALUES OF GLOBAL VARIABLES
 
@@ -89,11 +131,17 @@ proc setDefaultGlobals {} {
    global Graphics Canv utagCounter Image
    global undoStack undoMode History histPtr
    global Message Zoom
+#LISSI
+   global lineJoin
+   set lineJoin miter
 
    array set Graphics {
      line,width      1
      line,color      black
      line,style      {}
+     line,dash       {}
+     linesvg,dash    {}
+     linedefault,dash  {Solid line}
      line,joinstyle  miter
      line,capstyle   butt
      line,arrow      none
@@ -120,7 +168,13 @@ proc setDefaultGlobals {} {
      grid,size       10m
      grid,snap       1
      snap,size       1
+     callout,tongue {0.5 0.6 0.8 0.66}
+     callout,rx 0.05
    }
+#Параметры Graphics(callout,tongue) - вервый - отспуп до левой вершины язычка, второй - отступ до нижней верщины язычка, третий отступ до правой вершины язычка
+#Четвертый параметр - высота язычка от высоты прямоугольника с скруглённми вершинами
+#Параметр Graphics(callout,rx) - определяет радиус вершин в долях от ширины/высоты прямоугольника
+
    set Graphics(font,type) [Platform Arial Helvetica]
 
    set Zoom(factor) 1
@@ -150,6 +204,7 @@ proc setDefaultGlobals {} {
    set Image(embed) 1
 #   set Graphics(type) "TK"
    set Graphics(type) "SVG"
+   set Message(0) "Copyright 2022 Vladimir Orlov, all rights reserved"
 
    set Message(1) "Copyright 1998 Samy Zafrany, all rights reserved"
    set Message(2) "Netanya Academic College, Israel"
@@ -163,7 +218,8 @@ proc setDefaultGlobals {} {
    set Message(10) "www.neosoft.com/tcl/ftparchive/sorted/graphics/tkpaint"
    set Message(last) 10
    set Message(ctr) 1
-   set Message(text) $Message(1)
+   set Message(text) [mc $Message(0)]
+   set Message(text1) [mc $Message(0)]
 }
 
 #### DEFAULT BINDINGS
@@ -171,34 +227,35 @@ proc setDefaultGlobals {} {
 proc Bindings {mode} {
  switch $mode {
    enable {
-      bind Canvas <Motion> {
-         set Canv(pointerxy) \
-             [expr round([.c canvasx %x])],[expr round([.c canvasy %y])]
+#      bind Canvas <Motion> {}
+      bind .c <Motion> {
+         set Canv(pointerxy) [expr round([.c canvasx %x])],[expr round([.c canvasy %y])]
       }
-      bind Canvas <Control-Left>  {%W xview scroll -1 units}
-      bind Canvas <Control-Right> {%W xview scroll  1 units}
-      bind Canvas <Control-Up>    {%W yview scroll -1 units}
-      bind Canvas <Control-Down>  {%W yview scroll  1 units}
-      bind Canvas <Alt-Left>      {%W xview scroll -1 pages}
-      bind Canvas <Alt-Right>     {%W xview scroll  1 pages}
-      bind Canvas <Alt-Up>        {%W yview scroll -1 pages}
-      bind Canvas <Alt-Down>      {%W yview scroll  1 pages}
-      bind Canvas <Prior>         {%W yview scroll -1 pages}
-      bind Canvas <Next>          {%W yview scroll  1 pages}
-      bind Canvas <Home>          {%W xview moveto 0
+
+      bind .c <Control-Left>  {%W xview scroll -1 units}
+      bind .c <Control-Right> {%W xview scroll  1 units}
+      bind .c <Control-Up>    {%W yview scroll -1 units}
+      bind .c <Control-Down>  {%W yview scroll  1 units}
+      bind .c <Alt-Left>      {%W xview scroll -1 pages}
+      bind .c <Alt-Right>     {%W xview scroll  1 pages}
+      bind .c <Alt-Up>        {%W yview scroll -1 pages}
+      bind .c <Alt-Down>      {%W yview scroll  1 pages}
+      bind .c <Prior>         {%W yview scroll -1 pages}
+      bind .c <Next>          {%W yview scroll  1 pages}
+      bind .c <Home>          {%W xview moveto 0
                                    %W yview moveto 0}
-      bind Canvas <End>  {
+      bind .c <End>  {
         set f [expr ($Canv(SH)-$Canv(H)+0.0)/$Canv(SH)]
          %W xview moveto 0
          %W yview moveto $f
       }
 
-      bind Canvas <Control-Prior>    {
+      bind .c <Control-Prior>    {
          set Canv(SW) [expr $Canv(SW)+30]
          %W configure -scrollregion "0 0 $Canv(SW) $Canv(SH)"
       }
 
-      bind Canvas <Control-Next>     {
+      bind .c <Control-Next>     {
          set Canv(SH) [expr $Canv(SH)+30]
          %W configure -scrollregion "0 0 $Canv(SW) $Canv(SH)"
       }
@@ -304,6 +361,10 @@ proc Message {msg} {
         after cancel $Message(jobid)
    }
    set Message(text) $msg
+#LISSI
+   set msg [mc "$msg"]
+   set Message(text1) $msg
+if {0} {
    set Message(jobid) [after 5000 {
        if {$Message(ctr)==$Message(last)} {
             set Message(ctr) 1
@@ -314,6 +375,7 @@ proc Message {msg} {
        set Message(text) $Message($i)
        unset Message(jobid)
    }]
+}
 }
 
 ############# PREFERENCES SECTION
@@ -346,6 +408,7 @@ proc cleanupCanvas {} {
 
   Bindings disable
   set Graphics(mode) NULL
+  set Graphics(mode1) NULL
 
   .c delete arrowHandle arcMark reshapeHandle graybox
   catch {unselectGroup}
@@ -426,6 +489,22 @@ proc Zoom {z} {
         set Zoom($u,line,width) [expr $Zoom($u,line,width)*$ratio]
         set w [expr round($Zoom($u,line,width))]
         .c itemconfig $id -width $w
+#LISSI
+	set tid [.c type $id]
+#	if { $tid == "pimage" || $tid == "image"} {}
+	if { $tid == "pimage" } {
+    	    if ![info exists Zoom($u,line,height)] {
+        	set Zoom($u,line,height) [.c itemcget $id -height]
+    	    }
+    	    set Zoom($u,line,height) [expr $Zoom($u,line,height)*$ratio]
+    	    set w [expr round($Zoom($u,line,height))]
+    	    .c itemconfig $id -height $w
+    	    set cim [.c coords $id]
+    	    foreach {xi yi} $cim {break}
+    	    set xi [expr {$xi * $ratio}]
+    	    set yi [expr {$yi * $ratio}]
+    	    .c coords $id $xi $yi
+        }
       }
 
       if {[catch {.c itemcget $id -arrowshape} result]==0} {
@@ -554,13 +633,15 @@ proc Preferences {mode} {
   switch $mode {
      load {
 #        set filename [ttk::getOpenFile  ]
-        set filename [::FE::fe_getopenfile \
-                 -title "Select preferences file" \
-                 -filetypes $File(pref,types) \
-                 -initialfile $prefNameTail \
-                 -initialdir $initdir \
-                 -width 450 -height 500 -sepfolders 1 -details 1 \
-                 -defaultextension ".ini" ]
+       if {[tk windowingsystem] == "win32"} {
+	    set command tk_getOpenFile
+	    set geom ""	
+       } else {
+    	    set command "::FE::fe_getopenfile" 
+	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+       }
+	set cmdpar [subst {-title "Select preferences file" -filetypes "$File(pref,types)" -initialfile "$prefNameTail" -defaultextension ".ini" -initialdir "$initdir" $geom}]
+	set filename [eval $command $cmdpar]
         if {$filename==""} {
            Message "Did not pick a file? why?"
            return
@@ -570,13 +651,15 @@ proc Preferences {mode} {
         Message "Preferences loaded from $File(pref,name)"
      }
      save {
-        set filename [::FE::fe_getsavefile \
-                 -title "Save preferences to file" \
-                 -filetypes $File(pref,types) \
-                 -initialfile $prefNameTail \
-                 -initialdir $initdir \
-                 -width 450 -height 500 -sepfolders 1 -details 1 \
-                 -defaultextension ".ini" ]
+       if {[tk windowingsystem] == "win32"} {
+	    set command tk_getSaveFile
+	    set geom ""	
+       } else {
+    	    set command "::FE::fe_getsavefile" 
+	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+       }
+	set cmdpar [subst {-title "Save preferences file" -filetypes "$File(pref,types)" -initialfile "$prefNameTail" -defaultextension ".ini" -initialdir "$initdir" $geom}]
+	set filename [eval $command $cmdpar]
         if {$filename==""} {
            Message "Did not save!?"
            return
@@ -616,7 +699,7 @@ proc resetCanvas {} {
 
 
 #### FINALLY, HERE WE CREATE THE CANVAS .c
-frame .main
+frame .main -background gray86
 #canvas .c
 #LISSI
 #canvas .c -xscrollcommand ".main.hscroll set"  -yscrollcommand ".main.vscroll set"
@@ -661,6 +744,38 @@ R  mode  0  8  arc.gif         {set Graphics(type) "SVG" ; .mbar.shape.menu invo
 R  mode  0  9  pieslice.gif    {set Graphics(type) "SVG" ; .mbar.shape.menu invoke PieSlice}
 R  mode  0 10  chord.gif       {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Chord}
 R  mode  0 11  freehand.gif    {set Graphics(type) "SVG" ; .mbar.shape.menu invoke "Free Hand"}
+R  mode  1  0  text.gif        {set Graphics(type) "SVG" ; TextMode}
+R  mode  1  1  move.gif        {set Graphics(type) "SVG" ; moveMode}
+R  mode  1  2  copy.gif        {set Graphics(type) "SVG" ; copyMode}
+R  mode  1  3  erase.gif       {set Graphics(type) "SVG" ; deleteMode}
+R  mode  1  4  raise.gif       {set Graphics(type) "SVG" ; raiseMode}
+R  mode  1  5  lower.gif       {set Graphics(type) "SVG" ; lowerMode}
+R  mode  1  6  arrows.gif      {set Graphics(type) "SVG" ; arrowsMode}
+C  grid,size 1  7  grid.gif    {set Graphics(grid,on) 1}
+R  mode  1 8  reconf.gif       {.mbar.group.menu invoke 0}
+B  dumm  1 9 undo.gif          {Undo exec}
+B  dumm  1 10 unundo.gif       {History repeat}
+B  dumm  1 11 createpath.gif   {.mbar.shape.menu invoke "Create PATH"}
+B  dumm  0 12 select1obj.gif   {select1object}
+B  dumm  1 12 freeselection.gif  {TP_freehandSelect}
+R  mode  0 13 callout.gif  {set Graphics(type) "SVG" ; .mbar.shape.menu  invoke "Callout"}
+R  mode  1 13 bwrect  {puts "[mc {Reserve}]"}
+B  dumm  0 14 withoutfilling.gif {set Graphics(fill,color) ""; .svg.button14_0 configure -bg chocolate1; .svg.button14_1 configure -bg gray86}
+B  dumm  1 14 withfill.gif   	 {set Graphics(fill,color) $Canv(fill,color); .svg.button14_1 configure -bg chocolate1; .svg.button14_0 configure -bg gray86}
+}
+set ButtonsSVG_ORIG { 
+R  mode  0  0  rectangle.gif   {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Rectangle}
+R  mode  0  1  roundrect.gif   {set Graphics(type) "SVG" ; .mbar.shape.menu invoke "Round rectangle"}
+R  mode  0  2  circle.gif      {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Circle}
+R  mode  0  3  ellipse.gif     {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Ellipse}
+R  mode  0  4  polygon.gif     {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Polygon}
+R  mode  0  5  polyline.gif    {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Line}
+R  mode  0  6  spline.gif      {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Spline}
+R  mode  0  7  cspline.gif     {set Graphics(type) "SVG" ; .mbar.shape.menu invoke "Closed Spline"}
+R  mode  0  8  arc.gif         {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Arc}
+R  mode  0  9  pieslice.gif    {set Graphics(type) "SVG" ; .mbar.shape.menu invoke PieSlice}
+R  mode  0 10  chord.gif       {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Chord}
+R  mode  0 11  freehand.gif    {set Graphics(type) "SVG" ; .mbar.shape.menu invoke "Free Hand"}
 R  mode  1  0  text.gif        {set Graphics(type) "SVG" ; .mbar.text.menu invoke "Draw text"}
 R  mode  1  1  move.gif        {set Graphics(type) "SVG" ; .mbar.edit.menu invoke "Move object"}
 R  mode  1  2  copy.gif        {set Graphics(type) "SVG" ; .mbar.edit.menu invoke "Copy object"}
@@ -672,22 +787,30 @@ C  grid,size 1  7  grid.gif    {set Graphics(grid,on) 1}
 R  mode  1 8  reconf.gif       {.mbar.group.menu invoke 0}
 B  dumm  1 9 undo.gif          {.mbar.edit.menu invoke "Undo last change"}
 B  dumm  1 10 unundo.gif       {.mbar.edit.menu invoke "Undo last undo"}
-B  dumm  1 11 createpath.gif   {
-.mbar.shape.menu invoke "Create PATH"}
+B  dumm  1 11 createpath.gif   {.mbar.shape.menu invoke "Create PATH"}
 B  dumm  0 12 select1obj.gif   {.mbar.group.menu invoke "Select 1 object"}
+B  dumm  1 12 freeselection.gif  {.mbar.image.menu invoke "FreeSelectionArea"}
+R  mode  0 13 callout.gif  {set Graphics(type) "SVG" ; .mbar.shape.menu  invoke "Callout"}
+R  mode  1 13 bwrect  {puts "[mc {Reserve}]"}
+B  dumm  0 14 withoutfilling.gif {set Graphics(fill,color) ""; .svg.button14_0 configure -bg chocolate1; .svg.button14_1 configure -bg gray86}
+B  dumm  1 14 withfill.gif   	 {set Graphics(fill,color) $Canv(fill,color); .svg.button14_1 configure -bg chocolate1; .svg.button14_0 configure -bg gray86}
 }
+
 #B  dumm  1 11  savefile.gif    {.mbar.file.menu invoke "Save"}
 #tkp::canvas .anim -width 50 -height 50 -bg "#c6ceef" -highlightthickness 0
-tkp::canvas .anim -width 50 -height 50 -bg #eff0f1 -highlightthickness 0
-grid .anim -in .main -row 0 -column 0 -sticky n -rowspan 1 -columnspan 1 -pady 0
+tkp::canvas .anim -width 50 -height 50 -bg gray86 -highlightthickness 0
+grid .anim -in .main -row 0 -column 0 -sticky n -rowspan 1 -columnspan 1 -pady {0 4}
 set g7 [.anim gradient create radial -stops {{0 white} {1 black}}  \
   -radialtransition {0.6 0.4 0.5 0.7 0.3}]
 .anim create circle 25 25 -r 25 -fill red -stroke ""
 .anim create circle 25 25 -r 25 -fill $g7 -fillopacity 0.8 -stroke "" 
 #.anim create prect  0 0 50 50 -fill $g7 -fillopacity 0.8 -stroke ""
 
-frame .svg -bg skyblue -width 20
-grid .svg -in .main -row 0 -column 0 -rowspan 1 -columnspan 1  -sticky n -pady {50}
+frame .svg -bg gray86
+[winfo toplevel .svg] configure -background gray86
+#skyblue 
+#-width 20
+grid .svg -in .main -row 0 -column 0 -rowspan 1 -columnspan 1  -sticky n -pady {50 0}
 #Buttons for SVG
 foreach {btype var col row gif command} $ButtonsSVG {
     regexp {([^.]+)\.} $gif dummy b
@@ -705,18 +828,25 @@ foreach {btype var col row gif command} $ButtonsSVG {
              -variable Graphics($var) \
              -value $value \
              -relief flat \
-	     -activebackground {skyblue} \
+	     -activebackground {gray86} \
        -highlightthickness 1 \
-       -highlightbackground {chocolate1} \
+       -highlightbackground {gray86} \
              -command "TPselectAction $butt1; $command"
 #             -command $command
     }
-    if {$btype=="B"} {
+    if {$btype=="B" && $row == 14} {
        button $butt -image $im -bd 0 \
              -relief flat \
-	     -activebackground {skyblue} \
+	     -activebackground {gray86} \
        -highlightthickness 1 \
-       -highlightbackground {chocolate1} \
+       -highlightbackground {gray86} \
+       -command "$command"
+    } elseif {$btype=="B"} {
+       button $butt -image $im -bd 0 \
+             -relief flat \
+	     -activebackground {gray86} \
+       -highlightthickness 1 \
+       -highlightbackground {gray86} \
              -command "TPselectAction $butt1; $command"
 #             -command $command
     }
@@ -725,14 +855,17 @@ foreach {btype var col row gif command} $ButtonsSVG {
              -indicatoron false \
              -selectcolor "" \
              -relief flat \
-	     -activebackground {skyblue} \
+	     -activebackground {gray86} \
        -highlightthickness 1 \
-       -highlightbackground {chocolate1} \
+       -highlightbackground {gray86} \
              -variable Graphics(grid,on)
     }
-    grid config $butt -row $row -column $col -columnspan 1 -rowspan 1 -sticky "snew"
-    $butt configure -bg gray93
+    grid config $butt -row $row -column $col -columnspan 1 -rowspan 1 -ipadx 2 -pady 0 -ipady  2
+# -sticky "snew"
+    $butt configure -bg gray86
 }
+.svg.button14_0 configure -bg chocolate1
+TP_BuildColorSelector ".svg"
 ################################
 
 grid .c -in .main \
@@ -751,7 +884,8 @@ resetCanvas
 
 ##### USER INTERFACE: BUTTONS, TOOL BARS, STATUS BARS, FRAMES, ETC ...
 
-frame .mbar -bd 1 -relief raised
+#frame .mbar -bd 1 -relief raised -bg gray86
+frame .mbar -bd 1 -relief flat -bg gray86
 
 foreach {menub text menu under} {
    .mbar.file    File   .mbar.file.menu    0
@@ -769,10 +903,10 @@ foreach {menub text menu under} {
     
 
     if {$tshape == "Shape"} {
-	menubutton $menub -text $text  -menu $menu -activebackground {#77F7FF}
+	menubutton $menub -text $text  -menu $menu -activebackground {skyblue1} -background gray86
 	continue
     } else {
-	menubutton $menub -text $text -underline $under -menu $menu -activebackground {#77F7FF}
+	menubutton $menub -text $text -underline $under -menu $menu -activebackground {skyblue1} -background gray86
     }
 
     pack $menub -side left
@@ -780,19 +914,22 @@ foreach {menub text menu under} {
 
 button .mbar.grid -text [mc Grid] -font $Font(buttonNormal) \
        -relief flat \
-       -activebackground {#77F7FF} \
+       -activebackground {skyblue1} \
+       -bd 0 \
+       -background gray86 \
+       -highlightthickness 0 \
        -command {gridSelector .gridsel}
-pack .mbar.grid -side left
-menubutton .mbar.zoom -text [mc Zoom] -underline 0 -menu .mbar.zoom.menu -activebackground {#77F7FF}
+pack .mbar.grid -side left -padx 0 -pady 0
+menubutton .mbar.zoom -text [mc Zoom] -underline 0 -menu .mbar.zoom.menu -activebackground {skyblue1} -background gray86
 pack .mbar.zoom -side left
-menubutton .mbar.help -text [mc Help] -underline 0 -menu .mbar.help.menu -activebackground {#77F7FF}
+menubutton .mbar.help -text [mc Help] -underline 0 -menu .mbar.help.menu -activebackground {skyblue1} -background gray86
 pack .mbar.help -side right
 
 entry .mbar.zoomentry \
-      -state disabled \
+      -state readonly \
       -textvariable Zoom(button,text) \
-      -bd 2 \
-      -bg #00ff40 \
+      -bd 0 \
+      -background gray86 \
       -fg #000040 \
       -font $Font(zoomEntry) \
       -width 5 \
@@ -821,17 +958,17 @@ R  mode  0  8  arc.gif         {set Graphics(type) "TK" ; .mbar.shape.menu invok
 R  mode  0  9  pieslice.gif    {set Graphics(type) "TK" ; .mbar.shape.menu invoke PieSlice}
 R  mode  0 10  chord.gif       {set Graphics(type) "TK" ; .mbar.shape.menu invoke Chord}
 R  mode  0 11  freehand.gif    {set Graphics(type) "TK" ; .mbar.shape.menu invoke "Free Hand"}
-R  mode  1  0  text.gif        {set Graphics(type) "TK" ; .mbar.text.menu invoke "Draw text"}
-R  mode  1  1  move.gif        {set Graphics(type) "TK" ; .mbar.edit.menu invoke "Move object"}
-R  mode  1  2  copy.gif        {set Graphics(type) "TK" ; .mbar.edit.menu invoke "Copy object"}
-R  mode  1  3  erase.gif       {set Graphics(type) "TK" ; .mbar.edit.menu invoke "Delete object"}
-R  mode  1  4  raise.gif       {set Graphics(type) "TK" ; .mbar.edit.menu invoke "Raise object"}
-R  mode  1  5  lower.gif       {set Graphics(type) "TK" ; .mbar.edit.menu invoke "Lower object"}
-R  mode  1  6  arrows.gif      {set Graphics(type) "TK" ; .mbar.line.menu invoke Arrows}
+R  mode  1  0  text.gif        {set Graphics(type) "TK" ; TextMode}
+R  mode  1  1  move.gif        {set Graphics(type) "TK" ; moveMode}
+R  mode  1  2  copy.gif        {set Graphics(type) "TK" ; copyMode}
+R  mode  1  3  erase.gif       {set Graphics(type) "TK" ; deleteMode}
+R  mode  1  4  raise.gif       {set Graphics(type) "TK" ; raiseMode}
+R  mode  1  5  lower.gif       {set Graphics(type) "TK" ; lowerMode}
+R  mode  1  6  arrows.gif      {set Graphics(type) "TK" ; arrowsMode}
 C  grid,size 1  7  grid.gif    {set Graphics(grid,on) 1}
 R  mode  1 8  reconf.gif       {.mbar.group.menu invoke 0}
-B  dumm  1 9 undo.gif          {.mbar.edit.menu invoke "Undo last change"}
-B  dumm  1 10 unundo.gif       {.mbar.edit.menu invoke "Undo last undo"}
+B  dumm  1 9 undo.gif          {Undo exec}
+B  dumm  1 10 unundo.gif       {History repeat}
 B  dumm  1 11  savefile.gif    {.mbar.file.menu invoke "Save"}
 }
 
@@ -846,7 +983,7 @@ set textButtons {
    R   1  14  righta.gif       {.mbar.text.menu.anchor invoke East}    e
 }
 
-frame .tools
+frame .tools -background gray86 -relief groove -bd 2
 
 foreach {btype var row col gif command} $Buttons {
 incr col 2
@@ -865,18 +1002,18 @@ incr col 2
              -variable Graphics($var) \
              -value $value \
              -relief flat \
-	     -activebackground {#77F7FF} \
+	     -activebackground {skyblue1} \
        -highlightthickness 1 \
-       -highlightbackground {#77F7FF} \
+       -highlightbackground {skyblue1} \
              -command "TPselectAction $butt1; $command"
 #             -command $command
     }
     if {$btype=="B"} {
        button $butt -image $im -bd 0 \
              -relief flat \
-	     -activebackground {#77F7FF} \
+	     -activebackground {skyblue1} \
        -highlightthickness 1 \
-       -highlightbackground {#77F7FF} \
+       -highlightbackground {skyblue1} \
              -command "TPselectAction $butt1; $command"
 #             -command $command
     }
@@ -885,9 +1022,9 @@ incr col 2
              -indicatoron false \
              -selectcolor "" \
              -relief flat \
-	     -activebackground {#77F7FF} \
+	     -activebackground {skyblue1} \
        -highlightthickness 1 \
-       -highlightbackground {#77F7FF} \
+       -highlightbackground {skyblue1} \
              -variable Graphics(grid,on)
     }
     grid config $butt -row $row -column $col\
@@ -910,9 +1047,9 @@ incr col 2
              -selectcolor "" \
              -variable Graphics(font,$b) \
              -relief flat \
-	     -activebackground {#77F7FF} \
+	     -activebackground {skyblue1} \
        -highlightthickness 1 \
-       -highlightbackground {#77F7FF} \
+       -highlightbackground {skyblue1} \
              -command "TPselectAction $butt1; $command"
 #             -command $command
    }
@@ -923,9 +1060,9 @@ incr col 2
              -variable Graphics(text,anchor) \
              -value $value \
              -relief flat \
-	     -activebackground {#77F7FF} \
+	     -activebackground {skyblue1} \
        -highlightthickness 1 \
-       -highlightbackground {#77F7FF} \
+       -highlightbackground {skyblue1} \
              -command "TPselectAction $butt1; $command"
 #             -command $command
    }
@@ -1001,6 +1138,11 @@ grid config .tools.fr_fill -row 1 -column 19\
 
 grid config .mbar -column 0 -row 0 \
         -columnspan 1 -rowspan 1 -sticky "snew"
+#frame .toolssep -background gray86 -relief ridge -bd 2 -height [expr {[image height openDark] + 6}]
+frame .toolssep -background gray86 -relief groove -bd 2
+# -height [winfo height .showtools]
+#grid config .toolssep -column 0 -row 1 -columnspan 1 -rowspan 1 -sticky "snew" 
+#grid remove .toolssep
 grid config .tools -column 0 -row 1 \
         -columnspan 1 -rowspan 1 -sticky "snew" 
 grid config .main -column 0 -row 2 \
@@ -1023,16 +1165,32 @@ for {set i 0} {$i<=16} {incr i} {
       grid columnconfigure .tools $i -minsize 25
 }
 #################
+#Кнопка сворачивания классического меню tkpaint
+ttk::style configure MyBut.Toolbutton  -background gray86 -padding {0 0} -anchor nw
+ttk::checkbutton .showtools -style MyBut.Toolbutton
+set Graphics(showtools) 0
+
+.showtools configure -image closeDark -padding {0mm -0 0 0} -variable Graphics(showtools) -command {FE_showtktools}
+set t1 [mc {Show/Hide tools tkpaint}]
+bind .showtools <Enter> [list balloon %W $t1]
+bind .showtools  <Leave>  {catch {
+       after cancel $Balloon(%W,job1)
+       after cancel $Balloon(%W,job2)
+       destroy $Balloon(%W,name)
+      }
+}
+
 #Окошко у TK-editor
-tkp::canvas .tked -width 50 -height 50 -bg #eff0f1 -highlightthickness 0
+tkp::canvas .tked -width 66 -height 50 -bg gray86 -highlightthickness 0
 grid .tked -in .tools -row 0 -column 0 -rowspan 2 -columnspan 2  -sticky n
 set g7 [.anim gradient create radial -stops {{0 white} {1 black}}  \
   -radialtransition {0.6 0.4 0.5 0.7 0.3}]
-.tked create polyline 15 40 15 15 40 15 -strokewidth 2 -stroke blue -endarrow true -startarrow true
-#.tked create circle 25 25 -r 25 -fill red -stroke ""
-#.tked create circle 25 25 -r 25 -fill $g7 -fillopacity 0.8 -stroke "" 
-
-
+.tked create polyline 35 40 35 15 60 15 -strokewidth 2 -stroke blue -endarrow true -startarrow true \
+ -startarrowlength  10 -startarrowwidth 4 -startarrowfill 0.7 -endarrowlength  10 -endarrowwidth 4 -endarrowfill 0.7
+place .showtools -in .mbar -rely 1 -y 2
+raise .showtools
+update
+.toolssep configure -height [expr {[winfo height .showtools] + 4}]
 
 ######### MENUS ####################################
 
@@ -1111,7 +1269,7 @@ menu .mbar.file.menu.pref -tearoff 0
 menu .mbar.shape.menu -tearoff 0
 
 .mbar.shape.menu add radiobutton \
-     -label [mc Rectangle] \
+     -label "Rectangle" \
      -variable Graphics(mode) \
      -value Rectangle \
      -command {startRectagle}
@@ -1198,13 +1356,38 @@ menu .mbar.shape.menu -tearoff 0
      -command {
         set Graphics(shape) path
         createpath
-}
+    }
+.mbar.shape.menu add radiobutton \
+     -label "Callout" \
+     -variable Graphics(mode) \
+     -value "Callout" \
+     -command {
+        set Graphics(shape) callout
+        startCallout
+     }
 
 #### LINE MENU:
 
 menu .mbar.line.menu
 
-.mbar.line.menu add cascade -label Width -menu .mbar.line.menu.width
+.mbar.line.menu add cascade -label [mc "Line dash style"] -menu .mbar.line.menu.dash
+
+menu .mbar.line.menu.dash -tearoff 0
+foreach s {"Solid line" "Dotted" "Dashed" "Dash-dotted"} {
+    set s1 [mc "$s"]
+    .mbar.line.menu.dash add radiobutton -label $s1 -font $Font(dash) \
+    -variable Graphics(linedefault,dash) \
+    -value $s
+}
+if {0} {
+foreach s {. - -. -.. -- --. --.. , -, -,, NONE} {
+   .mbar.line.menu.dash add radiobutton -label $s -font $Font(dash) \
+   -variable Graphics(line,dash) \
+   -value $s
+}
+}
+
+.mbar.line.menu add cascade -label [mc "Width"] -menu .mbar.line.menu.width
 
 menu .mbar.line.menu.width -tearoff 0
 foreach s {0 0.5 1 1.5 2 3 4 5 6 7 8 9 10 11 12 15 18 21 24 27 30 33 
@@ -1214,26 +1397,46 @@ foreach s {0 0.5 1 1.5 2 3 4 5 6 7 8 9 10 11 12 15 18 21 24 27 30 33
               -value $s
 }
 
-.mbar.line.menu add cascade -label Style -menu .mbar.line.menu.style
+.mbar.line.menu add cascade -label [mc "Degree of opacity"] -menu .mbar.line.menu.style
 
 menu .mbar.line.menu.style -tearoff 0
 
 foreach s {solid gray12 gray25 gray50 gray75} {
-   .mbar.line.menu.style add radiobutton -label $s \
+    switch $s {
+	solid {
+		set s1 "100 %"
+	    }
+	default {
+		set s1 "[string range $s 4 5] %"
+	    }
+    }
+    
+   .mbar.line.menu.style add radiobutton -label $s1 \
          -variable Graphics(line,style) \
          -value $s
 }
 
-.mbar.line.menu add cascade -label "Join style" -menu .mbar.line.menu.join
+.mbar.line.menu add cascade -label [mc "Join style"] -menu .mbar.line.menu.join
 
 menu .mbar.line.menu.join -tearoff 0
 foreach s {bevel miter round} {
-   .mbar.line.menu.join add radiobutton -label $s \
+    switch $s {
+	bevel {
+		set s1 [mc {Bevel}]
+	    }
+	miter {
+		set s1 [mc {Miter}]
+	    }
+	round {
+		set s1 [mc {Round}]
+	    }
+    }
+   .mbar.line.menu.join add radiobutton -label $s1 \
    -variable Graphics(line,joinstyle) \
    -value $s
 }
 
-.mbar.line.menu add cascade -label "Cap style" -menu .mbar.line.menu.cap
+.mbar.line.menu add cascade -label [mc "Cap style"] -menu .mbar.line.menu.cap
 
 menu .mbar.line.menu.cap -tearoff 0
 foreach s {butt projecting round} {
@@ -1242,11 +1445,11 @@ foreach s {butt projecting round} {
    -value $s
 }
 
-.mbar.line.menu add command -label Color \
+.mbar.line.menu add command -label [mc "Color"] \
                 -command {chooseOutlineColor}
-.mbar.line.menu add command -label Arrows -command {arrowsMode}
+.mbar.line.menu add command -label [mc "Arrows"] -command {arrowsMode}
 
-.mbar.line.menu add command -label "Arrow shape" -command {arrowShapeTool}
+.mbar.line.menu add command -label [mc "Arrow shape"] -command {arrowShapeTool}
 
 ####### IMAGE MENU:
 
@@ -1274,8 +1477,9 @@ set imageInfo {
 }
 }
 foreach {lab cmd} $imageInfo {
+    set lab1 "[mc $lab]"
    .mbar.image.menu add radiobutton \
-        -label $lab \
+        -label $lab1 \
         -variable Graphics(mode) \
         -value $lab \
         -command $cmd
@@ -1286,24 +1490,30 @@ foreach {lab cmd} $imageInfo {
 
 menu .mbar.fill.menu -tearoff 0
 
-.mbar.fill.menu add cascade -label Style -menu .mbar.fill.menu.style
+.mbar.fill.menu add cascade -label [mc "Degree of opacity"] -menu .mbar.fill.menu.style
 
 menu .mbar.fill.menu.style -tearoff 0
 foreach s {gray12 gray25 gray50 gray75} {
-   .mbar.fill.menu.style add radiobutton -label $s \
+    set s1 "[string range $s 4 5] %"
+   .mbar.fill.menu.style add radiobutton -label $s1 \
          -variable Graphics(fill,style) \
          -value $s
 }
-
-.mbar.fill.menu.style add command -label "Solid" -command {
-          .mbar.fill.menu.style activate none
-          set Graphics(fill,style) {}
+set s1 "100 %"
+.mbar.fill.menu.style add command -label $s1 -command {
+         .mbar.fill.menu.style activate none
+         set Graphics(fill,style) {}
 }
 
-.mbar.fill.menu add command -label Color -command {chooseFillColor}
+.mbar.fill.menu add command -label [mc {Color}] -command {
+	if {[chooseFillColor] != "" } {
+	    .svg.button14_1 configure -bg chocolate1; .svg.button14_0 configure -bg gray86
+	}
+    }
 
-.mbar.fill.menu add command -label "No Color" -command {
+.mbar.fill.menu add command -label [mc "No Color"] -command {
           set Graphics(fill,color) {}
+	.svg.button14_0 configure -bg chocolate1; .svg.button14_1 configure -bg gray86
 }
 
 #### EDIT MENU:
@@ -1311,57 +1521,57 @@ foreach s {gray12 gray25 gray50 gray75} {
 menu .mbar.edit.menu
 
 .mbar.edit.menu add command \
-        -label "Undo last change" \
+        -label "[mc {Undo last change}]" \
         -accelerator "Ctrl+u" \
         -command {Undo exec}
 
 .mbar.edit.menu add command \
-        -label "Undo last undo" \
+        -label "[mc {Undo last undo}]" \
         -accelerator "Ctrl+l" \
         -command {History repeat}
 
 .mbar.edit.menu add radiobutton \
-        -label "Move object" \
+        -label "[mc {Move object}]" \
         -variable Graphics(mode) \
         -value "Move object" \
         -command {moveMode}
 
 .mbar.edit.menu add radiobutton \
-        -label "Copy object" \
+        -label "[mc {Copy object}]" \
         -variable Graphics(mode) \
         -value "Copy object" \
         -command {copyMode}
 
 .mbar.edit.menu add radiobutton \
-        -label "Raise object" \
+        -label "[mc {Raise object}]" \
         -variable Graphics(mode) \
         -value "Raise object" \
         -command {raiseMode}
 
 .mbar.edit.menu add radiobutton \
-        -label "Lower object"\
+        -label "[mc {Lower object}]"\
         -variable Graphics(mode) \
         -value "Lower object" \
         -command {lowerMode}
 
 .mbar.edit.menu add radiobutton \
-        -label "Delete object" \
+        -label "[mc {Delete object}]" \
         -variable Graphics(mode) \
         -value "Delete object" \
         -command {deleteMode}
 
 .mbar.edit.menu add radiobutton \
-        -label "Reshape polygon/line" \
+        -label "[mc {Reshape polygon/line/callout}]" \
         -variable Graphics(mode) \
         -value "Reshape mode" \
         -command {reshapeMode}
 
 .mbar.edit.menu add command \
-        -label "Delete All" \
+        -label "[mc {Delete All}]" \
         -command {deleteAll}
 
 .mbar.edit.menu add command \
-        -label "Canvas background color" \
+        -label "[mc {Canvas background color}]" \
         -command {chooseBackgroudColor}
 
 .mbar.edit.menu add radiobutton \
@@ -1382,90 +1592,92 @@ menu .mbar.edit.menu
 menu .mbar.group.menu
 
 .mbar.group.menu add radiobutton \
-        -label "Select group" \
+        -label "[mc {Select group}]" \
         -variable Graphics(mode) \
         -value "Group Mode" \
         -accelerator "Ctrl+s" \
         -command {selectGroupMode}
 
 .mbar.group.menu add command \
-        -label "Select all" \
+        -label "[mc {Select all}]" \
         -accelerator "Ctrl+a" \
         -command {selectAll}
 
 .mbar.group.menu add command \
-        -label "Select 1 object" \
+        -label "[mc {Select 1 object}]" \
         -command {select1object}
 
 .mbar.group.menu add command \
-        -label "Unselect"\
+        -label "[mc {Unselect}]"\
         -command {unselectGroup}
 
 .mbar.group.menu add command \
-        -label "Copy group" \
+        -label "[mc {Copy group}]" \
         -accelerator "Ctrl+c" \
         -command {createGroupCopy}
 
 .mbar.group.menu add command \
-        -label "Rotate group" \
+        -label "[mc {Rotate group}]" \
         -accelerator "Ctrl+r" \
         -command {rotateGroupSVG}
 #        -command {rotateGroupMode}
 
 .mbar.group.menu add command \
-        -label "Deform group" \
+        -label "[mc {Deform group}]" \
         -accelerator "Ctrl+e" \
         -command {deformGroupMode}
 
 .mbar.group.menu add command \
-        -label "Horizontal reflection" \
+        -label "[mc {Horizontal reflection}]" \
         -accelerator "Ctrl+h" \
         -command {reflect x}
 
 .mbar.group.menu add command \
-        -label "Vertical reflection"\
+        -label "[mc {Vertical reflection}]"\
         -accelerator "Ctrl+v" \
         -command {reflect y}
 
 .mbar.group.menu add command \
-        -label "Raise group"\
+        -label "[mc {Raise group}]"\
         -command {raiseGroup}
 
 .mbar.group.menu add command \
-        -label "Lower group"\
+        -label "[mc {Lower group}]"\
         -command {lowerGroup}
 
 .mbar.group.menu add command \
-        -label "Delete group"\
+        -label "[mc {Delete group}]"\
         -accelerator "Ctrl+d" \
         -command {deleteGroup}
 
+if {0} {
 .mbar.group.menu add command \
         -label "Edit radius round rect"\
         -command {editRadiusRoundRect}
+}
 
 .mbar.group.menu add command \
-        -label "Edit line width"\
+        -label "[mc {Edit line width}]"\
         -command {editGroupLineWidth}
 
 .mbar.group.menu add command \
-        -label "Edit line color"\
+        -label "[mc {Edit line color}]"\
         -command {editGroupLineColor}
 
 .mbar.group.menu add command \
-        -label "Edit fill color"\
+        -label "[mc {Edit fill color}]"\
         -command {editGroupFillColor}
 
 .mbar.group.menu add command \
-        -label "Edit fill gradient"\
+        -label "[mc {Edit fill gradient}]"\
         -command {editGroupFillGradient}
 
 .mbar.group.menu add command \
-        -label "SVG transform"\
+        -label "[mc {SVG transform}]"\
         -command {TP_tpskewGroup}
 
 .mbar.group.menu add command \
-        -label "Edit font"\
+        -label "[mc {Edit font}]"\
         -command {editGroupFont}
 
 #### TEXT MENU:
@@ -1529,20 +1741,20 @@ foreach {anchor label} {
 
 menu .mbar.help.menu -tearoff 0
 
-.mbar.help.menu add command -label "Help" -command  Help
+.mbar.help.menu add command -label [mc "Help for tkpaint"] -command  Help
 
-.mbar.help.menu add command -label "About" -command {About}
+.mbar.help.menu add command -label "[mc About]" -command {About}
 
 #LISSI
 set TPshowconsole 0
-console hide
+catch {console hide}
 .mbar.help.menu add separator
 .mbar.help.menu add checkbutton \
     -variable {TPshowconsole} \
     -command {if {$TPshowconsole} {
    catch {console show}
   } { catch {console hide} }} \
-    -label {Console}
+    -label "[mc {Console tcl}]"
 
 #### ZOOM MENU:
 
@@ -1606,13 +1818,18 @@ proc startRectagle {} {
        set y [.c canvasy %y $Graphics(grid,snap)]
        set Rectangle(coords) "$x $y $x $y"
        if {$Graphics(type) == "SVG"} {
+	set fillstyle [TP_opacityFromStyle $Graphics(fill,style)]
+	set linestyle [TP_opacityFromStyle $Graphics(line,style)]
 	set Rectangle(options)  [list \
 	    -strokelinejoin miter \
             -strokewidth   $Graphics(line,width) \
+            -strokedasharray    $Graphics(linesvg,dash) \
             -stroke $Graphics(line,color) \
             -fill    $Graphics(fill,color) \
+            -fillopacity $fillstyle -strokeopacity $linestyle \
             -tags    {Rectangle obj svg}       \
-       ] 
+       ]
+
        } else {
 
         set Rectangle(options)  [list \
@@ -1620,13 +1837,16 @@ proc startRectagle {} {
            -outline $Graphics(line,color) \
            -fill    $Graphics(fill,color) \
            -stipple $Graphics(fill,style) \
+           -dash    $Graphics(line,dash)        \
            -tags    {Rectangle obj}       \
         ]
        }
+       Message "Now hold and drag the mouse!"
   }
   bind .c <B1-Motion> {
        set x [.c canvasx %x $Graphics(grid,snap)]
        set y [.c canvasy %y $Graphics(grid,snap)]
+set Canv(pointerxy) [expr round($x)],[expr round($y)]
        makeRectagle $x $y
   }
   bind .c <B1-ButtonRelease> {
@@ -1644,8 +1864,9 @@ proc startRectagle {} {
           4 {Message "Amazone.com: good books store!"}
           5 {Message {If you haven't, try "Deform" from "Group"!}}
       }
+      Message "Your rectangle is done!"
   }
-  Message "Found any bugs?"
+  Message "Click on one of the vertices of the rectangle"
 }
 
 proc makeRectagle {x y} {
@@ -1666,6 +1887,60 @@ proc makeRectagle {x y} {
 #puts "makeRectagle: Rectangle(coords)=$Rectangle(coords)"
 #puts "makeRectagle: Rectangle(options)=$Rectangle(options)"
 }
+###############CallOut#############################
+proc startCallout {} {
+  global Callout Graphics
+
+  set Graphics(shape) "Callout"
+  if {$Graphics(type) != "SVG"} {
+	return
+  }
+    bind .c <Button-1> {
+	set fillstyle [TP_opacityFromStyle $Graphics(fill,style)]
+	set linestyle [TP_opacityFromStyle $Graphics(line,style)]
+       set x [.c canvasx %x $Graphics(grid,snap)]
+       set y [.c canvasy %y $Graphics(grid,snap)]
+       set Callout(coords) "$x $y $x $y"
+       set Callout(options)  [list \
+           -strokewidth   $Graphics(line,width) \
+           -stroke $Graphics(line,color) \
+           -strokedasharray  $Graphics(linesvg,dash) \
+           -fill    $Graphics(fill,color) \
+           -fillopacity $fillstyle -strokeopacity $linestyle \
+           -tags    {Callout obj svg}       \
+       ]
+       Message "Now hold and drag the mouse!"
+    }
+  bind .c <B1-Motion> {
+       set x [.c canvasx %x $Graphics(grid,snap)]
+       set y [.c canvasy %y $Graphics(grid,snap)]
+	set Canv(pointerxy) [expr round($x)],[expr round($y)]
+       makeCallout $x $y
+  }
+  bind .c <B1-ButtonRelease> {
+      if ![info exists Callout(id)] {return}
+      set utag [Utag assign $Callout(id)]
+      History add [getObjectCommand $utag 1]
+      Undo add ".c delete $utag"
+      catch {unset Callout}
+      Message "Your callout is done!"
+  }
+  Message "Click on one of the vertices of the callout"
+}
+proc makeCallout {x y} {
+  global Callout Graphics
+  set Callout(coords) [lreplace $Callout(coords) 2 3 $x $y]
+  catch {.c delete $Callout(id)}
+  if {$Graphics(type) != "SVG"} {
+	return
+  }
+  foreach {x0 y0 x1 y1} $Callout(coords) {break}
+  #Радиус
+    set rx [expr {($x1 - $x0) * $Graphics(callout,rx)}]
+    set d [TP_CloudWithTongue "$x0 $y0" "$x1 $y1" $rx "$Graphics(callout,tongue)" ]
+    set Callout(id) [eval .c create path "\"$d\"" $Callout(options)]
+}
+
 
 ###### ROUND RECTANGLE SECTION
 proc startRoundRect {} {
@@ -1677,22 +1952,29 @@ proc startRoundRect {} {
   if {$Graphics(type) == "SVG"} {
 
     bind .c <Button-1> {
+	set fillstyle [TP_opacityFromStyle $Graphics(fill,style)]
+	set linestyle [TP_opacityFromStyle $Graphics(line,style)]
        set x [.c canvasx %x $Graphics(grid,snap)]
        set y [.c canvasy %y $Graphics(grid,snap)]
        set RoundRect(tmp,coords) "$x $y $x $y"
        set RoundRect(tmp,options)  [list  \
            -strokewidth   $Graphics(line,width) \
            -stroke $Graphics(line,color) \
+           -strokedasharray    $Graphics(linesvg,dash) \
            -fill    $Graphics(fill,color) \
+           -fillopacity $fillstyle -strokeopacity $linestyle \
            -tags    {tmpRoundRect obj svg}    \
        ]
 
        set RoundRect(options)  [list \
            -strokewidth   $Graphics(line,width) \
            -stroke $Graphics(line,color) \
+           -strokedasharray  $Graphics(linesvg,dash) \
            -fill    $Graphics(fill,color) \
+           -fillopacity $fillstyle -strokeopacity $linestyle \
            -tags    {RoundRect obj svg}       \
        ]
+       Message "Now hold and drag the mouse!"
     }
 
   } else { 
@@ -1704,6 +1986,7 @@ proc startRoundRect {} {
            -width   $Graphics(line,width) \
            -outline $Graphics(line,color) \
            -fill    $Graphics(fill,color) \
+           -dash    $Graphics(line,dash)  \
            -stipple $Graphics(fill,style) \
            -tags    {tmpRoundRect obj}    \
        ]
@@ -1712,18 +1995,22 @@ proc startRoundRect {} {
            -width   $Graphics(line,width) \
            -outline $Graphics(line,color) \
            -fill    $Graphics(fill,color) \
+           -dash    $Graphics(line,dash)  \
            -stipple $Graphics(fill,style) \
            -smooth  1                     \
            -tags    {RoundRect obj}       \
        ]
+       Message "Now hold and drag the mouse!"
     }
   }
   bind .c <B1-Motion> {
        set x [.c canvasx %x $Graphics(grid,snap)]
        set y [.c canvasy %y $Graphics(grid,snap)]
+set Canv(pointerxy) [expr round($x)],[expr round($y)]
        makeRoundRect $x $y
   }
   bind .c <B1-ButtonRelease> {finishRoundRect}
+  Message "Click on one of the vertices of the rounded rectangle"
 }
 
 proc makeRoundRect {x y} {
@@ -1732,7 +2019,6 @@ proc makeRoundRect {x y} {
   catch {.c delete $RoundRect(tmp,id)}
 #LISSI
   if {$Graphics(type) == "SVG"} {
-
     set RoundRect(tmp,id) \
       [eval .c create prect $RoundRect(tmp,coords) $RoundRect(tmp,options)]
       .c itemconfigure $RoundRect(tmp,id) -rx 10
@@ -1763,7 +2049,7 @@ proc finishRoundRect {} {
   if {$Graphics(type) == "SVG"} {
 	lappend coords $x1 $y1 $x2 $y2
 	.c delete $RoundRect(tmp,id)
-	set id [eval .c create prect $coords $RoundRect(options)]
+	set id [eval .c create prect $coords $RoundRect(options) ]
 	.c itemconfigure $id -rx 10
 	TP_idrotate $id 0.0
 
@@ -1772,6 +2058,7 @@ proc finishRoundRect {} {
 	Undo add ".c delete $utag"
 	catch {unset RoundRect}
 	editRadiusRoundRect
+	Message "Your rounded rectangle is done!"
 	return
   }
 
@@ -1823,6 +2110,7 @@ proc finishRoundRect {} {
   History add [getObjectCommand $utag 1]
   Undo add ".c delete $utag"
   catch {unset RoundRect}
+  Message "Your rounded rectangle is done!"
 }
 
 ######## CIRCLE SECTION
@@ -1834,6 +2122,8 @@ proc startCircle {} {
   if {$Graphics(type) == "SVG"} {
 
     bind .c <Button-1> {
+	set fillstyle [TP_opacityFromStyle $Graphics(fill,style)]
+	set linestyle [TP_opacityFromStyle $Graphics(line,style)]
        set x [.c canvasx %x $Graphics(grid,snap)]
        set y [.c canvasy %y $Graphics(grid,snap)]
        set Circle(center) "$x $y"
@@ -1841,6 +2131,8 @@ proc startCircle {} {
             -strokewidth    $Graphics(line,width) \
             -stroke  $Graphics(line,color) \
             -fill     $Graphics(fill,color) \
+            -fillopacity $fillstyle -strokeopacity $linestyle \
+            -strokedasharray    $Graphics(linesvg,dash)        \
             -tags     {Circle obj svg}        \
        ]
        Message "Now hold and drag the mouse!"
@@ -1855,6 +2147,7 @@ proc startCircle {} {
             -outline  $Graphics(line,color) \
             -stipple  $Graphics(fill,style) \
             -fill     $Graphics(fill,color) \
+            -dash    $Graphics(line,dash)  \
             -tags     {Circle obj}        \
        ]
        Message "Now hold and drag the mouse!"
@@ -1865,6 +2158,7 @@ proc startCircle {} {
   bind .c <B1-Motion> {
        set x [.c canvasx %x $Graphics(grid,snap)]
        set y [.c canvasy %y $Graphics(grid,snap)]
+set Canv(pointerxy) [expr round($x)],[expr round($y)]
        makeCircle $x $y
   }
   bind .c <B1-ButtonRelease> {
@@ -1906,13 +2200,17 @@ proc startEllipse {} {
   if {$Graphics(type) == "SVG"} {
 
     bind .c <Button-1> {
+	set fillstyle [TP_opacityFromStyle $Graphics(fill,style)]
+	set linestyle [TP_opacityFromStyle $Graphics(line,style)]
        set x [.c canvasx %x $Graphics(grid,snap)]
        set y [.c canvasy %y $Graphics(grid,snap)]
        set Ellipse(center) "$x $y"
        set Ellipse(options)  [list \
           -strokewidth   $Graphics(line,width) \
           -stroke $Graphics(line,color) \
+          -strokedasharray $Graphics(linesvg,dash) \
           -fill    $Graphics(fill,color) \
+    	  -fillopacity $fillstyle -strokeopacity $linestyle \
           -tags    {Ellipse obj  svg}         \
        ]
        Message "Now hold and drag the mouse!"
@@ -1926,6 +2224,7 @@ proc startEllipse {} {
           -width   $Graphics(line,width) \
           -outline $Graphics(line,color) \
           -fill    $Graphics(fill,color) \
+          -dash    $Graphics(line,dash)  \
           -stipple $Graphics(fill,style) \
           -tags    {Ellipse obj}         \
        ]
@@ -1937,6 +2236,7 @@ proc startEllipse {} {
   bind .c <B1-Motion> {
       set x [.c canvasx %x $Graphics(grid,snap)]
       set y [.c canvasy %y $Graphics(grid,snap)]
+set Canv(pointerxy) [expr round($x)],[expr round($y)]
       makeEllipse $x $y
   }
   bind .c <B1-ButtonRelease> {
@@ -1960,7 +2260,7 @@ proc makeEllipse {x y} {
   catch {.c delete $Ellipse(id)}
 #LISSI
   if {$Graphics(type) == "SVG"} {
-    set Ellipse(id) [eval .c create ellipse $x0 $y0 -rx $a -ry $b $Ellipse(options)]
+    set Ellipse(id) [eval .c create ellipse $x0 $y0 -rx $a -ry $b $Ellipse(options) ]
   } else {
     set Ellipse(id) [eval .c create oval $coords $Ellipse(options)]
   }
@@ -1987,18 +2287,38 @@ proc startLine {type} {
 	set ::tagsL {Line obj svg}
     }
     bind .c <Button-1> {
-       Message "When you finish your line - Right click!"
+	if { $Message(text) == "Click start point"} {
+    	    Message "Click on the next point and so on"
+	} else {
+    	    Message "When you finish your line - Right click!"
+        }
        set x [.c canvasx %x $Graphics(grid,snap)]
        set y [.c canvasy %y $Graphics(grid,snap)]
        if [info exists Line(coords)] {
          newLinePoint create $x $y
          continue
        }
+       set linestyle [TP_opacityFromStyle $Graphics(line,style)]
+
        set Line(options)  [list     \
            -strokewidth     $Graphics(line,width)     \
            -stroke      $Graphics(line,color)     \
+           -strokeopacity $linestyle \
+           -strokelinejoin $Graphics(line,joinstyle) \
+           -strokelinecap $Graphics(line,capstyle) \
+           -strokedasharray $Graphics(linesvg,dash) \
+	   -fill $Graphics(fill,color) \
            -tags      $::tagsL           \
        ]
+       if {![lsearch $::tagsL "Line"] != -1} {
+	    foreach {a b c } $Graphics(arrowshape) {break}
+	    set a [expr {1.0 * $a}]
+	    set b [expr {1.0 * $b}]
+	    set f [expr {$a / $b}]
+#puts "Line(options) 0=$Line(options)"
+    	    append Line(options) " -startarrowlength  $a -startarrowwidth $c -startarrowfill $f -endarrowlength  $a -endarrowwidth $c -endarrowfill $f "
+       }
+#puts "Line(options)=$Line(options)"
        set Line(coords) "$x $y"
        newLinePoint create $x $y
     }
@@ -2018,6 +2338,7 @@ proc startLine {type} {
            -fill      $Graphics(line,color)     \
            -stipple   $Graphics(line,style)     \
            -smooth    $Graphics(line,smooth)    \
+           -dash    $Graphics(line,dash)        \
            -tags      {Line obj}             \
        ]
        set Line(coords) "$x $y"
@@ -2025,10 +2346,12 @@ proc startLine {type} {
     }
 
   }
+    Message "Click start point"
 
   bind .c <B1-Motion> {
       set x [.c canvasx %x $Graphics(grid,snap)]
       set y [.c canvasy %y $Graphics(grid,snap)]
+set Canv(pointerxy) [expr round($x)],[expr round($y)]
       newLinePoint drag $x $y
   }
   bind .c <Button-3> {makeLine}
@@ -2049,23 +2372,13 @@ proc newLinePoint {mode x y} {
 #LISSI
   if {$Graphics(type) == "SVG"} {
     if {$Graphics(mode) == "Spline" || $Graphics(mode) == "Closed Spline"} {
-puts "newLinePoint: mode=$mode Line(coords)=$Line(coords)"
-	set mLine [lrange $Line(coords) 0 1]
-#	set sLine [lrange $Line(coords) 2 end]
-	set sLine $Line(coords)
-
-	set lLine [llength $sLine]
-	set ostLine [expr {$lLine % 4}]
-if {$lLine < 5} {
-	set Line(tempLine) [eval .c create polyline $Line(coords) $Line(options)]
-} else { 
-	if {$ostLine != 0} {
-	    append sLine " [lrange $sLine [expr {$lLine - 2}] end]"
+	if {$Graphics(mode) == "Closed Spline"} {
+	    set co [can2svg::ParseSplineToPath "polygon" $Line(coords)]
+	} {
+	    set co [can2svg::ParseSplineToPath "line" $Line(coords)]
 	}
-#	set Line(tempLine) [eval .c create polyline $Line(coords) $Line(options)]
-	set cmd [subst ".c create path \" M $mLine S $sLine \" $Line(options)"]
+	set cmd [subst ".c create path \" $co \" $Line(options)"]
 	set Line(tempLine) [eval $cmd]
-}
     } else {
 	set Line(tempLine) [eval .c create polyline $Line(coords) $Line(options)]
     }
@@ -2134,24 +2447,12 @@ proc makeLine {} {
 #    set id [eval .c create pline $Line(coords) $Line(options)]
     if {$Graphics(mode) == "Spline" || $Graphics(mode) == "Closed Spline"} {
 #puts "makeLine: "
-	set mLine [lrange $Line(coords) 0 1]
-#	set id [eval .c create path $Line(coords) $Line(options)]
-	set sLine [lrange $Line(coords) 2 end]
-	set lLine [llength $sLine]
-	set ostLine [expr {$lLine % 4}]
-#puts "makeLine: ostLine=$ostLine"
-set s1Line $sLine
-
-	if {$ostLine != 0} {
-#puts "makeLine: ost=[lrange $sLine [expr {$lLine - 2}] end]"
-	    append s1Line " [lrange $sLine [expr {$lLine - 2}] end]"
+	if {$Graphics(mode) == "Closed Spline"} {
+	    set co [can2svg::ParseSplineToPath "polygon" $Line(coords)]
+	} {
+	    set co [can2svg::ParseSplineToPath "line" $Line(coords)]
 	}
-    if {$Graphics(mode) == "Closed Spline"} {
-	set cmd [subst ".c create path \" M $mLine S $s1Line Z \" $Line(options)"]
-    } else {
-	set cmd [subst ".c create path \" M $mLine S $s1Line \" $Line(options)"]
-    }
-#	set id [eval .c create path \" M $mLine S $sLine \" $Line(options)]
+	set cmd [subst ".c create path \" $co \" $Line(options)"]
 	set id [eval $cmd]
     } else {
 	set id [eval .c create polyline $Line(coords) $Line(options)]
@@ -2161,6 +2462,7 @@ set s1Line $sLine
   }
 
   set utag [Utag assign $id]
+###########################
   History add [getObjectCommand $utag 1]
   Undo add ".c delete $utag"
   unset Line
@@ -2182,12 +2484,19 @@ proc startPolygon {type} {
   if {$Graphics(type) == "SVG"} {
 ##############
     if {$type == 1} {
-	startLine 2
-	return
+#	startLine 2
+#	return
     }
 ############
     bind .c <Button-1> {
-       Message "When you finish your polygon - Right click!"
+	if { $Message(text) == "Click start point"} {
+    	    Message "Click on the next point and so on"
+	} else {
+    	    Message "When you finish your polygon - Right click!"
+        }
+#       Message "When you finish your polygon - Right click!"
+	set fillstyle [TP_opacityFromStyle $Graphics(fill,style)]
+	set linestyle [TP_opacityFromStyle $Graphics(line,style)]
        set x [.c canvasx %x $Graphics(grid,snap)]
        set y [.c canvasy %y $Graphics(grid,snap)]
        if [info exists Polygon(coords)] {
@@ -2197,11 +2506,19 @@ proc startPolygon {type} {
        set Polygon(tempLine,options)  [list     \
            -strokewidth     $Graphics(line,width)     \
            -stroke $Graphics(line,color) \
+           -strokelinejoin $Graphics(line,joinstyle) \
+           -strokelinecap $Graphics(line,capstyle) \
+           -strokedasharray $Graphics(linesvg,dash) \
+    	   -fillopacity $fillstyle -strokeopacity $linestyle \
            -tags      {Polygon obj svg}             \
        ]
        set Polygon(options)  [list \
            -strokewidth   $Graphics(line,width) \
            -stroke $Graphics(line,color) \
+           -strokelinejoin $Graphics(line,joinstyle) \
+           -strokelinecap $Graphics(line,capstyle) \
+           -strokedasharray $Graphics(linesvg,dash) \
+    	   -fillopacity $fillstyle -strokeopacity $linestyle \
            -fill    $Graphics(fill,color) \
            -tags    {Polygon obj svg}         \
        ]
@@ -2222,6 +2539,7 @@ proc startPolygon {type} {
            -capstyle  $Graphics(line,capstyle)  \
            -joinstyle $Graphics(line,joinstyle) \
            -fill      $Graphics(line,color)     \
+           -dash      $Graphics(line,dash)  	\
            -stipple   $Graphics(line,style)     \
            -smooth    $Graphics(line,smooth)    \
            -tags      {Polygon obj}             \
@@ -2230,6 +2548,7 @@ proc startPolygon {type} {
            -width   $Graphics(line,width) \
            -outline $Graphics(line,color) \
            -fill    $Graphics(fill,color) \
+           -dash    $Graphics(line,dash)  \
            -stipple $Graphics(fill,style) \
            -smooth  $Graphics(line,smooth)\
            -tags    {Polygon obj}         \
@@ -2238,10 +2557,13 @@ proc startPolygon {type} {
        newPolygonPoint create $x $y
     }
   }
+#    Message "Click polygon's start point"
+    Message "Click start point"
 
   bind .c <B1-Motion> {
       set x [.c canvasx %x $Graphics(grid,snap)]
       set y [.c canvasy %y $Graphics(grid,snap)]
+set Canv(pointerxy) [expr round($x)],[expr round($y)]
       newPolygonPoint drag $x $y
   }
 #  bind .c <B1-ButtonRelease> {catch {unset Polygon(tempLine)}}
@@ -2263,9 +2585,14 @@ proc newPolygonPoint {mode x y} {
   catch {.c delete $Polygon(tempLine)}
 #LISSI
   if {$Graphics(type) == "SVG"} {
-    set Polygon(tempLine) [eval .c create polyline $Polygon(coords) $Polygon(tempLine,options) ]
+    if {$Graphics(mode) == "Closed Spline"} {
+	set co [can2svg::ParseSplineToPath "line" $Polygon(coords)]
+	set Polygon(tempLine) [eval .c create path [list $co] $Polygon(options) ]
+    } else {
+	set Polygon(tempLine) [eval .c create polyline $Polygon(coords) $Polygon(tempLine,options) ]
+    }
   } else {
-    set Polygon(tempLine) [eval .c create line $Polygon(coords) $Polygon(tempLine,options) ]
+	set Polygon(tempLine) [eval .c create line $Polygon(coords) $Polygon(tempLine,options) ]
   }
 }
 
@@ -2285,7 +2612,12 @@ proc makePolygon {} {
 #Не работает в ppolygon проверка принадлежности точки ему
 #LISSI
   if {$Graphics(type) == "SVG"} {
-    set id [eval .c create ppolygon $Polygon(coords) $Polygon(options)]
+    if {$Graphics(mode) == "Closed Spline"} {
+	set co [can2svg::ParseSplineToPath "polygon" $Polygon(coords)]
+	set id [eval .c create path [list $co] $Polygon(options) ]
+    } else {
+        set id [eval .c create ppolygon $Polygon(coords) $Polygon(options) ]
+    }
   } else {
     set id [eval .c create polygon $Polygon(coords) $Polygon(options)]
   }
@@ -2314,10 +2646,14 @@ proc arcMode {} {
 }
 
 proc finishArc {} {
+  global Graphics
   global Arc
+  global Message
   if {![info exists Arc(p3)]} {return}
   .c delete arcMark
-  set Arc(id) [shape2spline $Arc(id)]
+  if {$Graphics(type) != "SVG"} {
+      set Arc(id) [shape2spline $Arc(id)]
+  }
   set utag [Utag assign $Arc(id)]
   History add [getObjectCommand $utag 1]
   Undo add ".c delete $utag"
@@ -2333,6 +2669,9 @@ proc finishArc {} {
       6 {Message "You can edit lines and polygons! Try Edit/Reshape."}
       7 {Message "Use Zoom to fine tune your drawing!"}
   }
+#LISSI
+    Message "Arc is done"
+    Message "$Message(text1) ($Graphics(mode))"
 }
 
 proc startArc {x y} {
@@ -2438,21 +2777,50 @@ proc makeArc {x y} {
   catch {.c delete $Arc(id)}
 #LISSI 
   if {$Graphics(type) == "SVG"} {
-#	parray Arc
+#parray Arc
 	set lrad [TP_radiuscoords]
 	set rad [lindex $lrad 0]
-#puts "lrad=$lrad"
+#puts "lrad=$lrad "
 	set Arc(radius) $rad
 	set coordsR [lrange $lrad 1 2]
-        if {$Graphics(shape) == "pieslice" } {
-	    set arcsvg [subst "\"M $Arc(p1) A $rad $rad 0 1 0 $Arc(p2) L $Arc(p2) $coordsR Z\""]
-        } elseif {$Graphics(shape) == "chord" } {
-	    set arcsvg [subst "\"M $Arc(p1) A $rad $rad 0 1 0 $Arc(p2) Z\""]
-        } else {
-	    set arcsvg [subst "\"M $Arc(p1) A $rad $rad 0 1 0 $Arc(p2)\""]
+	foreach {x11 y11} $Arc(p1) {break}
+	foreach {x21 y21} $Arc(p2) {break}
+	foreach {x31 y31} $Arc(p3) {break}
+	set f1 0
+	set f2 0
+	set f3 1
+
+	if {$Arc(extent) < -180 || $Arc(extent) > 180} {
+	    set f2 1
 	}
+#Это перворачивание хорошо для вертикальных leu
+	foreach {rad rx ry} $lrad {break}
+	set flags "$f1 $f2 $f3"
+	set arcsvg [subst "\"M $Arc(p1) A $rad $rad $flags $Arc(p2) Z\""]
+	set Arc(id) [eval .c create  path $arcsvg -fill red  -strokewidth 10]
+	after 100
+	set over [.c find overlapping [expr $x31 - 1] [expr $y31 - 1] [expr $x31 + 1] [expr $y31 + 1] ]
+#puts "Overlapping 0: f3_orig=$f3 f2=$f2 Arc(extent)=$Arc(extent)"
+	if {[lsearch $over $Arc(id)] == -1} {
+#puts "Overlapping: f3_orig=$f3 f2=$f2 Arc(extent)=$Arc(extent)"
+	    set f3 0
+#puts "Overlapping 1: f3=$f3 f2=$f2"
+	}
+	.c delete $Arc(id)
+	set flags "$f1 $f2 $f3"
+
+
+        if {$Graphics(shape) == "pieslice" } {
+	    set arcsvg [subst "\"M $Arc(p1) A $rad $rad $flags $Arc(p2) L $coordsR Z\""]
+        } elseif {$Graphics(shape) == "chord" } {
+	    set arcsvg [subst "\"M $Arc(p1) A $rad $rad $flags $Arc(p2) Z\""]
+        } else {
+	    set arcsvg [subst "\"M $Arc(p1) A $rad $rad $flags $Arc(p2)\""]
+	}
+	set fillstyle [TP_opacityFromStyle $Graphics(fill,style)]
+	set linestyle [TP_opacityFromStyle $Graphics(line,style)]
 	set Arc(id) [eval .c create path  $arcsvg \
-	    { -tags "$Graphics(shape) obj svg" -stroke $Graphics(line,color) -fill $Graphics(fill,color) -strokewidth $Graphics(line,width) }
+	    { -tags "arc $Graphics(shape) obj svg" -stroke $Graphics(line,color) -fill $Graphics(fill,color) -strokewidth $Graphics(line,width) -strokedasharray $Graphics(linesvg,dash) -fillopacity $fillstyle -strokeopacity $linestyle }
 	    ]
   } else {
 
@@ -2464,6 +2832,7 @@ proc makeArc {x y} {
                     -outline $Graphics(line,color) \
                     -outlinestipple $Graphics(line,style) \
                     -fill    $Graphics(fill,color) \
+        	    -dash    $Graphics(line,dash)  \
                     -stipple $Graphics(fill,style) \
                     -tags "arc $Graphics(shape) obj"\
                    }
@@ -2478,32 +2847,37 @@ proc freeHand {} {
 #LISSI 
 if {$Graphics(type) == "SVG"} {
   bind .c <Button-1> {
+      set linestyle [TP_opacityFromStyle $Graphics(line,style)]
       lappend freeHand(coords) [.c canvasx %x] [.c canvasy %y]
       set freeHand(tmp_options)  [list \
-             -strokewidth $Graphics(line,width) \
-             -stroke  $Graphics(line,color) \
-             -strokeopacity 1.0 \
-             -strokelinejoin round \
-             -strokelinecap "butt" \
-             -tags {freeHandTemp svg}\
+	    -strokewidth $Graphics(line,width) \
+            -stroke  $Graphics(line,color) \
+            -strokeopacity $linestyle \
+            -strokelinejoin $Graphics(line,joinstyle) \
+    	    -strokelinecap $Graphics(line,capstyle) \
+            -tags {freeHandTemp svg}\
+
       ]
       set freeHand(options)  [list \
-             -strokewidth $Graphics(line,width) \
-             -stroke  $Graphics(line,color) \
-             -strokeopacity 1.0 \
-             -strokelinejoin round \
-             -strokelinecap "butt" \
-             -tags {freeHand obj svg}\
+            -strokewidth $Graphics(line,width) \
+            -stroke  $Graphics(line,color) \
+            -strokeopacity  $linestyle \
+            -strokelinejoin $Graphics(line,joinstyle) \
+    	    -strokelinecap $Graphics(line,capstyle) \
+            -tags {freeHand obj svg}\
       ]
+        Message "Hold down the mouse button and move it by drawing a line"
   }
 
   bind .c <B1-Motion> {
         set x [.c canvasx %x]
         set y [.c canvasy %y]
+set Canv(pointerxy) [expr round($x)],[expr round($y)]
         set n [llength $freeHand(coords)]
         set lastPoint [lrange $freeHand(coords) [expr $n-2] end]
         eval .c create polyline $lastPoint $x $y $freeHand(tmp_options)
         lappend freeHand(coords) $x $y
+        Message "To finish, release the mouse button"
   }
 
   bind .c <B1-ButtonRelease> {
@@ -2513,6 +2887,7 @@ if {$Graphics(type) == "SVG"} {
       History add [getObjectCommand $utag 1]
       Undo add ".c delete $utag"
       catch {unset freeHand}
+	Message "Line done!"
   }
 } else {
   bind .c <Button-1> {
@@ -2533,6 +2908,7 @@ if {$Graphics(type) == "SVG"} {
              -capstyle $Graphics(line,capstyle) \
              -tags {freeHand obj}\
       ]
+        Message "Hold down the mouse button and move it by drawing a line"
   }
 
   bind .c <B1-Motion> {
@@ -2542,6 +2918,7 @@ if {$Graphics(type) == "SVG"} {
         set lastPoint [lrange $freeHand(coords) [expr $n-2] end]
         eval .c create line $lastPoint $x $y $freeHand(tmp_options)
         lappend freeHand(coords) $x $y
+        Message "To finish, release the mouse button"
   }
 
   bind .c <B1-ButtonRelease> {
@@ -2551,10 +2928,12 @@ if {$Graphics(type) == "SVG"} {
       History add [getObjectCommand $utag 1]
       Undo add ".c delete $utag"
       catch {unset freeHand}
-  
+	Message "Line done!"
+
   }
 }
-  Message "Never scare your users!"
+#  Message "Never scare your users!"
+    Message "Click start point"
 }
 
 ###### IMAGE SECTION
@@ -2599,19 +2978,18 @@ proc Image {type} {
 
   cd $Image(wd)
   set initdir $::myHOME
-#  set Image(file) [ttk::getOpenFile -title "Image file" ]
-  set Image(file) [FE::fe_getopenfile -title "Image file" \
-                -filetypes $Image(types) \
-                -initialdir $initdir \
-                -width 450 -height 500 -sepfolders 1 -details 1 \
-                -defaultextension $default_ext ]
+    if {[tk windowingsystem] == "win32"} {
+	    set command tk_getOpenFile
+	    set geom ""	
+    } else {
+    	    set command "::FE::fe_getopenfile" 
+	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+    }
+    set cmdpar [subst {-title "Image file" -filetypes "$Image(types)" -defaultextension "$default_ext" -initialdir "$initdir" $geom}]
+    set Image(file) [eval $command $cmdpar]
   if {$Image(file)==""} {return}
 
   set Image(wd) [file dirname $Image(file)]
-#LISSI
-# set Image(type) [file extension $Image(file)]
-# if {length($Image(type)) < 2} {return}
-# set Image(type1) [string range $Image(type) 1 end]
 
   Message "Click to insert image in canvas"
 
@@ -2723,30 +3101,38 @@ puts "proc Image - УБРАТЬ 0"
 ########## FILL COLOR AND OUTLINE COLOR
 
 proc chooseFillColor {} {
+   global Canv
    global Graphics
    if {$Graphics(fill,color)==""} {
-     set initColor gray75
+#     set initColor gray75
+     set initColor $Canv(fill,color)
    } else {
      set initColor $Graphics(fill,color)
    }
-   set color [tk_chooseColor -initialcolor $initColor -title "Choose Fill Color"]
+   set color [tk_chooseColor -initialcolor $initColor -title [mc "Choose Fill Color"]]
 
 
    if {$color==""} {return}
    set Graphics(fill,color) $color
+   set Canv(fgCol) $color
+   $Canv(colSel) configure -background $color
 }
 
 proc chooseOutlineColor {} {
-   global Graphics
-   if {$Graphics(line,color)==""} {
-     set initColor white
-   } else {
-     set initColor $Graphics(line,color)
-   }
-   set color [tk_chooseColor -initialcolor $initColor \
-                             -title "Choose Outline Color"]
-   if {$color==""} {return}
-   set Graphics(line,color) $color
+    global Canv
+    global Graphics
+    if {$Graphics(line,color)==""} {
+#     set initColor white
+        set initColor $Canv(line,color)
+    } else {
+        set initColor $Graphics(line,color)
+    }
+    set color [tk_chooseColor -initialcolor $initColor -title [mc "Choose Outline Color"]]
+    if {$color==""} {return}
+    set Graphics(line,color) $color
+    set Canv(bgCol) $color
+    $Canv(colSelBg1) configure -bg $color
+    $Canv(colSelBg2) configure -bg $color
 }
 
 ############## EDIT SECTION:  DELETE, MOVE, COPY, RAISE, LOWER, 
@@ -2783,7 +3169,10 @@ proc getNearestUtag {x y r tag} {
 
 proc getObjectOptions {utagORid flag} {
   foreach conf [.c itemconfigure $utagORid] {
-    if {[lindex $conf 0]=="-tags"} {continue}
+    if {[lindex $conf 0] == "-tags"} {continue}
+#Какая-то беда с этой опцией!!!!
+#    if {[lindex $conf 0] == "-strokedasharray"} {continue}
+
     set default [lindex $conf 3]
     set value [lindex $conf 4]
     if {[string compare $default $value] != 0} {
@@ -2812,6 +3201,9 @@ proc getObjectCommand {utagORid flag} {
 #LISSI
 #  eval lappend command [.c coords $utagORid]
   eval lappend command "\"[.c coords $utagORid]\""
+
+#puts "getObjectCommand:  $command"
+#Беда с чтением аттрибута -strokedasharray !!!!
 
   eval lappend command [getObjectOptions $utagORid $flag]
   return $command
@@ -2858,7 +3250,8 @@ proc itemDelete {x y} {
   set y [.c canvasy $y]
   set utag [getNearestUtag $x $y 2 obj]
   if {$utag==""} {
-      Message "No object under cursor!"
+#      Message "No object under cursor!"
+	Message "No object under the cursor!"
       return
   }
   set below [getObjectBelow $utag]
@@ -2936,8 +3329,14 @@ proc moveMode {} {
         History add $cmd
         Undo add $undo
       }
+    	Message "Bug reports"
+      if {[idissvg $Move(utag)]} {
+    	Message "$Message(text1): vorlov@lissi.ru"
+      } else {
+#        Message "Bug reports: samy@netanya.ac.il"
+    	Message "$Message(text1): samy@netanya.ac.il"
+      }
       unset Move
-      Message "Bug reports: samy@netanya.ac.il"
   }
   Message "Click on the object and hold mouse"
 }
@@ -2948,7 +3347,8 @@ proc Move {mode x y} {
        begin {
           set Move(utag) [getNearestUtag $x $y 2 obj]
           if {$Move(utag)==""} {
-               Message "There is no object to move under the cursor!"
+#               Message "There is no object to move under the cursor!"
+    		Message "No object under the cursor!"
                return
           }
           set Move(firstX) $x
@@ -2993,7 +3393,7 @@ proc copyMode {} {
       }
       unset Copy
   }
-  Message "Click on the object and hold"
+  Message "Click on the object and hold mouse"
 }
 
 proc itemStartCopy {x y} {
@@ -3002,7 +3402,8 @@ proc itemStartCopy {x y} {
   set utag [getNearestUtag $x $y 2 obj]
   if {$utag==""} {
        set Copy(utag) ""
-       Message "No object to copy under the cursor!"
+#       Message "No object to copy under the cursor!"
+    	Message "No object under the cursor!"
        return
   }
   set Copy(lastX) $x
@@ -3051,14 +3452,16 @@ proc reshapeMode {} {
 
   bind .c <B1-ButtonRelease> {
       if {$Reshape(utag)==""} {
-          Message "No object under cursor!"
+#          Message "No object under cursor!"
+    	Message "No object under the cursor!"
           return
       }
       set tags [.c gettags $Reshape(utag)]
       set isPoly [lsearch $tags Polygon]
       set isLine [lsearch $tags Line]
-      if {$isPoly==-1 && $isLine==-1} {
-           Message "Object under cursor is not a polygon/line!"
+      set isPath [lsearch $tags Callout]
+      if {$isPoly==-1 && $isLine==-1 && $isPath==-1} {
+           Message "Object under cursor is not a polygon/line/callout !"
            unset Reshape(utag)
            return
       }
@@ -3075,10 +3478,10 @@ proc reshapeMode {} {
      catch {unset Reshape}
      bind .c <Any-Button-1> {}
      bind .c <Any-B1-ButtonRelease> {}
-     .mbar.edit.menu invoke "Reshape polygon/line"
+#     .mbar.edit.menu invoke "Reshape polygon/line/callout"
   }
 
-  Message "Now click on a line or a polygon object"
+  Message "Now click on a line, polygon or a callout object"
 }
 
 proc setReshapeHandles {} {
@@ -3101,21 +3504,16 @@ proc setReshapeHandles {} {
   set i 1
 #LISSI
   set lcoords [.c coords $Reshape(utag)]
-  if {$Reshape(type) == "path"} {
-puts "setReshapeHandles: Reshape(type)=$Reshape(type)"
-    set lc ""
-    set lc [lrange $lcoords 1 2]
-    foreach {type x0 y0 x1 y1 x2 y2 } [lrange $lcoords 3 end] {
-	if {$type == "Z"} {break}
-	append lc " $x1 $y1 $x2 $y2 "
-    }
-    set lcoords $lc
-  }
 
-  foreach {x y} $lcoords {
+  if {$svg == 1} {
+
+#Сделать разбор и добавить set Reshape($i,type) - это M,  L, Q, C, T, и т.д
+puts "setReshapeHandles: utagid=$utagid type=$Reshape(type)"
+if { $Reshape(type) == "polyline" || $Reshape(type) == "ppolygon"} {
+#puts "setReshapeHandles: utagid=$utagid type=$Reshape(type) UX"
+    foreach {x y} $lcoords {
      set Reshape($i,x) $x
      set Reshape($i,y) $y
-     if {$svg == 1}  {
 	set mat [lindex [.c itemconfigure $Reshape(utag) -m] 4]
         set id [.c create prect \
                  [expr $x-$r] [expr $y-$r] [expr $x+$r] [expr $y+$r] \
@@ -3124,20 +3522,143 @@ puts "setReshapeHandles: Reshape(type)=$Reshape(type)"
                  -fillopacity 0.5 \
                  -m $mat \
                  -tags reshapeHandle]
-     } else {
-        set id [.c create rectangle \
-                 [expr $x-$r] [expr $y-$r] [expr $x+$r] [expr $y+$r] \
-                 -outline {} \
-                 -fill black \
-                 -stipple gray25 \
-                 -tags reshapeHandle]
-     }
      set Reshape($i,id) $id
      .c bind $id <B1-Motion> "reshapeMotion $i %x %y"
      .c bind $id <Control-Button-1> "addVertex $i"
      .c bind $id <Alt-Button-1> "deleteVertex $i"
      .c bind $id <Alt-B1-Motion> {break}
      incr i
+    } 
+} else {
+    set j 0
+    set co1 $lcoords
+foreach t $co1 {
+    incr j
+    if {[string is alpha $t]} {
+        set Reshape($i,type) $t
+        set co2 [lrange $co1 $j end]
+        switch $t {
+            M {
+#        	puts "M Type=$t"
+        	foreach {x y } $co2 {break}
+            }
+            L {
+#            puts "L Type=$t"
+        	foreach {x y } $co2 {break}
+            }
+            Q {
+#            puts "Q Type=$t"
+        	foreach {x y x1 y1} $co2 {break}
+		set Reshape($i,x) $x
+		set Reshape($i,y) $y
+	set mat [lindex [.c itemconfigure $Reshape(utag) -m] 4]
+        set id [.c create prect \
+                 [expr $x-$r] [expr $y-$r] [expr $x+$r] [expr $y+$r] \
+                 -stroke {} \
+                 -fill black \
+                 -fillopacity 0.5 \
+                 -m $mat \
+                 -tags reshapeHandle]
+     set Reshape($i,id) $id
+     .c bind $id <B1-Motion> "reshapeMotion $i %x %y"
+#     .c bind $id <Control-Button-1> "addVertex $i"
+#     .c bind $id <Alt-Button-1> "deleteVertex $i"
+     .c bind $id <Alt-B1-Motion> {break}
+		incr  i
+		set x $x1
+		set y $y1
+            }
+            C {
+#            puts "C Type=$t"
+        	foreach {x y x1 y1 x2 y2} $co2 {break}
+		set Reshape($i,x) $x
+		set Reshape($i,y) $y
+	set mat [lindex [.c itemconfigure $Reshape(utag) -m] 4]
+        set id [.c create prect \
+                 [expr $x-$r] [expr $y-$r] [expr $x+$r] [expr $y+$r] \
+                 -stroke {} \
+                 -fill black \
+                 -fillopacity 0.5 \
+                 -m $mat \
+                 -tags reshapeHandle]
+     set Reshape($i,id) $id
+     .c bind $id <B1-Motion> "reshapeMotion $i %x %y"
+#     .c bind $id <Control-Button-1> "addVertex $i"
+#     .c bind $id <Alt-Button-1> "deleteVertex $i"
+     .c bind $id <Alt-B1-Motion> {break}
+		incr  i
+		set Reshape($i,x) $x1
+		set Reshape($i,y) $y1
+	set mat [lindex [.c itemconfigure $Reshape(utag) -m] 4]
+        set id [.c create prect \
+                 [expr $x1-$r] [expr $y1-$r] [expr $x1+$r] [expr $y1+$r] \
+                 -stroke {} \
+                 -fill black \
+                 -fillopacity 0.5 \
+                 -m $mat \
+                 -tags reshapeHandle]
+     set Reshape($i,id) $id
+     .c bind $id <B1-Motion> "reshapeMotion $i %x1 %y"
+#     .c bind $id <Control-Button-1> "addVertex $i"
+#     .c bind $id <Alt-Button-1> "deleteVertex $i"
+     .c bind $id <Alt-B1-Motion> {break}
+		incr  i
+		set x $x2
+		set y $y2
+            }
+            A {
+        	puts "A Type=$t НЕ сделано"
+            }
+            Z {
+#        	puts "Z Type=$t"
+        	break
+            }
+            default {
+		puts "Unknown typeType=$t"
+		break
+		return 
+            }
+        }
+
+		set Reshape($i,x) $x
+		set Reshape($i,y) $y
+	set mat [lindex [.c itemconfigure $Reshape(utag) -m] 4]
+        set id [.c create prect \
+                 [expr $x-$r] [expr $y-$r] [expr $x+$r] [expr $y+$r] \
+                 -stroke {} \
+                 -fill black \
+                 -fillopacity 0.5 \
+                 -m $mat \
+                 -tags reshapeHandle]
+     set Reshape($i,id) $id
+     .c bind $id <B1-Motion> "reshapeMotion $i %x %y"
+#     .c bind $id <Control-Button-1> "addVertex $i"
+#     .c bind $id <Alt-Button-1> "deleteVertex $i"
+     .c bind $id <Alt-B1-Motion> {break}
+        incr i
+
+    }
+}
+}
+  
+#################################################################
+  } else {
+    foreach {x y} $lcoords {
+        set Reshape($i,x) $x
+        set Reshape($i,y) $y
+        set id [.c create rectangle \
+                 [expr $x-$r] [expr $y-$r] [expr $x+$r] [expr $y+$r] \
+                 -outline {} \
+                 -fill black \
+                 -stipple gray25 \
+                 -tags reshapeHandle]
+     set Reshape($i,id) $id
+     .c bind $id <B1-Motion> "reshapeMotion $i %x %y"
+     .c bind $id <Control-Button-1> "addVertex $i"
+     .c bind $id <Alt-Button-1> "deleteVertex $i"
+     .c bind $id <Alt-B1-Motion> {break}
+     incr i
+    }
   }
 
   .c bind reshapeHandle <Button-1> {
@@ -3196,32 +3717,29 @@ proc reshapeMotion {i x y} {
    set Reshape($i,x) $x
    set Reshape($i,y) $y
    set coords {}
+ 
    for {set j 1} {$j<=$Reshape(n)} {incr j} {
         lappend coords $Reshape($j,x) $Reshape($j,y)
    }
+
    set above [getObjectAbove $Reshape(utag)]
    .c delete $Reshape(utag)
 #LISSI
-   if {$Reshape(type) == "path"} {
-##############
-	set lLine [llength $coords]
-	set ostLine [expr {$lLine % 4}]
-if {0} {
-	if {$ostLine != 0} {
-	    append coords " [lrange $coords [expr {$lLine - 2}] end]"
+   if {$Graphics(type) == "SVG" && ($Graphics(shape) == "closed spline" || $Graphics(shape) == "spline" || $Graphics(shape) == "Callout")} {
+	set coords {}
+	for {set j 1} {$j<=$Reshape(n)} {incr j} {
+	    if {[info exists Reshape($j,type)]} {
+    		lappend coords $Reshape($j,type)
+	    }
+    	    lappend coords $Reshape($j,x) $Reshape($j,y)
 	}
-##########
-
-
-	set coords "\"M [lrange $coords 0 1] S $coords\""
-}
-set coords1 [lrange $coords 2 end]
-        if {[string first "Polygon" $Reshape(options)] != -1 } {
-	    set coords "\"M [lrange $coords 0 1] S $coords1 Z \""
+#        if {[string first "Polygon" $Reshape(options)] != -1 } {}
+        if {$Graphics(shape) == "closed spline" || $Graphics(shape) == "Callout"} {
+	    set coords "\"$coords Z \""
         } else {
-	    set coords "\"M [lrange $coords 0 1] S $coords1 \""
+	    set coords "\"$coords \""
 	}
-puts "reshapeMotion:Reshape(utag)=$Reshape(utag)\n coords=$coords"
+#puts "reshapeMotion:Reshape(utag)=$Reshape(utag)\n coords=$coords"
    }
    eval .c create $Reshape(type) $coords $Reshape(options)
    if {$above != ""} {
@@ -3232,7 +3750,7 @@ puts "reshapeMotion:Reshape(utag)=$Reshape(utag)\n coords=$coords"
 
 proc addVertex {i} {
    global Reshape
-
+puts "addVertex: i=$i"
    set Reshape(state) addVertex
    set Reshape(undo) ".c delete $Reshape(utag) \; "
    append Reshape(undo) [getObjectCommand $Reshape(utag) 1]\;
@@ -3253,18 +3771,38 @@ proc addVertex {i} {
    set Reshape($k,x) [expr $x+10]
    set Reshape($k,y) [expr $y+10]
    set coords {}
-   for {set j 1} {$j<=$Reshape(n)} {incr j} {
+   if {$Reshape(type) == "path"} {
+	lappend coords  $Reshape(1,x) $Reshape(1,y)
+	for {set j 2} {$j<$Reshape(n)} {incr j} {
+    	    lappend coords "C"
+    	    lappend coords $Reshape($j,x) $Reshape($j,y)
+
+    	    incr j
+    	    if {$j > $Reshape(n)} {
+    		break
+    	    }
+    	    lappend coords $Reshape($j,x) $Reshape($j,y)
+    	    incr j
+    	    if {$j > $Reshape(n)} {
+    		break
+    	    }
+    	    lappend coords $Reshape($j,x) $Reshape($j,y)
+	}
+   } else {
+    for {set j 1} {$j<=$Reshape(n)} {incr j} {
         lappend coords $Reshape($j,x) $Reshape($j,y)
+    }
    }
+
    set above [getObjectAbove $Reshape(utag)]
    .c delete $Reshape(utag)
 #LISSI
     if {$Reshape(type) == "path" } {
 set coords1 [lrange $coords 2 end]
         if {[string first "Polygon" $Reshape(options)] != -1 } {
-	    set coords "\"M [lrange $coords 0 1] S $coords Z \""
+	    set coords "\"M [lrange $coords 0 1] $coords1 Z \""
         } else {
-	    set coords "\"M [lrange $coords 0 1] S $coords \""
+	    set coords "\"M [lrange $coords 0 1] $coords1 \""
 	}
     }
 
@@ -3308,18 +3846,38 @@ proc deleteVertex {i} {
    }
    unset Reshape($n,x) Reshape($n,y)
    set coords {}
-   for {set j 1} {$j<=$Reshape(n)} {incr j} {
+   if {$Reshape(type) == "path"} {
+	lappend coords  $Reshape(1,x) $Reshape(1,y)
+	for {set j 2} {$j<$Reshape(n)} {incr j} {
+    	    lappend coords "C"
+    	    lappend coords $Reshape($j,x) $Reshape($j,y)
+
+    	    incr j
+    	    if {$j > $Reshape(n)} {
+    		break
+    	    }
+    	    lappend coords $Reshape($j,x) $Reshape($j,y)
+    	    incr j
+    	    if {$j > $Reshape(n)} {
+    		break
+    	    }
+    	    lappend coords $Reshape($j,x) $Reshape($j,y)
+	}
+   } else {
+    for {set j 1} {$j<=$Reshape(n)} {incr j} {
         lappend coords $Reshape($j,x) $Reshape($j,y)
+    }
    }
+
    set above [getObjectAbove $Reshape(utag)]
    .c delete $Reshape(utag)
 #LISSI
     if {$Reshape(type) == "path" } {
 set coords1 [lrange $coords 2 end]
         if {[string first "Polygon" $Reshape(options)] != -1 } {
-	    set coords "\"M [lrange $coords 0 1] S $coords Z \""
+	    set coords "\"M [lrange $coords 0 1] $coords Z \""
         } else {
-	    set coords "\"M [lrange $coords 0 1] S $coords \""
+	    set coords "\"M [lrange $coords 0 1] $coords \""
 	}
     }
    eval .c create $Reshape(type) $coords $Reshape(options)
@@ -3336,7 +3894,8 @@ proc bitmapFgColor {} {
   bind .c <Button-1> { 
         set id [.c find withtag current]
         if {$id==""} {
-          Message "No object under cursor!"
+#          Message "No object under cursor!"
+    	    Message "No object under the cursor!"
           return
         }
         if {[lsearch [.c gettags $id] bitmap]==-1} {
@@ -3360,7 +3919,8 @@ proc bitmapBgColor {} {
   bind .c <Button-1> {
         set id [.c find withtag current]
         if {$id==""} {
-          Message "No object under cursor!"
+#          Message "No object under cursor!"
+    	    Message "No object under the cursor!"
           return
         }
         if {[lsearch [.c gettags $id] bitmap]==-1} {
@@ -3464,7 +4024,9 @@ proc selectAll {} {
   unset selectBox
   drawBoundingBox
   setEditGroupMode
-  Message "Use the mouse to drag or resize the group"
+#  Message "Use the mouse to drag or resize the group"
+  Message "Use mouse to drag, resize. More acts click \"Group\""
+
 }
 
 proc select1object {} {
@@ -3477,7 +4039,8 @@ proc select1object {} {
      set y [.c canvasy %y]
      set utag [getNearestUtag $x $y 2 obj]
      if {$utag==""} {
-       Message "No object under cursor. Try again."
+#       Message "No object under cursor. Try again."
+	Message "No object under the cursor!"
        return
      }
      .c addtag Selected withtag $utag
@@ -3488,7 +4051,8 @@ proc select1object {} {
      drawBoundingBox
      setEditGroupMode
   }
-  Message "Use mouse and \"Group\"(!) menu to act on the object"
+#  Message "Use mouse and \"Group\"(!) menu to act on the object"
+  Message "Use mouse to drag, resize. More acts click \"Group\""
 }
 
 proc unselectGroup {} {
@@ -3635,7 +4199,7 @@ if {$type == "polyline"} {
   .c raise graybox
   .c raise mainBBox
 #  .c raise gridObject
-  Message "Use mouse to drag, resize. More acts click \"Group\"."
+  Message "Use mouse to drag, resize. More acts click \"Group\""
 }
 
 # LOOK AT THE getObjectOptions proc for an explanation about the "flag" arg.
@@ -4031,7 +4595,7 @@ proc createGroupCopy {} {
    puts "Adding undo info"
    Undo add $undo
 #   .c raise gridObject
-   puts "Message"
+#   puts "Message"
    Message "hmmmm... do I remember this one!?"
 }
 
@@ -4048,7 +4612,7 @@ global id0
       set opt [lindex $conf 0]
       set val [lindex $conf 4]
 #Какая-то беда с этой опцией!!!!
-      if {$opt == "-strokedasharray"} {continue}
+#      if {$opt == "-strokedasharray"} {continue}
       set Options($opt) $val
    }
    set new_coords {}
@@ -4058,23 +4622,19 @@ global id0
       lappend new_coords [expr ($x-$xo)*$cos + ($y-$yo)*$sin + $xo] \
                          [expr -($x-$xo)*$sin + ($y-$yo)*$cos + $yo]
    }
-#puts "Я в rotateObj  ang=$ang type=\"$type\""
-
 #LISSI
-if {$type == "text"} {
-   set pi [expr 2*asin(1)]
-   set ang [expr $Rotate(last)*180.0/$pi]
-#puts "Я в rotateObj Rotate(last)= $Rotate(last) ang=$ang type=\"$type\""
-    .c itemconfigure $id -angle $ang
-#    .c itemconfigure Selected -angle $ang
-} else {
-
-   .c delete $id
-#parray Options
-   eval .c create $type $new_coords [array get Options]
-   set id0 [.c find withtag Selected]
-} 
-
+    if {$type == "text"} {
+	if {[info exists Rotate(ang)]} {
+	    set pi [expr 2*asin(1)]
+	    set an [expr {int($Rotate(ang) * 180.0 / $pi)}]
+    	    .c itemconfigure $id -angle $an
+	} else {
+    	    .c itemconfigure $id -angle [expr {-1.0 * $Rotate(angle)}]
+	}
+    } else {
+	.c delete $id
+	eval .c create $type $new_coords [array get Options]
+    } 
 }
 
 proc shape2spline {id} {
@@ -4083,11 +4643,13 @@ proc shape2spline {id} {
    set Options(-tags)     [.c itemcget $id -tags]
 #LISSI
    set utagid [.c itemcget $id -tags]
-   if {[lsearch $Options(-tags) "svg"] == -1} {
+   if {![idissvg $id] } {
 	set Options(-width)    [.c itemcget $id -width]
 	set Options(-stipple)  [.c itemcget $id -stipple]
+#	set Options(-dash)  [.c itemcget $id -dash]
    } else {
 	set Options(-strokewidth)  [.c itemcget $id -strokewidth]
+	set Options(-strokedasharray)  [.c itemcget $id -strokedasharray]
 	set Options(-fillopacity)  [.c itemcget $id -fillopacity]
 	set Options(-fill)  [.c itemcget $id -fill]
    }
@@ -4095,6 +4657,7 @@ proc shape2spline {id} {
    lappend Options(-tags) spline
    set coords  [.c coords $id]
    set type [.c type $id]
+#puts "shape2spline: type=$type"
    switch -exact -- $type {
       text      -
       line      -
@@ -4139,23 +4702,63 @@ proc shape2spline {id} {
          set Options(-stroke)  [.c itemcget $id -stroke]
          set Options(-fill)     [.c itemcget $id -fill]
          set Options(-tags)     [.c itemcget $id -tags]
-#         set Options(-rx)     [.c itemcget $id -rx]
+         set rx     [.c itemcget $id -rx]
 #         set Options(-ry)     [.c itemcget $id -ry]
 #         lappend Options(-tags) Polygon
-         lset Options(-tags) 0 Polygon
-         set type ppolygon
          set x1 [lindex $coords 0]
          set y1 [lindex $coords 1]
          set x2 [lindex $coords 2]
          set y2 [lindex $coords 3]
-         set coords [list $x1 $y1 $x2 $y1 $x2 $y2 $x1 $y2]
+	 if {$rx == 0} {
+    	    lset Options(-tags) 0 Polygon
+            set type ppolygon
+            set coords [list $x1 $y1 $x2 $y1 $x2 $y2 $x1 $y2]
+         } else {
+    	    lset Options(-tags) 0 Path
+            set type path
+#Начальная точка
+            set mx $x1
+            set my [expr {$y1 + $rx}]
+#Первая вершина
+            set q1_1x $x1
+            set q1_1y $y1
+            set q1_2x [expr {$x1 + $rx}]
+            set q1_2y $y1
+#Отрезок между первой и второй вершиной
+            set l1_x [expr {$x2 - $rx}]
+            set l1_y $y1
+#Вторая  вершина
+            set q2_1x $x2
+            set q2_1y $y1
+            set q2_2x $x2
+            set q2_2y [expr {$y1 + $rx}]
+#Отрезок между второй и третьей вершиной
+            set l2_x $x2
+            set l2_y [expr {$y2 - $rx}]
+#Третья  вершина
+            set q3_1x $x2
+            set q3_1y $y2
+            set q3_2x [expr {$x2 - $rx}]
+            set q3_2y $y2
+#Отрезок между третьей и четвёртой вершиной
+            set l3_x [expr {$x1 + $rx}]
+            set l3_y $y2
+#Четвёртая вершина
+            set q4_1x $x1
+            set q4_1y $y2
+            set q4_2x $x1
+            set q4_2y [expr {$y2 - $rx}]
+#Отрезок между четвёртой вершиной и начальной точкой
+#Замыкаем path	    Z
+            set coords [list  M $mx $my Q $q1_1x $q1_1y $q1_2x $q1_2y L $l1_x $l1_y Q $q2_1x $q2_1y $q2_2x $q2_2y L $l2_x $l2_y Q $q3_1x $q3_1y $q3_2x $q3_2y L $l3_x $l3_y Q $q4_1x $q4_1y $q4_2x $q4_2y Z]
+         }
       }
       path {
 	 set Options(-strokelinejoin)  [.c itemcget $id -strokelinejoin]
          set Options(-stroke)  [.c itemcget $id -stroke]
          set Options(-fill)     [.c itemcget $id -fill]
          set Options(-tags)     [.c itemcget $id -tags]
-         lset Options(-tags) 0 Path
+#         lset Options(-tags) 0 Path
          set type path
 	 set coords  [.c coords $id]
       }
@@ -4219,6 +4822,10 @@ proc shape2spline {id} {
             }
           }
              
+      }
+      default {
+	    puts "shape2spline: Unknown type=$type"
+	    return $id
       }
    }
    .c addtag aboutToDie withtag $id
@@ -4331,7 +4938,7 @@ proc rotateGroupMode {} {
 
        History add $Rotate(cmd)
        Undo add $Rotate(undo)
-#       Message "Rotate action completed successfully (angle=$Rotate(ang))"
+       Message "Rotate action completed successfully (angle=$Rotate(ang))"
        catch {unset Rotate}
        selectGroupMode
    }
@@ -4343,7 +4950,11 @@ proc rotateGroup {} {
   rotateObj $Rotate(x_orig) $Rotate(y_orig) $Rotate(delta) graybox
 
   foreach id [.c find withtag Selected] {
-     rotateObj $Rotate(x_orig) $Rotate(y_orig) $Rotate(delta) $id
+     if {[.c type $id] != "text111"} {
+        rotateObj $Rotate(x_orig) $Rotate(y_orig) $Rotate(delta) $id
+     } else {
+puts "rotateGroup: type TEXT"
+     }
   }
   .c raise rotateLine
   .c raise rotateTextBox
@@ -4527,6 +5138,44 @@ proc deformHandlePress {side} {
   set deformInfo(undo) [getGroupCommand 1]
 
   foreach id [.c find withtag Selected] {
+     if {[idissvg $id]} {
+        set tg [.c gettags $id]
+        catch {unset OprArc}
+        if {[lsearch $tg "arc"] >= 0 && [lsearch $tg "spline"] == -1} {
+	    foreach conf [.c itemconfigure $id] {
+    		set opt [lindex $conf 0]
+    		set val [lindex $conf 4]
+    		set OptArc($opt) $val
+	    }
+
+    	    set co [.c coords $id]
+    	    set cmd [svg2can::ParsePath "" "" ""  "d [list $co]"]
+    	    set par [lrange [lindex $cmd 0] 6 end]
+    	    set co [lrange [lindex $cmd 0] 2 5]
+    	    array set arctk $par
+	    set cmd [list "create arc $co -start $arctk(-start) -extent $arctk(-extent) -style $arctk(-style)"]
+	    set id [TP_arc2spline "[lindex $cmd 0]" $id]
+        } elseif {([lsearch $tg "Ellipse"] >= 0 || [lsearch $tg "Circle"] >= 0) && [lsearch $tg "spline"] == -1} {
+	    foreach conf [.c itemconfigure $id] {
+    		set opt [lindex $conf 0]
+    		set val [lindex $conf 4]
+    		set OptArc($opt) $val
+	    }
+
+    	    set co [.c coords $id]
+    	    foreach {cx cy} $co {break}
+    	    set rx [.c itemcget $id -rx]
+    	    if {[lsearch $tg "Ellipse"] >= 0} {
+    		set ry [.c itemcget $id -ry]
+    	    } else {
+		set ry $rx
+    	    }
+    	    set cmd [svg2can::ParseEllipse "" "" ""  "cx $cx cy $cy rx $rx ry $ry"]
+#puts "Ellipse=$cmd"
+	    set id [TP_oval2spline "[lindex $cmd 0]" $id]
+        }
+     }
+
      set u [Utag find [shape2spline $id]]
      set deformInfo($u,type) [.c type $u]
      set deformInfo($u,coords) [.c coords $u]
@@ -4754,7 +5403,7 @@ proc editGroupFillColor {} {
 # GROUP LINE WIDTH:
 proc editGroupLineWidth {} {
    global glwidth glw_undo Font
-   global lineJoin
+   global lineJoin linedash
    set have_line 0
 
    set glw_undo [getGroupCommand 1]
@@ -4772,9 +5421,16 @@ proc editGroupLineWidth {} {
         		set glwidth [.c itemcget $id -strokewidth]
         		set lineJoin [.c itemcget $id -strokelinejoin]
         		set stroke [.c itemcget $id -stroke]
+        		set ldash [.c itemcget $id -strokedasharray]
         	    } else {
 			set glwidth [.c itemcget $id -width]
         		set stroke [.c itemcget $id -fill]
+        		set ldash [.c itemcget $id -dash]
+        	    }
+        	    if {$ldash == "" } {
+        		set linedash "solid"
+        	    } else {
+        		set linedash "dott"
         	    }
             	    set have_line 1
             	    break
@@ -4788,24 +5444,26 @@ proc editGroupLineWidth {} {
    }
 
    catch {destroy .grouplw}
-   toplevel .grouplw
-#   wm transient .grouplw .
+   toplevel .grouplw -background gray86 -relief raised -bd 1
+   wm iconphoto .grouplw tkpaint_icon
+
    wm resizable .grouplw 0 0
-#   wm geometry .grouplw +250+150
    focus -force .grouplw
-   wm title .grouplw "Pick line width"
+   wm title .grouplw [mc "Pick line width"]
    frame .grouplw.width -relief {ridge}  -background {#dcdcdc} -bd 2 ;# -relief raised -bd 1
 
-   canvas .grouplw.widthcanvas -relief flat -height 2c -width 7.5c  -background linen
+   canvas .grouplw.widthcanvas -relief flat -height 4c -width 8.0c  -background linen
    .grouplw.widthcanvas create text 5 5 \
           -anchor nw \
-          -text "Group Line Width" \
+          -text [mc "Group Line Width"] \
           -font $Font(groupLineWidthDemo)
        
-   .grouplw.widthcanvas create line 1.2c 1.5c 6.3c 1.5c \
+   .grouplw.widthcanvas create line 2.0c 1.5c 5.0c 1.5c 3.0c 3.5c 6.0c 3.5c \
           -tags demoGroupLine \
           -fill $stroke \
+          -joinstyle $lineJoin \
           -width $glwidth
+#          -dash $ldash 
 
    scale .grouplw.widthscale -orient horiz \
           -resolution 1 -from 0 -to 60 \
@@ -4822,19 +5480,28 @@ proc editGroupLineWidth {} {
            -side top  -fill both -expand true
    pack .grouplw.width
 #LISSI
-   label .grouplw.labeljoin -text "Line join type" -anchor w -font $Font(groupLineWidthDemo)  -background linen
-   pack .grouplw.labeljoin -side top -fill x -expand true -pady 2m
-   frame .grouplw.linejoin
-   pack .grouplw.linejoin -side top -fill both -expand true -pady 2m
-   radiobutton .grouplw.linejoin.miter -command [list updateGroupLineWidth $glwidth] -variable lineJoin -value "miter" -text "Miter" -anchor w
-   radiobutton .grouplw.linejoin.bevel -command [list updateGroupLineWidth $glwidth]  -variable lineJoin -value "bevel" -text "Bevel" -anchor w
-   radiobutton .grouplw.linejoin.round -command [list updateGroupLineWidth $glwidth]  -variable lineJoin -value "round" -text "Round" -anchor w
-   pack .grouplw.linejoin.miter .grouplw.linejoin.bevel .grouplw.linejoin.round -side left -fill x -expand 1
+   labelframe .grouplw.labeljoin -text [mc {Line join type}] -labelanchor n -font $Font(groupLineWidthDemo)  -background gray86
+    ttk::style configure Me.TRadiobutton -background gray86
 
-   frame .grouplw.butts
-   pack .grouplw.butts -side top -fill both -expand true -pady 2m
+   pack .grouplw.labeljoin -side top -fill x -expand true -pady {2m 0} -padx 1m
+   ttk::radiobutton .grouplw.labeljoin.miter -command "updateGroupLineWidth $glwidth" -variable lineJoin -value "miter" -text [mc {Miter}] -style Me.TRadiobutton
+   ttk::radiobutton .grouplw.labeljoin.bevel -command "updateGroupLineWidth $glwidth"  -variable lineJoin -value "bevel" -text [mc {Bevel}] -style Me.TRadiobutton
+   ttk::radiobutton .grouplw.labeljoin.round -command "updateGroupLineWidth $glwidth"  -variable lineJoin -value "round" -text [mc {Round}] -style Me.TRadiobutton
+   pack .grouplw.labeljoin.miter .grouplw.labeljoin.bevel .grouplw.labeljoin.round -side left -fill x -expand 1 -pady {0 5} -padx 1
+   labelframe .grouplw.labeldash -text [mc {Line dash style}] -labelanchor n -font $Font(groupLineWidthDemo)  -background gray86
+   pack .grouplw.labeldash -side top -fill x -expand true -pady {2m 0} -padx 1m
+   frame .grouplw.dashstyle -relief groove -bd 2 -height 2 -background gray86
+   pack .grouplw.dashstyle -side top -fill both -expand true -pady {2m 2mm}
+   ttk::radiobutton .grouplw.labeldash.solid -command "updateGroupLineWidth $glwidth" -variable linedash -value "solid" -text [mc {Solid line}] -style Me.TRadiobutton
+   ttk::radiobutton .grouplw.labeldash.dott -command "updateGroupLineWidth $glwidth"  -variable linedash -value "dott" -text [mc {Dotted}] -style Me.TRadiobutton
+   ttk::radiobutton .grouplw.labeldash.dash -command "updateGroupLineWidth $glwidth"  -variable linedash -value "dash" -text [mc {Dashed}] -style Me.TRadiobutton
+   ttk::radiobutton .grouplw.labeldash.dashdott -command "updateGroupLineWidth $glwidth" -variable linedash -value "dashdott" -text [mc {Dash-dotted}] -style Me.TRadiobutton
+   pack .grouplw.labeldash.solid .grouplw.labeldash.dott .grouplw.labeldash.dash .grouplw.labeldash.dashdott -side left -fill x -expand 1 -pady {0 5} -padx 1
 
-   button .grouplw.butts.ok -text OK -command {
+   frame .grouplw.butts -background gray86 -relief groove -bd 2
+   pack .grouplw.butts -side top -fill x -expand 0 -pady {0 1m} -padx 1m
+
+   ttk::button .grouplw.butts.ok -text [mc {OK}] -command {
         set cmd ""
         foreach id [.c find withtag Selected] {
             set type [.c type $id]
@@ -4857,13 +5524,13 @@ proc editGroupLineWidth {} {
         destroy .grouplw
    }
 
-   button .grouplw.butts.cancel -text Cancel -command {
+   ttk::button .grouplw.butts.cancel -text [mc {Cancel}] -command {
       eval $glw_undo
       unset glw_undo
       destroy .grouplw
    }
 
-   pack .grouplw.butts.ok .grouplw.butts.cancel -side left -fill x -expand 1
+   pack .grouplw.butts.ok .grouplw.butts.cancel -side right -fill x -expand 0 -padx {5 5} -pady 4
 
    wm protocol .grouplw WM_DELETE_WINDOW {.grouplw.butts.ok invoke}
    #tkwait window .grouplw
@@ -4874,9 +5541,24 @@ proc updateGroupLineWidth {glw} {
    global Graphics
    global TPcolor
 #LISSI
-   global lineJoin glwidth
+   global lineJoin glwidth linedash
+    set svgdash {}
+    set tkdash) {}
+  if {$linedash == "solid"} {
+    set svgdash {}
+    set tkdash {}
+  } elseif {$linedash == "dash"} {
+    set svgdash {3 3}
+    set tkdash {.}
+  } elseif {$linedash == "dott"} {
+    set svgdash {10 2 10 2}
+    set tkdash {-}
+  } elseif {$linedash == "dashdott"} {
+    set svgdash {10 3 3 3}
+    set tkdash {-.}
+  }
 
-   .grouplw.widthcanvas itemconfigure demoGroupLine -width $glw
+   .grouplw.widthcanvas itemconfigure demoGroupLine -width $glwidth -joinstyle $lineJoin -dash $tkdash
    foreach id [.c find withtag Selected] {
        set type [.c type $id]
        switch -exact -- $type {
@@ -4887,9 +5569,9 @@ proc updateGroupLineWidth {glw} {
           line   {
 		set utagid [.c itemcget $id -tags]
 		if {[lsearch $utagid "svg"] != -1} {
-            	    .c itemconfigure $id -strokewidth $glw
+            	    .c itemconfigure $id -strokewidth $glwidth -strokelinejoin $lineJoin -strokedasharray $svgdash
             	} else {
-    		    .c itemconfigure $id -width $glw
+    		    .c itemconfigure $id -width $glw -joinstyle $lineJoin -dash $tkdash
             	}
           }
           default   {
@@ -4911,10 +5593,10 @@ proc updateGroupLineWidth {glw} {
              }
              if {$glw >= 0} {
                 if {$svg == 1} {
-		.c itemconfigure $id -strokewidth $glwidth -strokelinejoin $lineJoin
+		.c itemconfigure $id -strokewidth $glwidth -strokelinejoin $lineJoin -strokedasharray $svgdash
                  # -stroke $outline
                 } else {
-                 .c itemconfigure $id -width $glw -outline $outline
+                 .c itemconfigure $id -width $glw -outline $outline -dash $tkdash
                 }
 		drawBoundingBox
              } else {
@@ -4930,6 +5612,7 @@ proc updateGroupLineWidth {glw} {
 }
 
 proc editGroupFont {} {
+    global TPfontFamily TPfontSize TPfontWeight TPfontSlant
    set have_text 0
 
    set undo [getGroupCommand 1]
@@ -4944,17 +5627,28 @@ proc editGroupFont {} {
        }
 #LISSI
        if {$type=="ptext"} {
-	global 	TPfontCmd
-#	set TPcolorCmd "$TPcurCanvas itemconfigure $TPcanvasID -tintcolor \$rgb -fillopacity \$TPcolor(opacity) -tintamount  \$TPcolor(tintamount)"
-#	set TPfontCmd "set $Arrayvar\($propname\) \[TP_FontGetSelected\]; $TPcurCanvas itemconfigure $TPcanvasID -$propname \[TP_FontGetSelected\]"
-#	set TPfontCmd "$TPcurCanvas itemconfigure $TPcanvasID -$propname \[TP_FontGetSelected\]"
-#	set TPfontCmd "puts  \[TP_FontGetSelected\];.c itemconfigure $id -font \[TP_FontGetSelected\]"
-	set TPfontCmd "puts  \[TP_FontGetSelected\];.c itemconfigure $id -fontfamily \$fam -fontsize \$fsize -fontslant \$fslant"
-#	 \[TP_FontGetSelected\
+	    global TPfontCmd
+	    set TPfontCmd "puts  \[TP_FontGetSelected\];.c itemconfigure $id -fontfamily \$fam -fontsize \$fsize -fontslant \$fslant"
 
     	    ShowWindow.tpfontselect $id
-    	    return
+    	    vwait TPfontCmd
+    	    if {$TPfontCmd == "Cancel"} {
+    		set TPfontCmd {}
+    		return
+    	    }
        }
+	set cmd ""
+	foreach id [.c find withtag Selected] {
+    	    set type [.c type $id]
+    	    set utag [Utag find $id]
+    	    if {$type=="ptext"} {
+		.c itemconfigure $id -fontfamily $TPfontFamily -fontsize $TPfontSize -fontweight $TPfontWeight -fontslant $TPfontSlant
+        	append cmd [list .c itemconfigure $utag  -fontfamily $TPfontFamily -fontsize $TPfontSize -fontweight $TPfontWeight -fontslant $TPfontSlant] \;
+    	    }
+	}
+	History add $cmd
+	Undo add $undo
+	return
    }
 
    if {$have_text==0} {
@@ -5092,7 +5786,11 @@ proc drawArrowHandle {x y w svg} {
                    [expr $x+$r] [expr $y+$r] \
                    [expr $x+$r] [expr $y-$r] ]
     if {$svg == 1} {
-	set options [list -stroke black -strokewidth 1 -fill #000000 -fillopacity 0.0 \
+	set options [list -outline black -width 1 -fill {} -smooth 1 \
+                    -tags {arrowHandle svg}]
+	return [eval .c create polygon $coords $options]
+#	set options [list -stroke black -strokewidth 1 -fill #000000 -fillopacity 0.0 
+	set options [list -stroke black -strokewidth 1 -fill {} -strokedasharray {} \
                     -tags {arrowHandle svg}]
 	return [eval .c create circle $x $y -r $r $options]
     } else {
@@ -5142,8 +5840,8 @@ proc arrowsMode {} {
     set utagid [.c itemcget $line -tags]
     set svg 0
     if {[lsearch $utagid "svg"] != -1} {
-	set sar [lindex [.c itemcget $line -startarrow] 4]
-	set ear [lindex [.c itemcget $line -endarrow] 4]
+	set sar [.c itemcget $line -startarrow]
+	set ear [.c itemcget $line -endarrow]
 	if {$sar == 1 && $ear == 1} {
     	    set arrowsConfig "both"
 	} elseif  {$sar == 0 && $ear == 0} {
@@ -5192,14 +5890,14 @@ proc arrowsMode {} {
       last   both    first
    }
    set arrowsInfo(mapsvg) {
-      first  none    first " -startarrow on "
-      first  first   none  " -startarrow off "
+      first  none    first " -startarrow on -endarrow off"
       first  last    both  " -startarrow on -endarrow on "
-      first  both    last  " -startarrow off "
-      last   none    last  " -endarrow on "
+      first  first   none  " -startarrow off -endarrow off"
+      first  both    last  " -startarrow off -endarrow on "
+      last   none    last  " -endarrow on -startarrow off "
       last   first   both  " -startarrow on -endarrow on "
-      last   last    none  " -endarrow off "
-      last   both    first " -endarrow off "
+      last   last    none  " -endarrow off  -startarrow off"
+      last   both    first " -endarrow off -startarrow on"
    }
    Message "Click in circles to toggle arrow/no-arrow"
 }
@@ -5207,21 +5905,26 @@ proc arrowsMode {} {
 proc toggleArrow {id} {
    global arrowsInfo Graphics
 
-   Message {if you hate the arrow goto "Line"/"Arrow shape"}
+   Message "If you hate the arrow goto \"Line\"/\"Arrow shape\""
     set utagid [.c itemcget $id -tags]
-puts "toggleArrow: id=$id utagid=$utagid"
+#puts "toggleArrow: id=$id utagid=$utagid"
    if {[lsearch $utagid "svg"] != -1} {
     foreach {a b c d} $arrowsInfo(mapsvg) {
      if {$arrowsInfo($id,point)==$a && $arrowsInfo($id,option)==$b} {
-       set cmd [subst ".c itemconfigure $arrowsInfo($id,line) $d"]
-#       set cmd [list .c itemconfigure $arrowsInfo($id,line) $d ] 
+##############
+puts "arrowsInfo(mapsvg)=$a $b $c $d"
+	    foreach {aa ba ca } $Graphics(arrowshape) {break}
+	    set aa [expr {1.0 * $aa}]
+	    set ba [expr {1.0 * $ba}]
+	    set fa [expr {$aa / $ba}]
+################
+	if {$a == "last"} {
+    	    set cmd [subst ".c itemconfigure $arrowsInfo($id,line) $d -endarrowlength  $aa -endarrowwidth $ca -endarrowfill $fa "]
+	} else {
+    	    set cmd [subst ".c itemconfigure $arrowsInfo($id,line) $d -startarrowlength  $aa -startarrowwidth $ca -startarrowfill $fa "]
+    	}
 	eval $cmd
-#                     -arrowshape $Graphics(arrowshape)
-#                     -arrow $c -arrowshape $Graphics(arrowshape)
-#       set undo [list [subst ".c itemconfigure $arrowsInfo($id,line) $d"] ]
        set undo [subst ".c itemconfigure $arrowsInfo($id,line) $d"]
-#                 -arrow $arrowsInfo($id,option) 
-#                 -arrowshape $Graphics(arrowshape)
        eval $cmd
        set arrowsInfo($id,option) $c
        set friend $arrowsInfo($id,friend)
@@ -5540,7 +6243,7 @@ proc TextNewline {} {
 }
 
 proc TextInsert {char} {
-   if {$char=="" || $char=="" || $char==""} {return}
+   if {$char == "" || $char == "" || $char == ""} {return}
    .c insert [.c focus] insert $char
 }
 
@@ -5622,7 +6325,7 @@ proc gridSelector {w} {
    set gridInfo(win)      $w
 
    toplevel $w
-   wm title $w "Grid selector"
+   wm title $w "[mc {Grid selector}]"
    #wm transient $w .
    wm iconname $w Gridsel
    wm group $w .
@@ -5696,9 +6399,9 @@ proc gridSelector {w} {
    }
 
    entry $w.gridsize.entry -textvariable gridInfo(gridsize) -width 6 -bg white
-   grid $w.gridsize.entry -row 0 -column 6 -rowspan 3 -sticky ew
+   grid $w.gridsize.entry -row 0 -column 6 -rowspan 3 -sticky ew -padx 10
    entry $w.snapsize.entry -textvariable gridInfo(snapsize) -width 6 -bg white
-   grid $w.snapsize.entry -row 0 -column 6 -rowspan 3 -sticky ew
+   grid $w.snapsize.entry -row 0 -column 6 -rowspan 3 -sticky ew -padx 10
    set colwidth [expr 1.25*[winfo reqwidth $w.gridsize.but_1_5]]
    foreach c {0 1 2 3 4 5} {
        grid columnconfig $w.gridsize $c -minsize $colwidth
@@ -5713,13 +6416,16 @@ proc gridSelector {w} {
    	-sticky nsew -pady $gap
    checkbutton $w.butnframe1.gridon -text "Grid on" \
         -variable gridInfo(gridon) -anchor w
-   pack $w.butnframe1.gridon -side top -fill x -padx [expr {$gap/2}]
+   pack $w.butnframe1.gridon -side top -fill x 
+   # -padx [expr {$gap/2}]
    checkbutton $w.butnframe1.snapon -text "Snap on" \
         -variable gridInfo(snapon) -anchor w
-   pack $w.butnframe1.snapon -side top -fill x -padx [expr {$gap/2}]
+   pack $w.butnframe1.snapon -side top -fill x
+   # -padx [expr {$gap/2}]
    checkbutton $w.butnframe1.tickson -text "Ticks on" \
         -variable gridInfo(tickson) -anchor w
-   pack $w.butnframe1.tickson -side top -fill x -padx [expr {$gap/2}]
+   pack $w.butnframe1.tickson -side top -fill x
+   # -padx [expr {$gap/2}]
    
    frame $w.butnframe2
    grid $w.butnframe2 -row 0 -column 5 -rowspan 2 -columnspan 2 \
@@ -5794,15 +6500,18 @@ proc Ticks {} {
 
   set m [expr int($Canv(SW)/$size)]
   set n [expr int($Canv(SH)/$size)]
-  
+#puts "Ticks Font=\"$Font(gridTicks)\""
+  set ffam [lindex $Font(gridTicks) 0]
+  set fsize [lindex $Font(gridTicks) 1]
   for {set i 1} {$i<=$m} {incr i} {
     set Xnum [expr $i*$size+3]
     set Xtick [expr $i*$size]
-    .c create text $Xnum 3 \
-        -font $Font(gridTicks) \
+    .c create ptext $Xnum 3 \
         -text $i \
         -fill red \
-        -anchor nw \
+        -fontfamily $ffam \
+        -fontsize $fsize \
+        -textanchor nw \
         -tags {gridText gridObject}
     .c create line $Xtick 0 $Xtick 4 \
         -width 2 \
@@ -5813,11 +6522,12 @@ proc Ticks {} {
   for {set i 1} {$i<=$n} {incr i} {
     set Ynum [expr $i*$size+3]
     set Ytick [expr $i*$size]
-    .c create text 3 $Ynum\
-        -font $Font(gridTicks) \
+    .c create ptext 3 $Ynum\
         -text $i \
         -fill red \
-        -anchor nw \
+        -fontfamily $ffam \
+        -fontsize $fsize \
+        -textanchor nw \
         -tags {gridText gridObject}
     .c create line 0 $Ytick 4 $Ytick \
         -width 2 \
@@ -5871,25 +6581,28 @@ switch -exact -- $cmnd {
 #LISSI
        set initdir  [file dirname $defaultName]
        if {$initdir == "."} {
-#	set initdir  [pwd]
 	set initdir $::myHOME
        }
        set defaultNameTail [file tail $defaultName]
-#       if {$mode=="save"} { set command tk_getSaveFile }
-#       if {$mode=="open"} { set command tk_getOpenFile }
-#       if {$mode=="save"} { set command ttk::getSaveFile }
-#       if {$mode=="open"} { set command ttk::getOpenFile }
-       if {$mode=="save"} { set command "::FE::fe_getsavefile" }
-       if {$mode=="open"} { set command "::FE::fe_getopenfile" }
-       set filename [$command \
-                -title "$title" \
-                -filetypes $File($type,types) \
-                -initialfile $defaultNameTail \
-                -defaultextension ".$type" \
-                -initialdir $initdir \
-                -width 450 -height 500 -sepfolders 1 -details 1 \
-	 ]
-       if {$filename==""} {return 0}
+       if {[tk windowingsystem] == "win32"} {
+	    if {$mode=="save"} { set command tk_getSaveFile }
+	    if {$mode=="open"} { set command tk_getOpenFile }
+	    set geom ""	
+       } else {
+    	    if {$mode=="save"} { 
+    		set command "::FE::fe_getsavefile" 
+    	    }
+    	    if {$mode=="open"} { 
+    		set command "::FE::fe_getopenfile" 
+    	    }
+	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+        }
+	set cmdpar [subst {-title "$title" -filetypes "$File($type,types)" -initialfile "$defaultNameTail" -defaultextension ".$type" -initialdir "$initdir" $geom}]
+	set filename [eval $command $cmdpar]
+
+       if {$filename==""} {
+    	    return 0
+       }
        set File($type,name) $filename
        set File(wd) [file dirname $File(pic,name)]
        return 1
@@ -5939,11 +6652,13 @@ Would you like to exit tkpaint?" \
          File new
          return 1
        }
-
+       set m1 "[mc {Current work was not saved !}]"
+       set m2 "[mc {Save now ?}]"
+       set m3 "[mc {TkSVGPaint: save file?}]"
        switch [tk_messageBox -type yesnocancel \
-                -message "Current work was not saved !\nSave now ?" \
+                -message "$m1\n$m2" \
                 -icon question \
-                -title "TkPaint: save file?" \
+                -title $m3 \
                 -default yes] {
           yes {
                 if {$File(pic,name)==""
@@ -5975,7 +6690,7 @@ Would you like to exit tkpaint?" \
        switch -exact -- $type {
 
             img {
-              if ![File getname save img "Save a Image" $File(img,name)] {
+              if ![File getname save img "[mc {Select the file for the image}]" $File(img,name)] {
                  return
               }
               File write img
@@ -5985,7 +6700,7 @@ Would you like to exit tkpaint?" \
             }
 
             imgtrans {
-              if ![File getname save img "Save a Image Transparency" $File(img,name)] {
+              if ![File getname save img "[mc {Select the file for the image transparency}]" $File(img,name)] {
                  return
               }
               File write imgtrans
@@ -5995,7 +6710,7 @@ Would you like to exit tkpaint?" \
             }
 
             pic {
-              if ![File getname save pic "Save a Tcl pic file" $File(pic,name)] {
+              if ![File getname save pic "[mc {Save a Tcl pic file}]" $File(pic,name)] {
                  return
               }
               File write pic
@@ -6010,7 +6725,7 @@ Would you like to exit tkpaint?" \
               } else {
                 set File(eps,name) [file rootname $File(pic,name)].eps
               }
-              if ![File getname save eps "Save as Encapsulated PostScript File" $File(eps,name)] {
+              if ![File getname save eps "[mc {Save as Encapsulated PostScript File}]" $File(eps,name)] {
                 return
               }
               File write eps
@@ -6018,7 +6733,7 @@ Would you like to exit tkpaint?" \
 
             auto {
               if {$File(pic,name)=="" &&
-                  ![File getname save pic "Save a Tcl pic file" untitled.pic]} {
+                  ![File getname save pic "[mc {Save a Tcl pic file}]" untitled.pic]} {
                 return
               }
               File write pic
@@ -6052,11 +6767,11 @@ puts "WRITE fext=\"$fext\" File(img,name=$File(img,name))"
         	".png" {set fformat "PNG"}
                 ".gif" {set fformat "GIF"}
                 ".jpg" {set fformat "JPEG"}
-                default {tk_messageBox -title "Unsupported format" -message "Unsupported format.\nPlease use gif or jpg extension.\n" -icon error; return}
+                default {tk_messageBox -title "[mc {Unsupported format}]" -message "Unsupported format.\nPlease use gif or jpg extension.\n" -icon error; return}
             }
             if {$type=="img"} {
     		$canimg write $File(img,name) -format $fformat
-    		tk_messageBox -title "Save as Image" -message "Canvas save to file\n$File(img,name)\n" -icon info
+    		tk_messageBox -title "[mc {Save as Image}]" -message "[mc {Canvas save to file}]\n$File(img,name)\n" -icon info
             } else {
 		if { [catch {winfo rgb . $Canv(bg)} rgb] } {
     		    tk_messageBox -message "Invalid color \"$Canv(bg)\""
@@ -6072,8 +6787,8 @@ puts "WRITE fext=\"$fext\" File(img,name=$File(img,name))"
 		}
 #Информация о задержки
 		catch {destroy .waitimage}
-		label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow -font {Times 16 bold italic}  -foreground blue
-    		place .waitimage -in .tools.width -relx 0.0 -rely 0.25
+		label .waitimage -text "[mc {Wait. Image formation is underway.}]" -anchor w -justify left -bg yellow -font {Times 16 bold italic}  -foreground blue
+		place .waitimage -in .mbar.edit -relx 0.0 -rely 1.0
 		update idle
 		tk busy hold ".tools"
 		tk busy hold ".svg"
@@ -6375,7 +7090,7 @@ set ButtonsHelp {
 }
 
 foreach {row col dummy text} $ButtonsHelp {
-    set text [mc $text]
+    set text [mc "$text"]
 
 set colsvg $col
 incr col 2
@@ -6385,14 +7100,6 @@ incr col 2
 if {$colsvg < 13} {
    set wsvg .svg.button${colsvg}_$row
 }
-   if {$macos} {
-	TP_popupHint $w $text
-if {$colsvg < 12} {
-	TP_popupHint $wsvg "[mc $text] (svg)"
-} elseif {$colsvg == 12} {
-	TP_popupHint $wsvg [mc "Select one object"]
-}
-   } else {
 
    bind $w <Enter> [list balloon %W $text]
    bind $w  <Leave>  {catch {
@@ -6401,7 +7108,8 @@ if {$colsvg < 12} {
        destroy $Balloon(%W,name)
       }
    }
-if {$colsvg < 12 || ($colsvg == 12 && $row == 0)  } {
+if {1} {
+if {$colsvg < 12 } {
     if {$row == 1 && $colsvg == 11} {
 	set text "[mc {Create PATH}] (svg)"
     } elseif {$row == 0 && $colsvg == 12} {
@@ -6409,15 +7117,28 @@ if {$colsvg < 12 || ($colsvg == 12 && $row == 0)  } {
     } else {
 	set text "[mc $text] (svg)"
     }
-   bind $wsvg <Enter> [list balloon %W $text]
-   bind $wsvg  <Leave>  {catch {
-       after cancel $Balloon(%W,job1)
-       after cancel $Balloon(%W,job2)
-       destroy $Balloon(%W,name)
-      }
-   }
+#Добавили окантовку при наведении мыши на кнопку
+   bind $wsvg <Enter> "$wsvg configure -highlightbackground {deepskyblue};[list balloon %W $text]"
+   bind $wsvg  <Leave>  "$wsvg configure -highlightbackground {gray86}; [list catch {after cancel $Balloon(%W,job1); after cancel $Balloon(%W,job2); destroy $Balloon(%W,name)}]"
 }   
-   }
+}
+
+}
+set ButtonsHelpSVG { 
+  1  11  createpath.gif   "Create PATH"
+  0  12  select1obj.gif "Select one object"
+  1  12  freeselection.gif "Free selection of the area"
+  0  13  callout.gif "Drawing callouts"
+  1  13  callout.gif "Reserve"
+  0  14  withoutfilling "Without filling"
+  1  14  withfill "With fill"
+}
+foreach {row col dummy text} $ButtonsHelpSVG {
+    set text [mc "$text"]
+    set colsvg $col
+    set wsvg .svg.button${colsvg}_$row
+	bind $wsvg <Enter> "$wsvg configure -highlightbackground {deepskyblue};[list balloon %W $text]"
+	bind $wsvg  <Leave>  "$wsvg configure -highlightbackground {gray86}; [list catch {after cancel $Balloon(%W,job1); after cancel $Balloon(%W,job2); destroy $Balloon(%W,name)}]"
 }
 
 bind  .tools.but_outline  <Enter> {
@@ -6443,7 +7164,7 @@ bind  .tools.but_fill  <Leave> {catch {
 }
 
 ########### Status Bar:
-frame .statbar
+frame .statbar -bg gray86
 grid config .statbar -column 0 -row 3 \
         -columnspan 1 -rowspan 1 -sticky "snew" -ipadx 1 -ipady 1
 
@@ -6453,8 +7174,16 @@ label .statbar.coords -textvariable Canv(pointerxy) \
       -anchor w \
       -relief sunken
 pack .statbar.coords -side left -padx 1 -pady 1
+set t1 [mc "Coordinates of the pointer on the canvas"]
+bind .statbar.coords <Enter> {balloon %W $t1}
+bind .statbar.coords  <Leave>  {catch {
+       after cancel $Balloon(%W,job1)
+       after cancel $Balloon(%W,job2)
+       destroy $Balloon(%W,name)
+    }
+}
 
-label .statbar.mode -textvariable Graphics(mode) \
+label .statbar.mode -textvariable Graphics(mode1) \
       -bd 1 \
       -width 13 \
       -anchor w \
@@ -6482,11 +7211,13 @@ label .statbar.fontstyle -textvariable Graphics(font,style) \
       -relief sunken
 pack .statbar.fontstyle -side left -padx 1 -pady 0.5
 
-entry .statbar.message -textvariable Message(text) \
+entry .statbar.message -textvariable Message(text1) \
       -bd 1 \
       -width 40 \
-      -state disabled \
-      -relief sunken
+      -state readonly \
+      -relief sunken 
+
+#      -font Font(zoomEntry)
 pack .statbar.message -side left -fill x -expand 1
 #pack .statbar.message -side left -padx 1 -pady 0.5 -fill x -expand 1
 
@@ -6503,6 +7234,7 @@ proc Traces {mode} {
      Graphics(line,capstyle) w   traceProc1.1
      Graphics(line,color)    w   traceProc1.1
      Graphics(line,style)    w   traceProc1.2
+     Graphics(linedefault,dash) w   traceProc1.3
      Graphics(fill,color)    w   traceProc2
      Graphics(line,color)    w   traceProc3
      Graphics(mode)          w   traceProc4
@@ -6558,6 +7290,31 @@ proc traceProc1.2 {v index op} {
   }
 }
 
+proc traceProc1.3 {v index op} {
+  global Graphics
+  if {$Graphics(linedefault,dash)=="NONE"} {
+    set Graphics(line,dash) {}
+    set Graphics(linesvg,dash) {}
+    return
+  }
+#############################
+puts "traceProc1.3: Graphics(linedefault,dash)=$Graphics(linedefault,dash)"
+  if {$Graphics(linedefault,dash) == "Solid line"} {
+#    set Graphics(linesvg,dash) {1 0 0 0}
+    set Graphics(linesvg,dash) {}
+    set Graphics(line,dash) {}
+  } elseif {$Graphics(linedefault,dash) == "Dashed"} {
+    set Graphics(linesvg,dash) {3 3}
+    set Graphics(line,dash) {.}
+  } elseif {$Graphics(linedefault,dash) == "Dotted"} {
+    set Graphics(linesvg,dash) {10 2 10 2}
+    set Graphics(line,dash) {-}
+  } elseif {$Graphics(linedefault,dash) == "Dash-dotted"} {
+    set Graphics(linesvg,dash) {10 3 3 3}
+    set Graphics(line,dash) {-.}
+  }
+}
+
 proc traceProc2 {v index op} {
   global Graphics
   if {$Graphics(fill,color)==""} {
@@ -6577,6 +7334,9 @@ proc traceProc3 {v index op} {
 
 proc traceProc4 {v index op} {
   global Graphics Polygon Line Text TextInfo Reshape
+
+#puts "Graphics(mode)=$Graphics(mode)"
+set Graphics(mode1) [mc $Graphics(mode)]
 
   .c delete arrowHandle reshapeHandle
 
@@ -6710,7 +7470,7 @@ proc traceProc9 {v index op} {
 proc traceProc10 {v index op} {
   global File tksvgpaint_ver
   if {$File(pic,name)==""} {
-    wm title . "Tksvgpaint $tksvgpaint_ver - new file"
+    wm title . "Tksvgpaint $tksvgpaint_ver - [mc {new project}]"
   } else {
     wm title . "Tksvgpaint $tksvgpaint_ver - $File(pic,name)"
   }
@@ -6733,16 +7493,16 @@ bind all <Alt-Key-r> { ::tk::MbPost .mbar.grid}
 bind all <Alt-Key-t> { ::tk::MbPost .mbar.text}
 bind all <Alt-Key-h> { ::tk::MbPost .mbar.help}
 ########## ACCELERATORS:
-bind all <Control-Key-u> {.mbar.edit.menu invoke "Undo last change"}
-bind all <Control-Key-l> {.mbar.edit.menu invoke "Undo last undo"}
-bind all <Control-Key-s> {.mbar.group.menu invoke "Select group"}
-bind all <Control-Key-a> {.mbar.group.menu invoke "Select all"}
-bind all <Control-Key-c> {.mbar.group.menu invoke "Copy group"}
-bind all <Control-Key-r> {.mbar.group.menu invoke "Rotate group"}
-bind all <Control-Key-e> {.mbar.group.menu invoke "Deform group"}
-bind all <Control-Key-h> {.mbar.group.menu invoke "Horizontal reflection"}
-bind all <Control-Key-v> {.mbar.group.menu invoke "Vertical reflection"}
-bind all <Control-Key-d> {.mbar.group.menu invoke "Delete group"}
+bind all <Control-Key-u> {Undo exec}
+bind all <Control-Key-l> {History repeat}
+bind all <Control-Key-s> {selectGroupMode}
+bind all <Control-Key-a> {selectAll}
+bind all <Control-Key-c> {createGroupCopy}
+bind all <Control-Key-r> {rotateGroupSVG}
+bind all <Control-Key-e> {deformGroupMode}
+bind all <Control-Key-h> {reflect x}
+bind all <Control-Key-v> {reflect y}
+bind all <Control-Key-d> {deleteGroup}
 bind all <Control-Key-n> {.mbar.file.menu invoke "New"}
 bind all <Control-Key-o> {.mbar.file.menu invoke "Open"}
 bind all <Control-Key-x> {.mbar.file.menu invoke "Exit"}
@@ -6765,8 +7525,14 @@ dashbug
 
 rename dashbug {}
 puts "Processing command line args"
-if {$argc>=1} {
-  set fileName [lindex $argv 0]
+#LISSI
+FE_showtktools
+wm attributes .t -alpha 0.5
+wm withdraw .t
+wm geometry . 830x640+100+50
+
+if {$argc > 0  && $::tksvgconf(-file) != ""} {
+  set fileName $::tksvgconf(-file)
   if ![file exists $fileName] {
        tk_messageBox -type ok \
              -message "$fileName: File does not exist." \
@@ -6776,14 +7542,18 @@ if {$argc>=1} {
              -default ok
 #    Message "$fileName: File does not exist."
   } else {
+      set st $Graphics(showtools)
       source $fileName
+      set Graphics(showtools) $st
       set File(pic,name) $fileName
       set File(new) 0
       Message "loaded $fileName"
   }
   unset fileName
 }
-#LISSI
-wm attributes .t -alpha 0.5
-wm withdraw .t
 after 100  {TP_anim ".anim"}
+
+
+Message $Message(0)
+
+

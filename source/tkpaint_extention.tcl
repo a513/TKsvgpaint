@@ -599,6 +599,22 @@ proc moveGroupSVG {x y} {
 	set lastY $y
     }
 }
+#Скрыть.показать меню tkpaint
+proc FE_showtktools {} {
+    global Graphics
+    if {$Graphics(showtools)} {
+	.showtools configure -image closeDark
+	grid remove .toolssep
+	grid .tools 
+    } else {
+	.showtools configure -image openDark
+	grid remove .tools
+	grid config .toolssep -column 0 -row 1 -columnspan 1 -rowspan 1 -sticky "snew" 
+#	grid .toolssep
+    }
+
+}
+
 #Экспорт group в SVG-формат
 proc TP_Group2SVGfile {} {
     global File
@@ -619,21 +635,22 @@ proc TP_Group2SVGfile {} {
 	{{img svg} {.svg} }
 	{{All files} * }
     }
-    set type        "svg"
-        set title [mc "Select file for SVG"]
-#        set command ttk::getSaveFile
-        set command FE::fe_getsavefile
-        set filename [$command \
-                -title "$title" \
-                -filetypes $File(img,types) \
-                -initialdir $initdir \
-                -width 450 -height 500 -sepfolders 1 -details 1 \
-                -defaultextension ".$type" ]
-        if {$filename==""} {return 0}
+    set type "svg"
+    set title [mc "Select file for SVG"]
+    if {[tk windowingsystem] == "win32"} {
+	    set command tk_getSaveFile
+	    set geom ""	
+    } else {
+    	    set command "::FE::fe_getsavefile" 
+	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+    }
+    set cmdpar [subst {-title "$title" -filetypes "$File(img,types)" -defaultextension ".$type" -initialdir "$initdir" $geom}]
+    set filename [eval $command $cmdpar]
+    if {$filename==""} {return 0}
 
     set ret [can2svg::group2file .c $filename]
     if {$ret != ""} {
-        tk_messageBox -title "Export group to SVG" -message "SVG-file: $ret"  -icon info
+        tk_messageBox -title "[mc {Export group to SVG}]" -message "SVG-file: $ret"  -icon info
     }
 }
 
@@ -669,8 +686,16 @@ proc TP_anim {w} {
                 set m [::tkp::matrix rotate $phi $x $y]
                 $w itemconfig $a -m $m
             }
+#Для видеоролика
+if {0} {
+    update idle
+    exec /usr/bin/scrot -u "/tmp/fs1.png"
+}
         }
     }
+if {0} {
+exec /usr/bin/scrot -s "/tmp/fs1.png"
+}
 
     ticker 0 2 40 $x $y
 
@@ -689,31 +714,34 @@ proc TP_radiuscoords {} {
     set b [expr {sqrt (pow($p2_x - $p1_x, 2) + pow($p2_y - $p1_y, 2))}]
     set a [expr {sqrt (pow($p3_x - $p2_x, 2) + pow($p3_y - $p2_y, 2))}]
     set c [expr {sqrt (pow($p3_x - $p1_x, 2) + pow($p3_y - $p1_y, 2))}]
-    puts "$a $b $c"
+#    puts "$a $b $c"
 #Вычисляем углы alpha, beta, gamma
     set alpha [expr {acos((pow($b, 2) + pow($c, 2) - pow($a, 2)) / (2.0 * $b * $c)) }]
     set alphad [TP_radiantodegre [expr {acos((pow($b, 2) + pow($c, 2) - pow($a, 2)) / (2.0 * $b * $c)) }]]
-    puts "alpha=$alpha alphad=$alphad"
+#    puts "alpha=$alpha alphad=$alphad"
     set beta [expr {acos((pow($c, 2) + pow($a, 2) - pow($b, 2)) / (2.0 * $c * $a)) }]
-    set betad [TP_radiantodegre [expr {acos((pow($c, 2) + pow($a, 2) - pow($b, 2)) / (2.0 * $c * $a)) }]]
-    puts "beta=$beta betad=$betad"
+    set betad [TP_radiantodegre [expr {acos((pow($c, 2) + pow($a, 2) - pow($b, 2)) / (2.0 * $c * $a)) }]]#
+#    puts "beta=$beta betad=$betad"
     set gamma [expr {acos((pow($a, 2) + pow($b, 2) - pow($c, 2)) / (2.0 * $a * $b)) }]
     set gammad [TP_radiantodegre [expr {acos((pow($a, 2) + pow($b, 2) - pow($c, 2)) / (2.0 * $a * $b)) }]]
-    puts "gamma=$gamma gammad=$gammad"
+#    puts "gamma=$gamma gammad=$gammad"
     set radius [expr {$a / (2 * sin($alpha))}]
-    puts "radius=$radius"
+#    puts "radius=$radius"
 #Вычисляем координаты центра
-set A [expr {$p2_x - $p1_x}]
-set B [expr {$p2_y - $p1_y}]
-set C [expr {$p3_x - $p1_x}]
-set D [expr {$p3_y - $p1_y}]
-set E [expr {$A * ($p1_x + $p2_x) + $B * ($p1_y + $p2_y)}]
-set F [expr {$C * ($p1_x + $p3_x) + $D * ($p1_y + $p3_y)}]
-set G [expr { 2 * ($A * ($p3_y - $p2_y) - $B * ($p3_x - $p2_x))}]
-if {$G == 0} {puts "Ошибка"; return}
-set Cx [expr {($D * $E - $B * $F) / $G}]
-set Cy [expr {($A * $F - $C * $E) / $G}]
-puts "Cx=$Cx Cy=$Cy"
+    set A [expr {$p2_x - $p1_x}]
+    set B [expr {$p2_y - $p1_y}]
+    set C [expr {$p3_x - $p1_x}]
+    set D [expr {$p3_y - $p1_y}]
+    set E [expr {$A * ($p1_x + $p2_x) + $B * ($p1_y + $p2_y)}]
+    set F [expr {$C * ($p1_x + $p3_x) + $D * ($p1_y + $p3_y)}]
+    set G [expr { 2 * ($A * ($p3_y - $p2_y) - $B * ($p3_x - $p2_x))}]
+    if {$G == 0} {
+	puts "Ошибка"; 
+	return
+    }
+    set Cx [expr {($D * $E - $B * $F) / $G}]
+    set Cy [expr {($A * $F - $C * $E) / $G}]
+#puts "Cx=$Cx Cy=$Cy"
 
     return [list $radius $Cx $Cy]
 }
@@ -909,32 +937,43 @@ return $result
 }
 
 #Font select
+proc TP_configSample {} {
+    global TPfontFamily
+    global TPfontSize
+    global TPfontWeight
+    global TPfontSlant
+  .tpfontselect.frameSample.canvas0 itemconfigure sample  -fontfamily $TPfontFamily -fontsize $TPfontSize -fontweight $TPfontWeight -fontslant $TPfontSlant
+}
+
 proc ShowWindow.tpfontselect { args} {
-global TPfontFamily
-global TPfontSize
-global TPfontStyle
+    global TPfontFamily
+    global TPfontSize
+    global TPfontWeight
+    global TPfontSlant
 
     global fontCmdCancel
     global fontCmdItem
     global TPcurCanvas
     set TPcurCanvas ".c"
 
-  catch "destroy .tpfontselect"
+    catch "destroy .tpfontselect"
   set id $args
+  set  TPfontFamily [.c itemcget $id -fontfamily]
+  set  TPfontSize [.c itemcget $id -fontsize]
+  set  TPfontWeight [.c itemcget $id -fontweight]
+  set  TPfontSlant [.c itemcget $id -fontslant]
+
   set ffamOrig [.c itemcget $id -fontfamily]
   set TPfontFamily $ffamOrig
   set fsizeOrig [.c itemcget $id -fontsize]
   set TPfontSize [expr {int($fsizeOrig)}]
   set fslantOrig [.c itemcget $id -fontslant]
   set fweightOrig [.c itemcget $id -fontweight]
-  set TPfontStyle [list $fweightOrig $fslantOrig]
   set fontCmdCancel [subst ".c itemconfigure $id  -fontfamily \"$ffamOrig\" -fontsize $fsizeOrig -fontweight $fweightOrig -fontslant $fslantOrig"]
-  set fontCmdItem "if {\[llength \$TPfontStyle] < 2} {lappend TPfontStyle normal};"
-#  set fontCmdItem [subst ".c itemconfigure $id"]
-  append fontCmdItem [subst ".c itemconfigure $id"]
-  append fontCmdItem  " -fontfamily \$TPfontFamily -fontsize \$TPfontSize -fontweight \[string tolower \[lindex \$TPfontStyle 0]] -fontslant \[string tolower \[lindex \$TPfontStyle 1 ] ]"
+  set fontCmdItem [subst ".c itemconfigure $id"]
+  append fontCmdItem  " -fontfamily \$TPfontFamily -fontsize \$TPfontSize -fontweight \$TPfontWeight -fontslant \$TPfontSlant"
 
-  toplevel .tpfontselect   -relief {raised}  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  toplevel .tpfontselect   -relief {raised}  -background {gray86}  -highlightbackground {gray86}
 
   # Window manager configurations
   wm positionfrom .tpfontselect program
@@ -942,201 +981,144 @@ global TPfontStyle
   wm maxsize .tpfontselect 2560 1024
   wm minsize .tpfontselect 600 285
   wm protocol .tpfontselect WM_DELETE_WINDOW {global TPfontCmd
-global TPshowFonts
+  global TPshowFonts
 
-set TPfontCmd {}
-.tpfontselect.frame1.frame.listbox1 delete 0 end
+  set TPfontCmd {}
+  .tpfontselect.frame1.frame.listbox1 delete 0 end
 #catch {$TPcurWidget configure -$TPpropsInfo(propname) $TPpropsInfo(propval)}
-set TPshowFonts 0
-DestroyWindow.tpfontselect}
-  wm title .tpfontselect {TKsvgpaint font selection}
+  set TPshowFonts 0
+  DestroyWindow.tpfontselect}
+  wm title .tpfontselect "[mc {TKsvgpaint: font selection}]"
 
   # bindings
   bind .tpfontselect <ButtonRelease-1> {TP_ProcessClick %W %X %Y %x %y}
   bind .tpfontselect <Shift-Button-3> {TP_PropsSelWidget %W}
 
-  frame .tpfontselect.frame1  -borderwidth {2}  -background {#dcdcdc}  -height {224}  -highlightbackground {#dcdcdc}  -width {166}
+  frame .tpfontselect.frame1  -borderwidth {2}  -background {gray86}  -height {224}  -highlightbackground {gray86}  -width {166}
 
-  label .tpfontselect.frame1.label3  -activebackground {#dcdcdc}  -background {#dcdcdc}  -borderwidth {0}  -font {Helvetica 10 bold}  -highlightbackground {#dcdcdc}  -text {Font:}
+  label .tpfontselect.frame1.label3  -activebackground {gray86}  -background {gray86}  -borderwidth {0}  -font {Helvetica 10 bold}  -highlightbackground {gray86}  -text {Font:}
 
-  entry .tpfontselect.frame1.entry4  -background {#eeeeee}  -disabledbackground {white}  -disabledforeground {black}  -font {Helvetica 10}  -highlightbackground {#ffffff}  -selectbackground {#7783bd}  -selectforeground {#ffffff}  -state {disabled}  -textvariable {TPfontFamily}
+  entry .tpfontselect.frame1.entry4  -background {gray94}  -disabledbackground {white}  -disabledforeground {black}  -font {Helvetica 10}  -highlightbackground {white}  -selectbackground {#7783bd}  -selectforeground {white}  -state {disabled}  -textvariable {TPfontFamily}
 
-  frame .tpfontselect.frame1.frame  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  frame .tpfontselect.frame1.frame  -background {gray86}  -highlightbackground {gray86}
 
-#LISSI
-#  scrollbar .tpfontselect.frame1.frame.scrollbar2  -activebackground {#dcdcdc}  -background {#dcdcdc}  -borderwidth {2}  -command {.tpfontselect.frame1.frame.listbox1 yview}  -cursor {left_ptr}  -highlightbackground {#dcdcdc}  -relief {raised}  -troughcolor {#dcdcdc}  -width {12}
   ttk::scrollbar .tpfontselect.frame1.frame.scrollbar2 -command {.tpfontselect.frame1.frame.listbox1 yview} 
 
-  listbox .tpfontselect.frame1.frame.listbox1  -background {#eeeeee}  -font {Helvetica 10}  -height {6}  -highlightbackground {#ffffff}  -selectbackground {#7783bd}  -selectforeground {#ffffff}  -width {34}  -yscrollcommand {.tpfontselect.frame1.frame.scrollbar2 set}
+  listbox .tpfontselect.frame1.frame.listbox1  -background {gray94}  -font {Helvetica 10}  -height {6}  -highlightbackground white  -selectbackground {#7783bd}  -selectforeground white  -width {34}  -yscrollcommand {.tpfontselect.frame1.frame.scrollbar2 set}
   # bindings
   bind .tpfontselect.frame1.frame.listbox1 <<ListboxSelect>> {set TPtemp [%W curselection]
   if {$TPtemp ne {}} {set TPfontFamily [%W get $TPtemp]}
-#.tpfontselect.frame1.frame5.canvas0 itemconfigure sample -font  [TP_FontGetSelected]
-#LISSI
-.tpfontselect.frameSample.canvas0 itemconfigure sample -font  [TP_FontGetSelected]
-
-catch $TPfontCmd
+    TP_configSample
+    catch $TPfontCmd
     eval $fontCmdItem
     drawBoundingBox
-
 }
 
-  frame .tpfontselect.frame1.frame5  -borderwidth {2}  -relief {groove}  -background {#dcdcdc}  -height {26}  -highlightbackground {#dcdcdc}  -width {302}
+  frame .tpfontselect.frame1.frame5  -borderwidth {2}  -relief {groove}  -background {gray86}  -height {26}  -highlightbackground {gray86}  -width {302}
 
-  label .tpfontselect.frame1.frame5.label6  -activebackground {#dcdcdc}  -background {#dcdcdc}  -borderwidth {2}  -font {Helvetica 10 bold}  -highlightbackground {#dcdcdc}  -text {Sample}
+  label .tpfontselect.frame1.frame5.label6  -activebackground {gray86}  -background {gray86}  -borderwidth {2}  -font {Helvetica 10 bold}  -highlightbackground {gray86}  -text {Sample}
 
-  canvas .tpfontselect.frame1.frame5.canvas0  -background {#dcdcdc}  -height {53}  -highlightbackground {#ffffff}  -relief {raised}  -width {271}
+  tkp::canvas .tpfontselect.frame1.frame5.canvas0  -background {gray86}  -height {53}  -highlightbackground {white}  -relief {raised}  -width {271}
 
-  frame .tpfontselect.frame2  -borderwidth {2}  -background {#dcdcdc}  -height {224}  -highlightbackground {#dcdcdc}  -width {130}
+  frame .tpfontselect.frame2  -borderwidth {2}  -background {gray86}  -height {224}  -highlightbackground {gray86}  -width {130}
 
-  frame .tpfontselect.frame2.frame9  -background {#dcdcdc}  -height {126}  -highlightbackground {#dcdcdc}  -width {76}
+  frame .tpfontselect.frame2.frame9  -background {gray86}  -height {126}  -highlightbackground {gray86}  -width {76}
 
-  entry .tpfontselect.frame2.frame9.entry11  -background {#eeeeee}  -disabledbackground {white}  -disabledforeground {black}  -font {Helvetica 10}  -highlightbackground {#ffffff}  -selectbackground {#7783bd}  -selectforeground {#ffffff}  -state {disabled}  -textvariable {TPfontStyle}  -width {10}
+  entry .tpfontselect.frame2.frame9.entry11  -background {gray94}  -disabledbackground {white}  -disabledforeground {black}  -font {Helvetica 10}  -highlightbackground {white}  -selectbackground {#7783bd}  -selectforeground {white}  -state {disabled}  -textvariable {TPfontWeight}  -width {10}
 
-  listbox .tpfontselect.frame2.frame9.listbox12  -background {#eeeeee}  -font {Helvetica 10}  -height {6}  -highlightbackground {#ffffff}  -selectbackground {#7783bd}  -selectforeground {#ffffff}  -width {10}
+  listbox .tpfontselect.frame2.frame9.listbox12  -background {gray94}  -font {Helvetica 10}  -height {6}  -highlightbackground {white}  -selectbackground {#7783bd}  -selectforeground {white}  -width {10}
   # bindings
   bind .tpfontselect.frame2.frame9.listbox12 <<ListboxSelect>> {set TPtemp [%W curselection]
-  if {$TPtemp ne {}} {set TPfontStyle [%W get $TPtemp]}
-#.tpfontselect.frame1.frame5.canvas0 itemconfigure sample -font [TP_FontGetSelected]
-#LISSI
-.tpfontselect.frameSample.canvas0 itemconfigure sample -font [TP_FontGetSelected]
+    if {$TPtemp ne {}} {set TPfontWeight [%W get $TPtemp]}
+    TP_configSample
+    if {[string length $TPfontCmd] > 0} {
+	catch $TPfontCmd
+	eval $fontCmdItem
+	drawBoundingBox
+    }
+  }
+#Ещё колонка
+  frame .tpfontselect.frame2.frame10  -background {gray86}  -height {126}  -highlightbackground {gray86}  -width {76}
 
-if {[string length $TPfontCmd] > 0} {
-     catch $TPfontCmd
-    eval $fontCmdItem
-    drawBoundingBox
-   }}
+  entry .tpfontselect.frame2.frame10.entry11  -background {gray94}  -disabledbackground {white}  -disabledforeground {black}  -font {Helvetica 10}  -highlightbackground {white}  -selectbackground {#7783bd}  -selectforeground {white}  -state {disabled}  -textvariable {TPfontSlant}  -width {10}
 
-  frame .tpfontselect.frame2.frame  -background {#dcdcdc}  -height {126}  -highlightbackground {#dcdcdc}  -width {50}
+  listbox .tpfontselect.frame2.frame10.listbox12  -background {gray94}  -font {Helvetica 10}  -height {6}  -highlightbackground {white}  -selectbackground {#7783bd}  -selectforeground {white}  -width {10}
+  # bindings
+  bind .tpfontselect.frame2.frame10.listbox12 <<ListboxSelect>> {set TPtemp [%W curselection]
+  if {$TPtemp ne {}} {set TPfontSlant [%W get $TPtemp]}
+    TP_configSample
+    if {[string length $TPfontCmd] > 0} {
+	catch $TPfontCmd
+	eval $fontCmdItem
+	drawBoundingBox
+    }
+  }
 
-#LISSI
-#  scrollbar .tpfontselect.frame2.frame.scrollbar2  -activebackground {#dcdcdc}  -background {#dcdcdc}  -borderwidth {2}  -command {.tpfontselect.frame2.frame.listbox1 yview}  -cursor {left_ptr}  -highlightbackground {#dcdcdc}  -relief {raised}  -troughcolor {#dcdcdc}  -width {12}
+
+  frame .tpfontselect.frame2.frame  -background {gray86}  -height {126}  -highlightbackground {gray86}  -width {50}
+
   ttk::scrollbar .tpfontselect.frame2.frame.scrollbar2 -command {.tpfontselect.frame2.frame.listbox1 yview}
 
-  listbox .tpfontselect.frame2.frame.listbox1  -background {#eeeeee}  -font {Helvetica 10}  -height {6}  -highlightbackground {#ffffff}  -selectbackground {#7783bd}  -selectforeground {#ffffff}  -width {4}  -yscrollcommand {.tpfontselect.frame2.frame.scrollbar2 set}
+  listbox .tpfontselect.frame2.frame.listbox1  -background {gray94}  -font {Helvetica 10}  -height {6}  -highlightbackground {white}  -selectbackground {#7783bd}  -selectforeground {white}  -width {4}  -yscrollcommand {.tpfontselect.frame2.frame.scrollbar2 set}
   # bindings
-  bind .tpfontselect.frame2.frame.listbox1 <<ListboxSelect>> {set TPtemp [%W curselection]
-  if {$TPtemp ne {}} {set TPfontSize [%W get $TPtemp]}
-#.tpfontselect.frame1.frame5.canvas0 itemconfigure sample -font  [TP_FontGetSelected]
-#LISSI
-.tpfontselect.frameSample.canvas0 itemconfigure sample -font  [TP_FontGetSelected]
-
-catch $TPfontCmd
+  bind .tpfontselect.frame2.frame.listbox1 <<ListboxSelect>> {
+    set TPtemp [%W curselection]
+    if {$TPtemp ne {}} {set TPfontSize [%W get $TPtemp]}
+    TP_configSample
+    catch $TPfontCmd
     eval $fontCmdItem
     drawBoundingBox
-}
+  }
 
-  entry .tpfontselect.frame2.frame.entry11  -background {#eeeeee}  -disabledbackground {white}  -disabledforeground {black}  -font {Helvetica 10}  -highlightbackground {#ffffff}  -selectbackground {#7783bd}  -selectforeground {#ffffff}  -state {disabled}  -textvariable {TPfontSize}  -width {6}
+  entry .tpfontselect.frame2.frame.entry11  -background {gray94}  -disabledbackground {white}  -disabledforeground {black}  -font {Helvetica 10}  -highlightbackground {white}  -selectbackground {#7783bd}  -selectforeground {white}  -state {disabled}  -textvariable {TPfontSize}  -width {6}
 
-  frame .tpfontselect.frame2.frame13  -borderwidth {2}  -relief {groove}  -background {#dcdcdc}  -height {86}  -highlightbackground {#dcdcdc}  -width {140}
+  label .tpfontselect.frame2.label3  -activebackground {gray86}  -background {gray86}  -borderwidth {0}  -font {Helvetica 10 bold}  -highlightbackground {gray86}  -text {Weight:       Slant:       Size:}
 
-  label .tpfontselect.frame2.frame13.label14  -activebackground {#dcdcdc}  -background {#dcdcdc}  -borderwidth {2}  -font {Helvetica 10 bold}  -highlightbackground {#dcdcdc}  -text {Effects}
+  frame .tpfontselect.frame0  -borderwidth {2}  -relief {ridge}  -background {gray94}  -height {36}  -highlightbackground {gray94}  -width {734}
 
-#LISSI
-#  checkbutton .tpfontselect.frame2.frame13.checkbutton15  -activebackground {#dcdcdc}  -background {#dcdcdc}  -command {.tpfontselect.frame1.frame5.canvas0 itemconfigure sample -font  [TP_FontGetSelected]}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Strikeout}  -variable {TPfontStrikeout}
-  checkbutton .tpfontselect.frame2.frame13.checkbutton15  -activebackground {#dcdcdc}  -background {#dcdcdc}  -command {.tpfontselect.frameSample.canvas0 itemconfigure sample -font  [TP_FontGetSelected]}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Strikeout}  -variable {TPfontStrikeout}
-  checkbutton .tpfontselect.frame2.frame13.checkbutton16  -activebackground {#dcdcdc}  -background {#dcdcdc}  -command {.tpfontselect.frameSample.canvas0 itemconfigure sample -font  [TP_FontGetSelected]}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Underline}  -variable {TPfontUnderline}
-#  checkbutton .tpfontselect.frame2.frame13.checkbutton16  -activebackground {#dcdcdc}  -background {#dcdcdc}  -command {.tpfontselect.frame1.frame5.canvas0 itemconfigure sample -font  [TP_FontGetSelected]}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Underline}  -variable {TPfontUnderline}
+  button .tpfontselect.frame0.button5  -activebackground {gray75}  -background {gray86}  -command { 
+	set TPfontCmd {}
+	drawBoundingBox
+	.tpfontselect.frame1.frame.listbox1 delete 0 end
+	set TPshowFonts 0
+	DestroyWindow.tpfontselect
+    }  -font {Helvetica 10 bold}  -highlightbackground {gray86}  -text {OK}  -width {5}
 
-  label .tpfontselect.frame2.label3  -activebackground {#dcdcdc}  -background {#dcdcdc}  -borderwidth {0}  -font {Helvetica 10 bold}  -highlightbackground {#dcdcdc}  -text {FontStyle:   Size:}
-
-  frame .tpfontselect.frame  -borderwidth {2}  -background {#dcdcdc}  -height {247}  -highlightbackground {#e6e7e6}  -width {158}
-
-  label .tpfontselect.frame.label0  -activebackground {#e6e7e6}  -anchor {w}  -background {#dcdcdc}  -borderwidth {0}  -font {Helvetica 10 bold}  -highlightbackground {#e6e7e6}  -text {Named fonts:}
-
-  frame .tpfontselect.frame.frame3  -borderwidth {2}  -relief {groove}  -background {#eeeeee}  -height {58}  -highlightbackground {#eeeeee}  -width {150}
-
-  button .tpfontselect.frame.frame3.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {TP_FontCreate $TPnamedFont
-TP_FontNameFill .tpfontselect.frame.frame4.listbox1}  -font {Helvetica 10 bold}  -highlightbackground {#dcdcdc}  -padx {2}  -pady {0}  -text {Name font as:}
-
-  entry .tpfontselect.frame.frame3.entry3  -background {lightblue}  -font {Helvetica 10}  -highlightbackground {#ffffff}  -selectbackground {#21449c}  -selectforeground {#ffffff}  -textvariable {TPnamedFont}  -width {16}
-
-  button .tpfontselect.frame.frame3.button4  -activebackground {gray75}  -background {#dcdcdc}  -command {set TPtemp [.tpfontselect.frame.frame4.listbox1 curselection]
-if {[llength $TPtemp] == 1} {
-     catch {font delete [.tpfontselect.frame.frame4.listbox1 get $TPtemp]}
-     TP_FontNameFill .tpfontselect.frame.frame4.listbox1
-   }}  -font {Helvetica 10 bold}  -highlightbackground {#dcdcdc}  -padx {2}  -pady {0}  -text {Delete named}
-
-  frame .tpfontselect.frame.frame4  -borderwidth {2}  -relief {groove}  -background {#eeeeee}  -height {138}  -highlightbackground {#eeeeee}  -width {154}
-
-  listbox .tpfontselect.frame.frame4.listbox1  -background {white}  -font {Helvetica 10}  -height {5}  -highlightbackground {#ffffff}  -selectbackground {#21449c}  -selectforeground {#ffffff}  -width {16}  -xscrollcommand {.tpfontselect.frame.frame4.scrollbar3 set}  -yscrollcommand {.tpfontselect.frame.frame4.scrollbar2 set}
-  # bindings
-  bind .tpfontselect.frame.frame4.listbox1 <<ListboxSelect>> {set TPtemp [%W curselection]
-if {[llength $TPtemp] == 1} {
-     TP_FontSelect [%W get $TPtemp]
-   }}
-
-#LISSI
-#  scrollbar .tpfontselect.frame.frame4.scrollbar3  -activebackground {#e6e7e6}  -background {#e6e7e6}  -borderwidth {2}  -command {.tpfontselect.frame.frame4.listbox1 xview}  -cursor {left_ptr}  -highlightbackground {#e6e7e6}  -orient {horizontal}  -relief {raised}  -troughcolor {#e6e7e6}  -width {12}
-#  scrollbar .tpfontselect.frame.frame4.scrollbar2  -activebackground {#e6e7e6}  -background {#e6e7e6}  -borderwidth {2}  -command {.tpfontselect.frame.frame4.listbox1 yview}  -cursor {left_ptr}  -highlightbackground {#e6e7e6}  -relief {raised}  -troughcolor {#e6e7e6}  -width {12}
-  ttk::scrollbar .tpfontselect.frame.frame4.scrollbar3  -command {.tpfontselect.frame.frame4.listbox1 xview} -orient {horizontal}
-  ttk::scrollbar .tpfontselect.frame.frame4.scrollbar2  -command {.tpfontselect.frame.frame4.listbox1 yview}
-
-  frame .tpfontselect.frame0  -borderwidth {2}  -relief {ridge}  -background {#eeeeee}  -height {36}  -highlightbackground {#eeeeee}  -width {734}
-
-  button .tpfontselect.frame0.button5  -activebackground {gray75}  -background {#dcdcdc}  -command { 
-    set TPfontCmd {}
-    drawBoundingBox
-    .tpfontselect.frame1.frame.listbox1 delete 0 end
-    set TPshowFonts 0
-    DestroyWindow.tpfontselect}  -font {Helvetica 10 bold}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
-
-  button .tpfontselect.frame0.button6  -activebackground {gray75}  -background {#dcdcdc}  -command { 
-  global fontCmdCancel
-  eval $fontCmdCancel
-set TPshowFonts 0
-DestroyWindow.tpfontselect}  -font {Helvetica 10 bold}  -highlightbackground {#dcdcdc}  -text {Cancel}  -width {5}
+  button .tpfontselect.frame0.button6  -activebackground {gray75}  -background {gray86}  -command { 
+	global fontCmdCancel
+	eval $fontCmdCancel
+	set TPshowFonts 0
+	DestroyWindow.tpfontselect
+	drawBoundingBox
+	set TPfontCmd "Cancel"
+    }  -font {Helvetica 10 bold}  -highlightbackground {gray86}  -text {Cancel}  -width {5}
 
   # pack master .tpfontselect.frame1
   pack configure .tpfontselect.frame1.label3  -anchor w
   pack configure .tpfontselect.frame1.entry4  -fill x
   pack configure .tpfontselect.frame1.frame  -expand 1  -fill both
-#LISSI
-#  pack configure .tpfontselect.frame1.frame5  -anchor w  -fill x
 
   # pack master .tpfontselect.frame1.frame
   pack configure .tpfontselect.frame1.frame.scrollbar2  -fill y  -side right
   pack configure .tpfontselect.frame1.frame.listbox1  -expand 1  -fill both
 
-  # pack master .tpfontselect.frame1.frame5
-#LISSI
-#  pack configure .tpfontselect.frame1.frame5.label6  -anchor w
-#  pack configure .tpfontselect.frame1.frame5.canvas0
-
   # pack master .tpfontselect.frame2
   pack configure .tpfontselect.frame2.label3  -anchor w
-  pack configure .tpfontselect.frame2.frame13  -fill x  -ipady 3  -side bottom
   pack configure .tpfontselect.frame2.frame9  -anchor n  -expand 1  -fill y  -side left
+  pack configure .tpfontselect.frame2.frame10  -anchor n  -expand 1  -fill y  -side left
   pack configure .tpfontselect.frame2.frame  -anchor n  -expand 1  -fill y
 
   # pack master .tpfontselect.frame2.frame9
   pack configure .tpfontselect.frame2.frame9.entry11
   pack configure .tpfontselect.frame2.frame9.listbox12  -expand 1  -fill y
+  pack configure .tpfontselect.frame2.frame10.entry11
+  pack configure .tpfontselect.frame2.frame10.listbox12  -expand 1  -fill y
 
   # pack master .tpfontselect.frame2.frame
   pack configure .tpfontselect.frame2.frame.entry11  -fill x
   pack configure .tpfontselect.frame2.frame.scrollbar2  -fill y  -side right
   pack configure .tpfontselect.frame2.frame.listbox1  -expand 1  -fill y
 
-  # pack master .tpfontselect.frame2.frame13
-  pack configure .tpfontselect.frame2.frame13.label14  -anchor w
-  pack configure .tpfontselect.frame2.frame13.checkbutton15  -anchor w
-  pack configure .tpfontselect.frame2.frame13.checkbutton16  -anchor w
-
-  # pack master .tpfontselect.frame
-  pack configure .tpfontselect.frame.label0  -fill x
-  pack configure .tpfontselect.frame.frame4  -expand 1  -fill both  -ipady 8
-  pack configure .tpfontselect.frame.frame3  -fill x  -ipady 5
-
-  # pack master .tpfontselect.frame.frame3
-  pack configure .tpfontselect.frame.frame3.button4  -expand 1
-  pack configure .tpfontselect.frame.frame3.button1
-  pack configure .tpfontselect.frame.frame3.entry3
-
-  # pack master .tpfontselect.frame.frame4
-  pack configure .tpfontselect.frame.frame4.scrollbar2  -fill y  -side right
-  pack configure .tpfontselect.frame.frame4.listbox1  -expand 1  -fill both  -ipady 3
-  pack configure .tpfontselect.frame.frame4.scrollbar3  -fill x
 
   # pack master .tpfontselect.frame0
   pack configure .tpfontselect.frame0.button5  -anchor e  -expand 1  -padx 2  -side left
@@ -1144,30 +1126,31 @@ DestroyWindow.tpfontselect}  -font {Helvetica 10 bold}  -highlightbackground {#d
 
   pack configure .tpfontselect.frame0  -fill x  -side bottom
 #LISSI
-  labelframe .tpfontselect.frameSample  -borderwidth {2} -text {Sample} -font {Helvetica 10 bold}  -relief {ridge}  -background {#eeeeee}  -height {36}  -highlightbackground {#eeeeee}
+  labelframe .tpfontselect.frameSample  -borderwidth {2} -text {Sample} -font {Helvetica 10 bold}  -relief {ridge}  -background {gray94}  -height {36}  -highlightbackground {gray94}
 #    -width {734}
   pack configure .tpfontselect.frameSample  -fill x  -side bottom
-  canvas .tpfontselect.frameSample.canvas0  -background {#dcdcdc}  -height {53}  -highlightbackground {#ffffff}  -relief {raised} 
+  tkp::canvas .tpfontselect.frameSample.canvas0  -background {gray86}  -height {53}  -highlightbackground {white}  -relief {raised} 
   # -width {770}
   pack configure .tpfontselect.frameSample.canvas0  -fill x -expand 1
-  set xfTmpTag1 [.tpfontselect.frameSample.canvas0 create text 40.0 28.0]
+  set xfTmpTag1 [.tpfontselect.frameSample.canvas0 create ptext 40.0 28.0]
 #  .tpfontselect.frameSample.canvas0 itemconfigure $xfTmpTag1 -anchor w  -font {{arial} 16 bold  underline}  -tags {sample}  -text {ABCabcXYZxyz0123456789АБВабвЭЮЯэюя}
-  .tpfontselect.frameSample.canvas0 itemconfigure $xfTmpTag1 -anchor w  -font [TP_FontGetSelected]  -tags {sample}  -text {ABCabcXYZxyz0123456789АБВабвЭЮЯэюя}
-#puts "-font {$TPfontFamily $TPfontSize $TPfontStyle}"
+  .tpfontselect.frameSample.canvas0 itemconfigure $xfTmpTag1  -fontfamily $TPfontFamily -fontsize $TPfontSize -fontweight $TPfontWeight -fontslant $TPfontSlant  -tags {sample}  -text {ABCabcXYZxyz0123456789АБВабвЭЮЯэюя}
 
   # pack master .tpfontselect
   pack configure .tpfontselect.frame1  -anchor n  -fill y  -ipady 3  -side left
   pack configure .tpfontselect.frame2  -anchor n  -fill y  -ipady 3  -side left
-  pack configure .tpfontselect.frame  -anchor n  -expand 1  -fill both  -side left
 
   # build canvas items .tpfontselect.frame1.frame5.canvas0
-  set xfTmpTag [.tpfontselect.frame1.frame5.canvas0 create text 132.0 28.0]
-  .tpfontselect.frame1.frame5.canvas0 itemconfigure $xfTmpTag  -font {{arial} 16 bold  underline}  -tags {sample}  -text {0123456789abcdefghij}
-  .tpfontselect.frame2.frame9.listbox12 insert end {Normal}
-  .tpfontselect.frame2.frame9.listbox12 insert end {Regular}
-  .tpfontselect.frame2.frame9.listbox12 insert end {Bold}
-  .tpfontselect.frame2.frame9.listbox12 insert end {Italic}
-  .tpfontselect.frame2.frame9.listbox12 insert end {Bold Italic}
+  set xfTmpTag [.tpfontselect.frame1.frame5.canvas0 create ptext 132.0 28.0]
+#  .tpfontselect.frame1.frame5.canvas0 itemconfigure $xfTmpTag  -font {{arial} 16 bold  underline}  -tags {sample}  -text {0123456789abcdefghij}
+  .tpfontselect.frame1.frame5.canvas0 itemconfigure $xfTmpTag  -fontfamily arial -fontsize 16 -fontweight bold  -tags {sample}  -text {0123456789abcdefghij}
+
+  .tpfontselect.frame2.frame9.listbox12 insert end {normal}
+  .tpfontselect.frame2.frame9.listbox12 insert end {bold}
+  .tpfontselect.frame2.frame10.listbox12 insert end {normal}
+  .tpfontselect.frame2.frame10.listbox12 insert end {italic}
+  .tpfontselect.frame2.frame10.listbox12 insert end {oblique}
+
   .tpfontselect.frame2.frame.listbox1 insert end {6}
   .tpfontselect.frame2.frame.listbox1 insert end {8}
   .tpfontselect.frame2.frame.listbox1 insert end {10}
@@ -1203,6 +1186,8 @@ DestroyWindow.tpfontselect}  -font {Helvetica 10 bold}  -highlightbackground {#d
   .tpfontselect.frame2.frame.listbox1 insert end {72}
 
 EndSrc.tpfontselect
+  grab set .tpfontselect
+
 }
 
 proc DestroyWindow.tpfontselect {} {
@@ -1211,51 +1196,36 @@ proc DestroyWindow.tpfontselect {} {
 }
 
 proc EndSrc.tpfontselect {} {
-global TPshowFonts
+    global TPshowFonts
 
-wm iconphoto .tpfontselect  tkpaint_icon
-#set ::TPselWidget(.tpfontselect) $::TPcurWidget
-.tpfontselect.frame1.frame.listbox1 delete 0 end
-set ff [lsort [font families]]
-set df ""
-set lff [list]
-foreach f1 $ff {
-    if {$df == $f1} {continue}
-    set df $f1
-    lappend lff $f1
-} 
-#
-#eval ".tpfontselect.frame1.frame.listbox1 insert end [lsort [font families]]"
-eval ".tpfontselect.frame1.frame.listbox1 insert end $lff"
-#TP_FontNameFill .tpfontselect.frame.frame4.listbox1
-set TPshowFonts 1
+    wm iconphoto .tpfontselect  tkpaint_icon
+    .tpfontselect.frame1.frame.listbox1 delete 0 end
+    set ff [lsort [font families]]
+    set df ""
+    set lff [list]
+    foreach f1 $ff {
+	if {$df == $f1} {continue}
+	set df $f1
+	lappend lff $f1
+    } 
+    eval ".tpfontselect.frame1.frame.listbox1 insert end $lff"
+    set TPshowFonts 1
 }
 # Procedure: TP_FontGetSelected
 proc TP_FontGetSelected {} {
 # Return the -font configuration string for the currently selected font.
-global TPfontFamily
-global TPfontSize
-global TPfontStyle
-global TPfontStrikeout
-global TPfontUnderline
-global TPcurWidget
-global TPfontCmd
+    global TPfontFamily
+    global TPfontSize
+    global TPfontWeight
+    global TPfontStrikeout
+    global TPfontSlant
+    global TPcurWidget
+    global TPfontCmd
+#puts "TP_FontGetSelected: TPfontFamily=\"$TPfontFamily\" TPfontWeight=$TPfontWeight TPfontSlant=$TPfontSlant   TPfontSize=$TPfontSize"
 
-if {$TPfontStyle == {Regular}} {
-   set fontStyle {}
-  } { set fontStyle [string tolower $TPfontStyle]}
+    set rtnval "\{$TPfontFamily\} $TPfontWeight $TPfontSlant   $TPfontSize"
 
-if {$TPfontStrikeout} {
-   set fontOverstrike overstrike
-  } { set fontOverstrike {} }
-
-if {$TPfontUnderline} {
-    set fontUnderline underline
-  } { set fontUnderline {} }
-
-set rtnval "\{$TPfontFamily\} $TPfontSize $fontStyle $fontOverstrike $fontUnderline"
-
-return $rtnval
+    return $rtnval
 }
 
 
@@ -1267,7 +1237,7 @@ global TPcurCanvas
 set TPcurCanvas ".c"
   catch "destroy .tpcmdedit"
 
-  toplevel .tpcmdedit   -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  toplevel .tpcmdedit   -background {gray86}  -highlightbackground {gray86}
 
   # Window manager configurations
   wm positionfrom .tpcmdedit program
@@ -1280,37 +1250,51 @@ set TPcurCanvas ".c"
   bind .tpcmdedit <ButtonRelease-1> {TP_ProcessClick %W %X %Y %x %y}
   bind .tpcmdedit <Shift-Button-3> {TP_PropsSelWidget %W}
 
-  frame .tpcmdedit.frame3  -borderwidth {2}  -relief {ridge}  -background {#dcdcdc}  -height {24}  -highlightbackground {#dcdcdc}  -width {364}
+  frame .tpcmdedit.frame3  -borderwidth {2}  -relief {ridge}  -background {gray86}  -height {24}  -highlightbackground {gray86}  -width {364}
 
   if { $id > -1} {
     wm title .tpcmdedit {TKsvgpaint: Edit ptext}
     set TPtxtCmd [subst "$TPcurCanvas itemconfigure $id -text "]
-    button .tpcmdedit.frame3.button4  -activebackground {gray75}  -background {#dcdcdc}  -command {
+    button .tpcmdedit.frame3.button4  -activebackground {gray75}  -background {gray86}  -command {
     global TPtxtCmd
     set TPtemp [.tpcmdedit.frame.text2 get 1.0 end-1chars]
     catch "$TPtxtCmd \{$TPtemp\}"
-    DestroyWindow.tpcmdedit }  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -padx {4}  -pady {2}  -text {Done}  -width {6}
+    DestroyWindow.tpcmdedit }  -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text {Done}  -width {6}
   } else {
     wm title .tpcmdedit {TKsvgpaint: Create path}
-    button .tpcmdedit.frame3.button4  -activebackground {gray75}  -background {#dcdcdc}  -command {
+    button .tpcmdedit.frame3.button4  -activebackground {gray75}  -background {gray86}  -command {
         global TPtxtCmd
 	set TPtxtCmd ".c create path "
 	set TPtemp [.tpcmdedit.frame.text2 get 1.0 end-1chars]
-	set id [.c create path  "$TPtemp" -tags "path obj svg"]
+	set i 0
+	set len [string length $TPtemp]
+	set dpath ""
+	while {$i < $len} {
+	    set ss [string range $TPtemp $i $i]
+	    if {$ss == ","} {
+		append dpath " "
+	    } elseif {[string is alpha $ss]} {
+		append dpath "$ss "
+	    } else {
+		append dpath "$ss"
+	    }
+	    incr i
+	}
+	set id [.c create path  "$dpath" -tags "Path obj svg"]
 	set utag [Utag assign $id]
 	History add [getObjectCommand $utag 1]
 	Undo add ".c delete $utag"
 	DestroyWindow.tpcmdedit } \
-    -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -padx {4}  -pady {2}  -text {Done}  -width {6}
+    -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text {Done}  -width {6}
   }
 
-  button .tpcmdedit.frame3.button8  -activebackground {gray75}  -background {#dcdcdc}  -command {DestroyWindow.tpcmdedit}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -padx {4}  -pady {2}  -text {Cancel}  -width {6}
+  button .tpcmdedit.frame3.button8  -activebackground {gray75}  -background {gray86}  -command {DestroyWindow.tpcmdedit}  -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text {Cancel}  -width {6}
 
-  frame .tpcmdedit.frame  -relief {raised}  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  frame .tpcmdedit.frame  -relief {raised}  -background {gray86}  -highlightbackground {gray86}
 
   ttk::scrollbar .tpcmdedit.frame.scrollbar1 -command {.tpcmdedit.frame.text2 yview}
 
-  text .tpcmdedit.frame.text2  -font {Helvetica 10}  -height {8}  -highlightbackground {#ffffff}  -selectbackground {#7783bd}  -selectforeground {#ffffff}  -width {50}  -wrap {none}  -xscrollcommand {.tpcmdedit.frame.scrollbar3 set}  -yscrollcommand {.tpcmdedit.frame.scrollbar1 set}
+  text .tpcmdedit.frame.text2  -font {Helvetica 10}  -height {8}  -highlightbackground {white}  -selectbackground {#7783bd}  -selectforeground {white}  -width {50}  -wrap {none}  -xscrollcommand {.tpcmdedit.frame.scrollbar3 set}  -yscrollcommand {.tpcmdedit.frame.scrollbar1 set}
 
   ttk::scrollbar .tpcmdedit.frame.scrollbar3 -command {.tpcmdedit.frame.text2 xview} -orient {horizontal}
 
@@ -1710,7 +1694,7 @@ proc ShowWindow.tpskew { args} {
   global Rotate
   catch "destroy .tpskew"
   set id $Rotate(id)
-  toplevel .tpskew   -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  toplevel .tpskew   -background {gray86}  -highlightbackground {gray86}
 
   # Window manager configurations
   wm positionfrom .tpskew ""
@@ -1720,24 +1704,24 @@ proc ShowWindow.tpskew { args} {
   wm geometry .tpskew 600x220+200+100
   wm title .tpskew {TKpaint skew angle}
 
-  frame .tpskew.top  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  frame .tpskew.top  -background {gray86}  -highlightbackground {gray86}
 
-  frame .tpskew.top.left  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  frame .tpskew.top.left  -background {gray86}  -highlightbackground {gray86}
   set type [.c type $id]
 
-  scale .tpskew.top.left.x -command {TP_skewX} -background {#dcdcdc} -font {Helvetica 10} -length {590}   -label {Skew angle X:} -orient {horizontal} -digits 2 -from {-360.0}  -to {360.0}  -troughcolor {red} -variable {Rotate(skewX)}
-  scale .tpskew.top.left.y -command {TP_skewY} -background {#dcdcdc} -font {Helvetica 10} -length {590}  -label {Skew angle Y:}  -orient {horizontal} -digits 2 -from {-360.00}  -to {360.00}  -troughcolor {blue} -variable {Rotate(skewY)}
-  scale .tpskew.top.left.rotate -command {TP_rotateC} -background {#dcdcdc} -font {Helvetica 10} -length {590}  -label {Rotate angle:}  -orient {horizontal} -digits 2 -from {-180.0}  -to {180.0}  -troughcolor {green} -variable {Rotate(angle)}
+  scale .tpskew.top.left.x -command {TP_skewX} -background {gray86} -font {Helvetica 10} -length {590}   -label {Skew angle X:} -orient {horizontal} -digits 2 -from {-360.0}  -to {360.0}  -troughcolor {red} -variable {Rotate(skewX)}
+  scale .tpskew.top.left.y -command {TP_skewY} -background {gray86} -font {Helvetica 10} -length {590}  -label {Skew angle Y:}  -orient {horizontal} -digits 2 -from {-360.00}  -to {360.00}  -troughcolor {blue} -variable {Rotate(skewY)}
+  scale .tpskew.top.left.rotate -command {TP_rotateC} -background {gray86} -font {Helvetica 10} -length {590}  -label {Rotate angle:}  -orient {horizontal} -digits 2 -from {-180.0}  -to {180.0}  -troughcolor {green} -variable {Rotate(angle)}
 
-  frame .tpskew.frame0  -borderwidth {2}  -relief {ridge}  -background {#dcdcdc}  -height {34}  -highlightbackground {#dcdcdc}  -width {280}
+  frame .tpskew.frame0  -borderwidth {2}  -relief {ridge}  -background {gray86}  -height {34}  -highlightbackground {gray86}  -width {280}
 
-  button .tpskew.frame0.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {global Rotate; \
+  button .tpskew.frame0.button1  -activebackground {gray75}  -background {gray86}  -command {global Rotate; \
     if {0} {TP_saveImage $Rotate(id) "skew"}; \
     destroy .tpskew; 
 #    unselectGroup; 
     unset Rotate; 
   } \
-    -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
+    -font {Helvetica 10}  -highlightbackground {gray86}  -text {OK}  -width {5}
 
   button .tpskew.frame0.button2  -activebackground {gray75} -command {global Rotate; \
     .c itemconfigure $Rotate(id) -m $Rotate(matrix); \
@@ -1745,7 +1729,7 @@ proc ShowWindow.tpskew { args} {
 #    unselectGroup; 
     unset Rotate; 
   } \
-     -background {#dcdcdc} -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Cancel}
+     -background {gray86} -font {Helvetica 10}  -highlightbackground {gray86}  -text {Cancel}
 
   # pack master .tpskew.top
   pack configure .tpskew.top.left  -fill both  -side left -padx 0
@@ -1772,8 +1756,32 @@ proc ShowWindow.tpskew { args} {
 }
 
 proc rotateGroupSVG {} {
-  global Rotate
-    foreach id [.c find withtag Selected] {
+    global Rotate
+    catch {unset Rotate}
+    set Rotate(group) [.c find withtag Selected]
+    if {[llength $Rotate(group)] == 0} {
+	return
+    }
+    set svg 0
+    foreach id  $Rotate(group) {
+	if {![idissvg $id]} {
+	    set Rotate($id,coords) [.c coords $id ]
+#return
+	    continue
+	}
+	set svg 1
+	set Rotate($id,matrix) [.c itemcget $id -m]
+    }
+    set Rotate(angle) 0
+    if {$svg == 0} {
+    	    rotateGroupMode
+    } else {
+	ShowWindow.tprotate
+	tkwait window .tprotate
+    }
+return
+
+    foreach id  $Rotate(group) {
 	catch {unset Rotate}
 	if {![idissvg $id]} {
     	    rotateGroupMode
@@ -1801,10 +1809,11 @@ proc ShowWindow.tprotate { args} {
 #LISSI
   global Rotate
   catch "destroy .tprotate"
-  set id $Rotate(id)
   set Rotate(angle) 0
+  set Rotate(anglelast) 0
+  set Rotate(groupOrig) $Rotate(group)
 
-  toplevel .tprotate   -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  toplevel .tprotate   -background {gray86}  -highlightbackground {gray86}
 
   # Window manager configurations
   wm positionfrom .tprotate ""
@@ -1814,36 +1823,39 @@ proc ShowWindow.tprotate { args} {
   wm geometry .tprotate 280x140+200+100
   wm title .tprotate {TKsvgpaint angle rotate}
 
-  frame .tprotate.top  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  frame .tprotate.top  -background {gray86}  -highlightbackground {gray86}
 
-  frame .tprotate.top.left  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
-  set type [.c type $id]    
-  if {$type == "pimage"} {
-    scale .tprotate.top.left.red  -activebackground {#dcdcdc} -command {TP_imagerotate}  -background {#dcdcdc}   -font {Helvetica 10}  -highlightbackground {#dcdcdc} -length {280}  -label {Angle:}  -orient {horizontal} -from {-180.0}  -to {180.0}  -troughcolor {red} -variable {Rotate(angle)}
-  } else {
-    scale .tprotate.top.left.red  -activebackground {#dcdcdc} -command {TP_imagerotate}  -background {#dcdcdc}   -font {Helvetica 10}  -highlightbackground {#dcdcdc} -length {280}  -label {Angle:}  -orient {horizontal} -from {-180.0}  -to {180.0}  -troughcolor {red} -variable {Rotate(angle)}
-  }
+  frame .tprotate.top.left  -background {gray86}  -highlightbackground {gray86}
+  scale .tprotate.top.left.red  -activebackground {gray86} -command {TP_imagerotate}  -background {gray86}   -font {Helvetica 10}  -highlightbackground {gray86} -length {280}  -label {Angle:}  -orient {horizontal} -from {-180.0}  -to {180.0}  -troughcolor {red} -variable {Rotate(angle)}
 
-  frame .tprotate.frame0  -borderwidth {2}  -relief {ridge}  -background {#dcdcdc}  -height {34}  -highlightbackground {#dcdcdc}  -width {280}
+  frame .tprotate.frame0  -borderwidth {2}  -relief {ridge}  -background {gray86}  -height {34}  -highlightbackground {gray86}  -width {280}
 
-  button .tprotate.frame0.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {global Rotate; \
-    if {0} {TP_saveImage $Rotate(id) "rotate"}; \
-    set Rotate(angle) 0; \
+  button .tprotate.frame0.button1  -activebackground {gray75}  -background {gray86}  -command {
+    global Rotate; 
     destroy .tprotate; 
-#    unselectGroup;
     drawBoundingBox
-    unset Rotate; \
+    unset Rotate; 
   } \
-    -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
+    -font {Helvetica 10}  -highlightbackground {gray86}  -text {OK}  -width {5}
 
-  button .tprotate.frame0.button2  -activebackground {gray75} -command {global Rotate; \
-    .c itemconfigure $Rotate(id) -m $Rotate(matrix); \
+  button .tprotate.frame0.button2  -activebackground {gray75} -command {
+    global Rotate; 
+    set i 0
+    foreach id $Rotate(group) {
+	if {[idissvg $id]} {
+	    .c itemconfigure $id -m $Rotate($id,matrix); 
+	} {
+puts "tprotate Cancel TK=$id"
+	    set idor [lindex $Rotate(groupOrig) $i]
+	    .c coords $id "$Rotate($idor,coords)"
+	}
+	incr i
+    }
     destroy .tprotate;
-#     unselectGroup; 
     drawBoundingBox
-    unset Rotate; \
+    unset Rotate;
   } \
-     -background {#dcdcdc} -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Cancel}
+     -background {gray86} -font {Helvetica 10}  -highlightbackground {gray86}  -text {Cancel}
 
   # pack master .tprotate.top
   pack configure .tprotate.top.left  -fill both  -side left
@@ -1879,7 +1891,7 @@ proc ShowWindow.tpcolorsel { type } {
     set TPcolor(rgb) #00FFFF
   }
 
-  toplevel .tpcolorsel   -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  toplevel .tpcolorsel   -background {gray86}  -highlightbackground {gray86}
 
   # Window manager configurations
   wm positionfrom .tpcolorsel ""
@@ -1906,24 +1918,24 @@ proc ShowWindow.tpcolorsel { type } {
   bind .tpcolorsel <ButtonRelease-1> {TP_ProcessClick %W %X %Y %x %y}
   bind .tpcolorsel <Shift-Button-3> {TP_PropsSelWidget %W}
   
-  frame .tpcolorsel.top  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  frame .tpcolorsel.top  -background {gray86}  -highlightbackground {gray86}
 
-  frame .tpcolorsel.top.left  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  frame .tpcolorsel.top.left  -background {gray86}  -highlightbackground {gray86}
 
-  scale .tpcolorsel.top.left.red  -activebackground {#dcdcdc}  -background {#dcdcdc}  -command {TP_ColorSetSample {}}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -label {RED:}  -length {120}  -orient {horizontal}  -to {255.0}  -troughcolor {red}  -variable {TPcolor(red)}
+  scale .tpcolorsel.top.left.red  -activebackground {gray86}  -background {gray86}  -command {TP_ColorSetSample {}}  -font {Helvetica 10}  -highlightbackground {gray86}  -label {RED:}  -length {120}  -orient {horizontal}  -to {255.0}  -troughcolor {red}  -variable {TPcolor(red)}
 
-  scale .tpcolorsel.top.left.green  -activebackground {#dcdcdc}  -background {#dcdcdc}  -command {TP_ColorSetSample {}}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -label {GREEN:}  -length {120}  -orient {horizontal}  -to {255.0}  -troughcolor {green}  -variable {TPcolor(green)}
+  scale .tpcolorsel.top.left.green  -activebackground {gray86}  -background {gray86}  -command {TP_ColorSetSample {}}  -font {Helvetica 10}  -highlightbackground {gray86}  -label {GREEN:}  -length {120}  -orient {horizontal}  -to {255.0}  -troughcolor {green}  -variable {TPcolor(green)}
 
-  scale .tpcolorsel.top.left.blue  -activebackground {#dcdcdc}  -background {#dcdcdc}  -command {TP_ColorSetSample {}}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -label {BLUE:}  -length {120}  -orient {horizontal}  -to {255.0}  -troughcolor {blue}  -variable {TPcolor(blue)}
+  scale .tpcolorsel.top.left.blue  -activebackground {gray86}  -background {gray86}  -command {TP_ColorSetSample {}}  -font {Helvetica 10}  -highlightbackground {gray86}  -label {BLUE:}  -length {120}  -orient {horizontal}  -to {255.0}  -troughcolor {blue}  -variable {TPcolor(blue)}
 
-  frame .tpcolorsel.top.right  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  frame .tpcolorsel.top.right  -background {gray86}  -highlightbackground {gray86}
 
 #Метку меняем на canvas prect
   tkp::canvas .tpcolorsel.top.right.color -relief flat -height 1c -width 1.5c  -background blue
 
-  label .tpcolorsel.top.right.label0  -activebackground {#dcdcdc}  -background {#dcdcdc}  -borderwidth {2}  -font {Helvetica 12 bold}  -foreground {red}  -highlightbackground {#dcdcdc}  -text {#000000}  -textvariable {TPcolor(rgb)}  -width {17}
+  label .tpcolorsel.top.right.label0  -activebackground {gray86}  -background {gray86}  -borderwidth {2}  -font {Helvetica 12 bold}  -foreground {red}  -highlightbackground {gray86}  -text {#000000}  -textvariable {TPcolor(rgb)}  -width {17}
 
-  frame .tpcolorsel.c  -borderwidth {2}  -relief {ridge}  -background {#dcdcdc}  -highlightbackground {#dcdcdc}
+  frame .tpcolorsel.c  -borderwidth {2}  -relief {ridge}  -background {gray86}  -highlightbackground {gray86}
 #Прозрачность
 #LISSI
 if {$type != "bgcanvas" } {
@@ -1933,24 +1945,24 @@ if {$type == "image"} {
   scale .tpcolorsel.tintamount -width 8 -command {TP_ColorSetSample {}} -font {Helvetica 10} -label {TINTAMOUNT:} -length {240} -orient {horizontal} -digits 2 -resolution {0.1}  -from {0.0} -to {1.0}  -troughcolor {skyblue}  -variable {TPcolor(tintamount)}
 }
 
-  canvas .tpcolorsel.c.canvas  -background {#ffffff}  -borderwidth {2}  -height {250}  -highlightbackground {#ffffff}  -relief {raised}  -scrollregion {0 0 200 19500}  -width {200}  -yscrollcommand {.tpcolorsel.c.sy set}
+  canvas .tpcolorsel.c.canvas  -background {white}  -borderwidth {2}  -height {250}  -highlightbackground {white}  -relief {raised}  -scrollregion {0 0 200 19500}  -width {200}  -yscrollcommand {.tpcolorsel.c.sy set}
 
-#  scrollbar .tpcolorsel.c.sy  -activebackground {#dcdcdc}  -background {#dcdcdc}  -borderwidth {2}  -command {.tpcolorsel.c.canvas yview}  -cursor {left_ptr}  -highlightbackground {#dcdcdc}  -troughcolor {#dcdcdc}  -width {15}
+#  scrollbar .tpcolorsel.c.sy  -activebackground {gray86}  -background {gray86}  -borderwidth {2}  -command {.tpcolorsel.c.canvas yview}  -cursor {left_ptr}  -highlightbackground {gray86}  -troughcolor {gray86}  -width {15}
   ttk::scrollbar .tpcolorsel.c.sy -command {.tpcolorsel.c.canvas yview} 
 
-  frame .tpcolorsel.frame0  -borderwidth {2}  -relief {ridge}  -background {#dcdcdc}  -height {34}  -highlightbackground {#dcdcdc}  -width {280}
+  frame .tpcolorsel.frame0  -borderwidth {2}  -relief {ridge}  -background {gray86}  -height {34}  -highlightbackground {gray86}  -width {280}
 
   if {$type == "bgcanvas" } {
-    button .tpcolorsel.frame0.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {global TPcolor 
+    button .tpcolorsel.frame0.button1  -activebackground {gray75}  -background {gray86}  -command {global TPcolor 
 	.tpcolorsel.c.canvas delete all
 	set Canv(bg) [.c cget -background]
-    DestroyWindow.tpcolorsel;unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
+    DestroyWindow.tpcolorsel;unset TPcolor}  -font {Helvetica 10}  -highlightbackground {gray86}  -text {OK}  -width {5}
   }  else {
-    button .tpcolorsel.frame0.button1  -activebackground {gray75}  -background {#dcdcdc}  -command {global TPcolor 
+    button .tpcolorsel.frame0.button1  -activebackground {gray75}  -background {gray86}  -command {global TPcolor 
 	.tpcolorsel.c.canvas delete all
-    DestroyWindow.tpcolorsel;unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {OK}  -width {5}
+    DestroyWindow.tpcolorsel;unset TPcolor}  -font {Helvetica 10}  -highlightbackground {gray86}  -text {OK}  -width {5}
   }
-  button .tpcolorsel.frame0.button2  -activebackground {gray75}  -background {#dcdcdc}  -command {
+  button .tpcolorsel.frame0.button2  -activebackground {gray75}  -background {gray86}  -command {
     .tpcolorsel.c.canvas delete all
     DestroyWindow.tpcolorsel;
     if {[info exists TPcolor(svggroup)]} {
@@ -1958,7 +1970,7 @@ if {$type == "image"} {
 	    eval $TPcolor($id,cancel)
 	}
     } else {global Canv(bg);.c configure -background $Canv(bg)}
-    unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {Cancel}
+    unset TPcolor}  -font {Helvetica 10}  -highlightbackground {gray86}  -text {Cancel}
 
   # pack master .tpcolorsel.top
   pack configure .tpcolorsel.top.left  -fill both  -side left
@@ -1982,13 +1994,13 @@ if {$type == "image"} {
   pack configure .tpcolorsel.frame0.button1  -expand 1  -side left
 #LISSI
   if {$type != "bgcanvas"} {
-    button .tpcolorsel.frame0.button3  -activebackground {gray75}  -background {#dcdcdc}  -command {
+    button .tpcolorsel.frame0.button3  -activebackground {gray75}  -background {gray86}  -command {
 	.tpcolorsel.c.canvas delete all
 	DestroyWindow.tpcolorsel;
 	foreach id $TPcolor(svggroup) {
 	    eval $TPcolor($id,nocolor)
 	}
-    unset TPcolor}  -font {Helvetica 10}  -highlightbackground {#dcdcdc}  -text {No color}
+    unset TPcolor}  -font {Helvetica 10}  -highlightbackground {gray86}  -text {No color}
     pack configure .tpcolorsel.frame0.button3  -expand 1  -side left
   }
 
@@ -2280,18 +2292,18 @@ proc TP_saveGroupToPicture {type } {
 		    {{img jpg} {.jpg} }
 		    {{All files} * }
 	}
-        set type        "png"
-        set title       "Select file for image group"
+        set type    "png"
+        set title  "[mc {Select file for image group}]"
         set defaultName "tk_$newimg.png"
-#        set command ttk::getSaveFile
-        set command FE::fe_getsavefile
-        set filename [$command \
-                -title "$title" \
-                -filetypes $File(img,types) \
-                -initialfile $defaultName \
-                -initialdir -initdir \
-                -width 450 -height 500 -sepfolders 1 -details 1 \
-                -defaultextension ".$type" ]
+	if {[tk windowingsystem] == "win32"} {
+	    set command tk_getSaveFile
+	    set geom ""	
+	} else {
+    	    set command "::FE::fe_getsavefile" 
+	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+	}
+	set cmdpar [subst {-title "$title" -filetypes "$File(img,types)" -defaultextension ".$type" -initialfile $defaultName -initialdir "$initdir" $geom}]
+	set filename [eval $command $cmdpar]
         if {$filename==""} {return 0}
 
     	$newimg write $filename -format "png"
@@ -2303,8 +2315,8 @@ proc TP_saveGroupToPicture {type } {
 proc TP_saveGroupFromRGB {type {cur ""}} {
 #Информация о задержки
     catch {destroy .waitimage}
-    label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow  -font {Times 16 bold italic}  -foreground blue
-    place .waitimage -in .tools.width -relx 0.0 -rely 0.25
+    label .waitimage -text "[mc {Wait. Image formation is underway.}]" -anchor w -justify left -bg yellow  -font {Times 12 bold italic}  -foreground blue
+    place .waitimage -in .mbar.edit -relx 0.0 -rely 1.0
     tk busy hold ".tools"
     tk busy hold ".svg"
     set ret [TP_saveGroupToFileOrImage $type $cur]
@@ -2369,8 +2381,8 @@ set typeP $type
     	return;
     }
     if {$macos && $yesps } {
-	if { [catch {winfo rgb . "#ffffff"} rgb] } {
-    	    tk_messageBox -message "Invalid white color \"#ffffff\" for PS"
+	if { [catch {winfo rgb . "white"} rgb] } {
+    	    tk_messageBox -message "Invalid white color \"white\" for PS"
     	    return;
 	}
     }
@@ -2425,13 +2437,13 @@ foreach xy {x1 y1 x2 y2} {
 #Проверка видимости выделенной области
 	    if {$y1 < $sy0 || $y2 > $sy1  } {
 #		tk_messageBox -title "Error create Image" -parent "." -icon error -message "Выделенная область в невидимой части по вертикали.\n"
-		tk_messageBox -title "Error create Image" -parent "." -icon error -message "The selected area in the invisible part vertically\n"
+		tk_messageBox -title "[mc {Error create Image}]" -parent "." -icon error -message "[mc {The selected area in the invisible part vertically.}]\n"
     		image delete $canimg
 		return ""
 	    }
 	    if {$x1 < $sx0 || $x2 > $sx1  } {
 #		tk_messageBox -title "Error create Image" -parent "." -icon error -message "Выделенная область в невидимой части по горизонтали.\n"
-		tk_messageBox -title "Error create Image" -parent "." -icon error -message "The selected area in the invisible part horizontally.\n"
+		tk_messageBox -title "[mc {Error create Image}]" -parent "." -icon error -message "[mc {The selected area in the invisible part horizontally.}]\n"
     		image delete $canimg
 		return ""
 	    }
@@ -2562,17 +2574,17 @@ if {$typeP == 2} {
 		    {{All files} * }
 	}
         set type        "png"
-        set title       "Select file for image group"
+        set title  "[mc {Select file for image group}]"
         set defaultName "tk_$newimg.png"
-#        set command ttk::getSaveFile
-        set command FE::fe_getsavefile
-        set filename [$command \
-                -title "$title" \
-                -filetypes $File(img,types) \
-                -initialfile $defaultName \
-                -initialdir $initdir \
-                -width 450 -height 500 -sepfolders 1 -details 1 \
-                -defaultextension ".$type" ]
+	if {[tk windowingsystem] == "win32"} {
+	    set command tk_getSaveFile
+	    set geom ""	
+	} else {
+    	    set command "::FE::fe_getsavefile" 
+	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+	}
+	set cmdpar [subst {-title "$title" -filetypes "$File(img,types)" -defaultextension ".$type" -initialfile "$defaultName" -initialdir "$initdir" $geom}]
+	set filename [eval $command $cmdpar]
         if {$filename==""} {return 0}
 
     	$newimg write $filename -format "png"
@@ -2581,9 +2593,8 @@ if {$typeP == 2} {
 	global TPimage
 #Данные сразу в проект
         set defaultName "tk_$newimg"
-#	set data [$newimg data -format "png"]
-set Image(name) $newimg
-$Image(name) configure -data [$Image(name) data -format "png"]
+	set Image(name) $newimg
+	$Image(name) configure -data [$Image(name) data -format "png"]
 ################################ START
     if {$type == 2} {
 	global cmddel
@@ -2591,9 +2602,11 @@ $Image(name) configure -data [$Image(name) data -format "png"]
         set y $y1
         incr Image(ctr)
 #        set v [catch { set id [.c create pimage $x $y -image $Image(name) -anchor nw -tags {image photo obj}] } err]
-set v 0
+	set v 0
 	set m [list {1.0 0.0} {-0.0 1.0} {0.0 0.0}]
-	.c itemconfigure $idsel -image $Image(name) -m $m
+        set ih [image height $Image(name)]
+        set iw [image width $Image(name)]
+	.c itemconfigure $idsel -image $Image(name) -m $m -height $ih -width $iw
 #	.c itemconfigure $idsel -m $m
 return
         if {$v != 0} {
@@ -2621,7 +2634,9 @@ return
         set x [.c canvasx %x $Graphics(grid,snap)]
         set y [.c canvasy %y $Graphics(grid,snap)]
         incr Image(ctr)
-        set v [catch { set id [.c create pimage $x $y -image $Image(name) -anchor c -tags {image photo obj}] } err]
+        set ih [image height $Image(name)]
+        set iw [image width $Image(name)]
+        set v [catch { set id [.c create pimage $x $y -image $Image(name) -height $ih -width $iw -anchor c -tags {image photo obj}] } err]
         if {$v!=0} {
             incr Image(ctr) -1
             tk_messageBox -type ok \
@@ -2680,7 +2695,7 @@ proc TP_saveOneImage {type} {
 #Информация о задержки
     catch {destroy .waitimage}
     label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow -font {Times 16 bold italic}  -foreground blue
-    place .waitimage -in .tools.width -relx 0.0 -rely 0.25
+    place .waitimage -in .mbar.edit -relx 0.0 -rely 1.0
     tk busy hold ".tools"
     tk busy hold ".svg"
 
@@ -2873,11 +2888,23 @@ proc TP_idrotate {id deg} {
 #Image rotate
 proc TP_imagerotate { {deg 0} } {
     global Rotate
-    set id $Rotate(id)
-    if {[idissvg $id]} {
-	.c itemconfigure $id -m $Rotate(matrix)
-	rotateid2angle $id $deg
+    set grp $Rotate(group)
+    set delta [expr {$Rotate(anglelast) - $deg}]
+    set Rotate(anglelast) $deg
+    foreach id $Rotate(group) {
+	if {[idissvg $id]} {
+	    .c itemconfigure $id -m $Rotate($id,matrix)
+	    rotateid2angle $id $deg
+	} else {
+	    set degrad [degre2radian $delta]
+	    foreach {x_c y_c} [id2coordscenter $id] {break}
+	    if {[.c type $id] == "rectangle"} {
+		set id [shape2spline $id]
+	    }
+	    rotateObj $x_c $y_c $degrad $id
+	}
     }
+   set Rotate(group) [.c find withtag Selected]
     drawBoundingBox
     return
 }
@@ -3159,6 +3186,146 @@ proc updateRadiusRoundRect {glw} {
 
 
 #######################SCREENSHOT###########################################
+proc TP_imagicScreen {display} {
+  Message "[mc {Take Snapshot}]"
+    set asn [TP_DialogScreenshot ".imagic"]
+    update
+    if {$asn != ""} {
+return
+after 250
+#	exec $::importcmd "-s -d 0 -o " $asn
+	exec $::importcmd -s -b -d 0 -o $asn
+	Message "[mc {Snapshot save to file}]:$asn"
+    } else {
+	Message "[mc {File not selected}]"
+    }
+}
+proc TP_saveAreaOrWin {} {
+    variable ddelay1
+    variable varescTS; destroy $::winscreen
+    set varescTS 0
+    update
+    after 400
+    set ddelay1 [expr {$::ddelay * 1000}]
+    set ::ddelay1 ""
+    set command "\"$::importcmd\" -s -b -d $::ddelay -o \"$::filescreen\""
+#    puts "$command"
+    set tube [ open |$command r+]
+    fconfigure $tube -buffering line
+    set ::varexec 0
+    fileevent $tube readable "set ::varexec 1"
+    vwait ::varexec
+    fileevent $tube readable ""
+    gets $tube res
+    if {[catch {close $tube} result]} {
+	puts "result=$result"
+	Message "[mc {Error save to file}]:$result"
+    } else {    
+	if {$res == ""} {
+	    Message "[mc {Snapshot save to file}]:$::filescreen"
+    	    tk_messageBox -title "[mc {Snapshot save to file}]" -message "[mc {Snapshot save to file}]:\n $::filescreen"  -icon info
+	} else {
+	    Message "[mc {Error 1 save to file}]:$res"
+	}
+    }
+}
+
+
+proc TP_DialogScreenshot {w} {
+    variable ::filescreen
+    toplevel $w
+    wm iconphoto $w tkpaint_icon
+    wm geometry $w 400x500+200+100
+    wm title $w [mc "Take Snapshot"]
+
+    # Global frame.
+    set wbox $w.f
+    ttk::frame $wbox -padding [option get . dialogPadding {}]
+    pack $wbox -fill both -expand 1
+
+    ttk::label $wbox.la -text "[mc {Select the file for the snapshot}]:" -style Small.TLabel -padding {0 0 0 6} -justify left
+    pack $wbox.la -side top -anchor w -padx 2
+
+    ttk::label $wbox.lafile -text "[mc {The snapshot will be saved in a file}] \n xaxaxa " -padding {0 0 0 6} -justify left
+    #-style Small.TLabel
+    pack $wbox.lafile -side top -anchor w -padx {2 0}
+
+    ttk::frame $wbox.fdel  -padding {0 0 0 0}
+    pack $wbox.fdel -side top -anchor w -fill x -padx 0
+    ttk::label $wbox.fdel.la1 -text "[mc {Delay before snapshot}]: " -padding {0 0 0 6} -justify left
+    #-style Small.TLabel
+    pack $wbox.fdel.la1 -side left -anchor center -padx {2 0}
+    
+    eval [subst "spinbox $wbox.fdel.spinbox  -background {white} -textvariable ::ddelay -borderwidth {1} -buttonbackground {#d6d2d0} -foreground {#221f1e} -highlightthickness {0} -increment {1} -to {60.0} -width {3}"]
+    pack $wbox.fdel.spinbox -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
+    ttk::labelframe $wbox.lfr0 -text "[mc {Taking a picture}]" -labelanchor n -style ME.TLabelframe
+    ttk::radiobutton $wbox.lfr0.cbs0 -text "[mc {We wait}]" -value 0 -variable varescTS -command {puts "We wait"}
+    set ::winscreen $w
+    set fscr [mc "Automatic"]
+    ttk::radiobutton $wbox.lfr0.cbs1 -text "[mc {Full screen}] ($fscr)" -value 1 -variable varescTS -command \
+	{ variable varescTS; destroy $::winscreen
+	    set varescTS 0
+	    update
+	    after 400
+	    set ddelay1 [expr {$::ddelay * 1000}]
+	    exec $::importcmd -f -b -d $ddelay -o $::filescreen
+	    Message "[mc {Snapshot save to file}]:$::filescreen"
+	}
+
+    set wclick [mc "Click on a window"]
+    ttk::radiobutton $wbox.lfr0.cbs2 -text "[mc {Window}] ($wclick)" -value 2 -variable varescTS -command {TP_saveAreaOrWin} 
+
+    set adrag [mc "Drag a rectangular area for scrennshot"]
+    ttk::radiobutton $wbox.lfr0.cbs3 -text "[mc {Screen area}] ($adrag)" -value 3 -variable varescTS -command {TP_saveAreaOrWin}
+    grid $wbox.lfr0.cbs1 -row 0 -column 0 -sticky w -padx 4 -pady {0 0}
+    grid $wbox.lfr0.cbs2 -row 1 -column 0 -sticky w -padx 4 -pady {0 0}
+    grid $wbox.lfr0.cbs3 -row 2 -column 0 -sticky w -padx 4 -pady {0 0}
+
+    pack $wbox.lfr0 -side top -anchor w -fill none -padx 10 -pady 10
+    if {[tk windowingsystem] == "x11"} {
+	$wbox.lfr0 configure -style RoundedLabelFrame
+    }
+    set typelist {
+	    {"Image png"  {*.png}}
+	    {{All Files} *}
+    }
+    set msk $typelist
+#Каталог пользователя
+    set tekdir $::myHOME
+#    set tekdir $env(TMPDIR)
+    if {[tk windowingsystem] == "win32"} {
+#Перекодируем путь из кодировки ОС
+#Для MS Win это скорей всего cp1251
+	set tekdir [encoding convertfrom cp1251 $tekdir ]
+#Заменяем обратную косую в пути на нормальную косую
+	set tekdir [string map {"\\" "/"} $tekdir]
+    }
+    set typew "frame"
+
+#Определяем смещение главного окна
+    update
+    set yroot [winfo rooty $w]
+    set ywplace [winfo rooty "$wbox.la"]
+    set hbut [winfo height "$wbox.la"]
+    set dy [expr {$ywplace - $yroot + $hbut}]
+    set hroot [winfo height "$w"]
+#puts "YROOT=$yroot ywlace=$wplace dy=$dy h root=$hroot"
+    set hfe [expr {$hroot - $dy - 10}]
+#puts "hfe=$hfe dy=$dy hroot=$hroot"
+
+    set yw [expr {[winfo rooty "$wbox.lafile"] - $yroot}]
+    set vrr [FE::fe_getsavefile -x 4 -y $yw  -typew frame -widget $w.f.fe -sepfolders 1 -initialdir $tekdir -filetypes $msk -relheight 0 -height $hfe -initialfile "screenshot.png"]
+    if {$vrr == ""} {
+	destroy $w
+	Message "[mc {File not selected}]"
+	return $vrr
+    }
+    $wbox.lafile configure -text "[mc {The snapshot will be saved in a file}] \n$vrr "
+#    catch {destroy $w}   
+    Message "[mc {Select file for take Snapshot}]:$vrr"
+    set ::filescreen $vrr
+#    return $vrr
+}
 
 proc ScaleImage {img1 targetwidth} {
 
@@ -3191,30 +3358,33 @@ proc ScaleImage {img1 targetwidth} {
 
 proc SaveScreenShot {wparent capture_img} {
     global File
-#LISSI
        set initdir  [file dirname $File(img,name)]
        if {$initdir == "."} {
-#	set initdir  [pwd]
 	set initdir $::myHOME
        }
        set prefNameTail [file tail $File(img,name)]
 
 	# finally, write image to file and we are done...
 	set filetypes {
-		{"All Image Files" {.gif .png .jpg}}
-		{"PNG Images" .png}
+		{{PNG Images} {.png} }
+		{{All Image Files} {.gif .png .jpg} }
+		{{All Files} {.*} }
 	}
-
+	
 	set re {\.(gif|png)$}
 	set LASTDIR [pwd]
 			
-#	set file [ttk::getSaveFile 
-	set file [FE::fe_getsavefile \
-		-parent $wparent -title "Save Image to File" \
-                -width 450 -height 500 -sepfolders 1 -details 1 \
-		-initialdir $initdir -filetypes "$filetypes"]
-#		-initialdir $LASTDIR -filetypes $filetypes]
-			
+	set tit [mc "Save screenshot to file"]
+	if {[tk windowingsystem] == "win32"} {
+	    set command tk_getSaveFile
+	    set geom ""	
+	} else {
+    	    set command "::FE::fe_getsavefile" 
+	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+	}
+	set cmdpar [subst {-parent "$wparent" -title "$tit" -filetypes "$filetypes" -initialfile "screenshot" -initialdir "$initdir" $geom}]
+	set file [eval $command $cmdpar]
+
 	if {$file ne ""} {
 			
 		if {![regexp -nocase $re $file -> ext]} {
@@ -3234,6 +3404,9 @@ set scaled_img $capture_img
 			tk_messageBox -title "Error Writing File" \
 				-parent $wparent -icon error -type ok \
 				-message "Error writing to file \"$file\":\n$err"
+		} else {
+		    Message "[mc {Snapshot save to file}]:$file"
+    		    tk_messageBox -title "[mc {Snapshot save to file}]" -message "[mc {Snapshot save to file}]:\n $file"  -icon info
 		}
 		
 		# clear some memory:
@@ -3241,10 +3414,388 @@ set scaled_img $capture_img
 	}
 }
 
+proc TP_BuildColorSelector {w} {
+    global Canv
+    set wtool $w
+    set wcolsel $wtool.f.col
+    set wfg     $wcolsel.fg
+    set wbg1    $wcolsel.bg1
+    set wbg2    $wcolsel.bg2
+    set wbw     $wcolsel.bw
+    set wswap   $wcolsel.swap
+
+    set fg black
+    set bg white
+
+    # Need an extra frame else place gets misplaced.
+    ttk::frame $wtool.f
+    ttk::label $wcolsel -compound image -image colorSelector -background gray86
+    label $wfg   -image bwrect -bd 0 -width 34 -height 24 -bg $fg
+    bind  $wfg  <Enter> {
+        balloon %W  [mc "Choose fill color"]
+    }
+    bind  $wfg  <Leave> {catch {
+    	    after cancel $Balloon(%W,job1)
+    	    after cancel $Balloon(%W,job2)
+    	    destroy $Balloon(%W,name)
+	}
+    }
+
+    label $wbg1  -image bwrect -bd 0 -width 14 -height 12 -bg $bg
+    label $wbg2  -image bwrect -bd 0 -width 34 -height 12 -bg $bg
+    bind  $wbg2  <Enter> {
+        balloon %W  [mc "Line color"]
+    }
+    bind  $wbg2  <Leave> {catch {
+    	    after cancel $Balloon(%W,job1)
+    	    after cancel $Balloon(%W,job2)
+    	    destroy $Balloon(%W,name)
+	}
+    }
+
+    ttk::label $wbw   -image colorSelBW -background gray86
+    bind  $wbw  <Enter> {
+        balloon %W  [mc "Default colors"]
+    }
+    bind  $wbw  <Leave> {catch {
+    	    after cancel $Balloon(%W,job1)
+    	    after cancel $Balloon(%W,job2)
+    	    destroy $Balloon(%W,name)
+	}
+    }
+    ttk::label $wswap -image colorSelSwap -background gray86
+    bind  $wswap  <Enter> {
+        balloon %W  [mc "Change colors"]
+    }
+    bind  $wswap  <Leave> {catch {
+    	    after cancel $Balloon(%W,job1)
+    	    after cancel $Balloon(%W,job2)
+    	    destroy $Balloon(%W,name)
+	}
+    }
+    
+    # The ttk::label seems to put an extra 2 pixel border. @@@ BAD
+    set off 2
+    grid  $wtool.f  -  -padx {0 4}
+#     -sticky ew
+    pack  $wcolsel  -side top
+    place $wfg   -x [expr {6+$off}]  -y [expr {5+$off}]
+    place $wbg1  -x [expr {42+$off}] -y [expr {19+$off}]
+    place $wbg2  -x [expr {22+$off}] -y [expr {31+$off}]
+    place $wbw   -x  4 -y 33
+    place $wswap -x 46 -y  3
+    set Canv(fill,color) black
+    set Canv(line,color) white
+    set Canv(fgCol) black
+    set Canv(bgCol) white
+bind $wfg   <Button-1> {TP_OnColorSelector}
+bind $wbw   <Button-1> {TP_OnColorSelectorReset}
+bind $wswap <Button-1> {TP_OnColorSelectorSwitch}
+if {0} {
+    if {![string equal $opts(-state) "disabled"]} {
+	bind $wfg   <Button-1> [list [namespace current]::OnColorSelector $w]
+	bind $wbw   <Button-1> [list [namespace current]::OnColorSelectorReset $w]
+	bind $wswap <Button-1> [list [namespace current]::OnColorSelectorSwitch $w]
+    }
+}
+    set Canv(colSel)    $wfg
+    set Canv(colSelBg1) $wbg1
+    set Canv(colSelBg2) $wbg2
+}
+proc TP_OnColorSelector {} {
+    global Canv
+    global Graphics
+    set col [tk_chooseColor -initialcolor $Canv(fill,color)]
+    if {$col ne ""} {
+	set Canv(fgCol) $col
+	set Canv(fill,color) $Canv(fgCol)
+	set Graphics(fill,color) $col
+	$Canv(colSel) configure -bg $Canv(fill,color)
+    }
+}
+proc TP_OnColorSelectorSwitch {} {
+    global Canv
+    global Graphics
+    $Canv(colSel)    configure -bg $Canv(bgCol)
+    $Canv(colSelBg1) configure -bg $Canv(fgCol)
+    $Canv(colSelBg2) configure -bg $Canv(fgCol)
+    set tmp $Canv(fgCol)
+    set Canv(fgCol) $Canv(bgCol)
+    set Canv(fill,color) $Canv(fgCol)
+    set Graphics(fill,color) $Canv(fgCol)
+    set Canv(bgCol) $tmp
+    set Graphics(line,color) $Canv(bgCol)
+}
+proc TP_OnColorSelectorReset {} {
+    global Canv
+    global Graphics
+
+    $Canv(colSel)    configure -bg black
+    $Canv(colSelBg1) configure -bg white
+    $Canv(colSelBg2) configure -bg white
+    set Canv(fgCol) white
+    set Canv(fill,color) $Canv(fgCol)
+    set Graphics(fill,color) $Canv(fgCol)
+    set Canv(bgCol) white
+    set Graphics(line,color) black
+}
+proc TP_opacityFromStyle {style} {
+    global Graphics
+    switch  -exact -- $style {
+	gray12 {
+		return 0.12
+	    }
+	gray25 {
+		return 0.25
+	    }
+	gray50 {
+		return 0.50
+	    }
+	gray75 {
+		return 0.75
+	    }
+	default {
+	    return 1.0
+	}
+    }
+}
+
 proc createpath {} {
 
     ShowWindow.tpcmdedit -1
 
+}
+
+proc TP_CloudWithTongue { p1 p2 rx ton} {
+    foreach {x1 y1} $p1 {break}
+    foreach {x2 y2} $p2 {break}
+    foreach {p1x p2x p3x p1y } $ton {break}
+    if {$p1y > 1 || $p1y < 0} {
+puts "TP_CloudWithTongue 1"
+	return -1
+    }
+    set y2orig $y2
+    set y2 [expr {($y2 -$y1) * $p1y + $y1}]
+#Начальная точка
+    set mx $x1
+    if {($x2 > $x1 && $y2 < $y1) || ($x2 < $x1 && $y2 > $y1)} {
+	set my [expr {$y1 - $rx}]
+    } else {
+	set my [expr {$y1 + $rx}]
+    }
+#Первая вершина
+    set q1_1x $x1
+    set q1_1y $y1
+    set q1_2x [expr {$x1 + $rx}]
+    set q1_2y $y1
+#Отрезок между первой и второй вершиной
+    set l1_x [expr {$x2 - $rx}]
+    set l1_y $y1
+#Вторая  вершина
+    set q2_1x $x2
+    set q2_1y $y1
+    set q2_2x $x2
+    if {($x2 > $x1 && $y2 < $y1) || ($x2 < $x1 && $y2 > $y1)} {
+	set q2_2y [expr {$y1 - $rx}]
+    } else {
+	set q2_2y [expr {$y1 + $rx}]
+    }
+#Отрезок между второй и третьей вершиной
+    set l2_x $x2
+    if {($x2 > $x1 && $y2 < $y1) || ($x2 < $x1 && $y2 > $y1)} {
+	set l2_y [expr {$y2 + $rx}]
+    } else {
+	set l2_y [expr {$y2 - $rx}]
+    }
+#Третья  вершина
+    set q3_1x $x2
+    set q3_1y $y2
+    set q3_2x [expr {$x2 - $rx}]
+    set q3_2y $y2 
+#Отрезок между третьей и правой точкой язычка
+    set t1   [expr {($x2 - $x1) * $p3x + $x1}]
+    set l3_x $t1
+    set l3_y $y2
+#Вершина язычка - вторая точка язычка
+    set l4_x [expr {($x2 - $x1) * $p2x + $x1}]
+    set l4_y $y2orig
+#Первая/левая точка язычка
+    set l5_x [expr {($x2 - $x1) * $p1x + $x1}]
+    set l5_y $y2
+#Отрезок между левой/первой вершиной язычка и четвёртой вершиной прямоугольника
+    set l6_x [expr {$x1 + $rx}]
+    set l6_y $y2
+#Четвёртая вершина
+    set q4_1x $x1
+    set q4_1y $y2
+    set q4_2x $x1
+    if {($x2 > $x1 && $y2 < $y1) || ($x2 < $x1 && $y2 > $y1)} {
+	set q4_2y [expr {$y2 + $rx}]
+    } else {
+	set q4_2y [expr {$y2 - $rx}]
+    }
+#Отрезок между четвёртой вершиной и начальной точкой
+#Замыкаем path	    Z
+    set coords [list M $mx $my Q $q1_1x $q1_1y $q1_2x $q1_2y L $l1_x $l1_y Q $q2_1x $q2_1y $q2_2x $q2_2y L $l2_x $l2_y Q $q3_1x $q3_1y $q3_2x $q3_2y L $l3_x $l3_y $l4_x $l4_y $l5_x $l5_y $l6_x $l6_y Q $q4_1x $q4_1y $q4_2x $q4_2y Z]
+    return $coords
+
+
+#Хороший язычок
+#M 0.0 20.0 Q 0.0 0.0 20.0 0.0 L 180.0 0.0 Q 200.0 0.0 200.0 20.0 L 200.0 80.0 Q 200.0 100.0 180.0 100.0 L 150.0 100.0 L 150.0 150.0 L 100.0 100.0 L 20.0 100.0 Q 0.0 100.0 0.0 80.0 Z
+#Начальная точка
+            set mx $x1
+            set my [expr {$y1 + $rx}]
+#Первая вершина
+            set q1_1x $x1
+            set q1_1y $y1
+            set q1_2x [expr {$x1 + $rx}]
+            set q1_2y $y1
+#Отрезок между первой и второй вершиной
+            set l1_x [expr {$x2 - $rx}]
+            set l1_y $y1
+#Вторая  вершина
+            set q2_1x $x2
+            set q2_1y $y1
+            set q2_2x $x2
+            set q2_2y [expr {$y1 + $rx}]
+#Отрезок между второй и третьей вершиной
+            set l2_x $x2
+            set l2_y [expr {$y2 - $rx}]
+#Третья  вершина
+            set q3_1x $x2
+            set q3_1y $y2
+            set q3_2x [expr {$x2 - $rx}]
+            set q3_2y $y2
+#Отрезок между третьей и четвёртой вершиной
+            set l3_x [expr {$x1 + $rx}]
+            set l3_y $y2
+#Четвёртая вершина
+            set q4_1x $x1
+            set q4_1y $y2
+            set q4_2x $x1
+            set q4_2y [expr {$y2 - $rx}]
+#Отрезок между четвёртой вершиной и начальной точкой
+#Замыкаем path	    Z
+            set coords [list  M $mx $my Q $q1_1x $q1_1y $q1_2x $q1_2y L $l1_x $l1_y Q $q2_1x $q2_1y $q2_2x $q2_2y L $l2_x $l2_y Q $q3_1x $q3_1y $q3_2x $q3_2y L $l3_x $l3_y Q $q4_1x $q4_1y $q4_2x $q4_2y Z]
+
+
+
+}
+
+proc TP_oval2spline {cmd id} {
+puts "oval2spline: id=$id cmd=$cmd"
+    set pi [expr 2*asin(1)]
+    set coords  [lrange $cmd 2 5]
+    set type [lrange $cmd 1 1]
+    set type polygon
+    set x1 [lindex $coords 0]
+    set y1 [lindex $coords 1]
+    set x2 [lindex $coords 2]
+    set y2 [lindex $coords 3]
+    set a [expr ($x2-$x1)/2.0]
+    set b [expr ($y2-$y1)/2.0]
+    set coords {}
+    for {set i 0} {$i<36} {incr i} {
+      set t [expr $i*(2*$pi/36)]
+      lappend coords [expr $x1+$a+$a*cos($t)]
+      lappend coords [expr $y1+$b-$b*sin($t)]
+    }
+    set coords "M $coords "
+    append coords " Z"
+
+#puts "arc2spline: type=$type coords=$coords"
+    foreach conf [.c itemconfigure $id] {
+    		set opt [lindex $conf 0]
+    		set val [lindex $conf 4]
+    		if {$opt == "-rx" || $opt == "-ry"} {
+    		    continue
+    		}
+    		set OptArc($opt) $val
+    }
+
+    .c addtag aboutToDie withtag $id
+    set OptArc(-tags) "$OptArc(-tags) spline"
+    set new_id [eval .c create path "\"$coords\"" [array get OptArc]]
+    .c lower $new_id aboutToDie
+    .c delete aboutToDie
+    return $new_id
+}
+
+proc TP_arc2spline {cmd id} {
+#puts "arc2spline: id=$id cmd=$cmd"
+   set pi [expr 2*asin(1)]
+   set coords  [lrange $cmd 2 5]
+   set type [lrange $cmd 1 1]
+   switch -exact -- $type {
+      arc {
+         set Options(-smooth) 1
+         set start  [expr ($pi*[lrange $cmd 7 7])/180]
+         set extent [expr ($pi*[lrange $cmd 9 9])/180]
+         set style  [lrange $cmd 11 11]
+         set x1 [lindex $coords 0]
+         set y1 [lindex $coords 1]
+         set x2 [lindex $coords 2]
+         set y2 [lindex $coords 3]
+         set a [expr ($x2-$x1)/2.0]
+         set b [expr ($y2-$y1)/2.0]
+         set coords {}
+         set divnum 24.0
+         for {set i 0} {$i<=$divnum} {incr i} {
+           set t [expr $start+$i*($extent/$divnum)]
+           lappend coords [expr $x1+$a+$a*cos($t)]
+           lappend coords [expr $y1+$b-$b*sin($t)]
+         }
+         switch -exact -- $style {
+             arc  {
+                set type line
+             }
+             chord {
+                set type polygon
+                set n [expr [llength $coords]-2]
+                set x0 [lindex $coords 0]
+                set y0 [lindex $coords 1]
+                set xn [lindex $coords $n]
+                set yn [lindex $coords [expr $n+1]]
+                set coords [lreplace $coords 0 1]
+                lappend coords $xn $yn $x0 $y0 $x0 $y0
+             }
+             pieslice {
+                set type polygon
+                set n [expr [llength $coords]-2]
+                set x0 [lindex $coords 0]
+                set y0 [lindex $coords 1]
+                set xn [lindex $coords $n]
+                set yn [lindex $coords [expr $n+1]]
+                set xc [expr ($x1+$x2)/2]
+                set yc [expr ($y1+$y2)/2]
+                set coords [lreplace $coords 0 1]
+                lappend coords $xn $yn $xc $yc $xc $yc $x0 $y0 $x0 $y0
+            }
+          }
+      }
+      default {
+	    puts "arc2spline: Unknown type=$type"
+	    return $id
+      }
+   }
+    set coords "M $coords "
+    if {$style != "arc"} {
+	append coords " Z"
+    }
+
+#puts "arc2spline: type=$type coords=$coords"
+    foreach conf [.c itemconfigure $id] {
+    		set opt [lindex $conf 0]
+    		set val [lindex $conf 4]
+    		set OptArc($opt) $val
+    }
+
+    .c addtag aboutToDie withtag $id
+    set OptArc(-tags) "$OptArc(-tags) spline"
+    set new_id [eval .c create path "\"$coords\"" [array get OptArc]]
+    .c lower $new_id aboutToDie
+    .c delete aboutToDie
+    return $new_id
 }
 
 set dev_mode 1
@@ -3259,12 +3810,13 @@ if { $dev_mode } {
 set t [toplevel .t]
 
 wm geometry $t "+50+50"
-set cmdscreenshot [screenshot::screenshot $t.scrnshot \
+if {![llength $::importcmd]} {
+    set cmdscreenshot [screenshot::screenshot $t.scrnshot \
 		-background LightYellow -foreground DarkGreen \
 		-alpha 0.5 \
 		-width 800 -height 600 \
 		-screenshotcommand "SaveScreenShot $t"]
-
-pack $t.scrnshot -expand true -fill both
+    pack $t.scrnshot -expand true -fill both
+}
 
 

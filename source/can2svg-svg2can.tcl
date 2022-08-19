@@ -642,9 +642,12 @@ puts "can2svg::svgasxmllist: optA(-state) ERROR"
             regsub -all -- $wsp_ $optA(-arrowshape) _ shapeKey
             set arrowKey ${fillValue}_${shapeKey}
             set arrowShape $optA(-arrowshape)
+#LISSI
+            set arrowShapeEnd $optA(-arrowshape)
         } else {
             set arrowKey ${fillValue}
             set arrowShape {8 10 3}
+            set arrowShapeEnd {8 10 3}
         }
         if {!$argsA(-reusedefs) || \
           ![info exists defsArrowMarkerArr($arrowKey)]} {
@@ -652,7 +655,7 @@ puts "can2svg::svgasxmllist: optA(-state) ERROR"
 #puts "can2svg::svgasxmllist: MakeArrowMarker 1"
 
             set defsArrowMarkerArr($arrowKey)  \
-              [eval {MakeArrowMarker} $arrowShape {$fillValue}  $optA(-width)]
+              [eval {MakeArrowMarker} $arrowShape $arrowShapeEnd {$fillValue}  $optA(-width)]
 #              [eval {MakeArrowMarker} $arrowShape {$fillValue}]
             set xmlLL \
               [concat $xmlLL $defsArrowMarkerArr($arrowKey)]
@@ -662,8 +665,12 @@ puts "can2svg::svgasxmllist: optA(-state) ERROR"
 #parray optA
             set arrowKey [lrange $optA(-stroke) 1 end]
 #            set arrowShape {8 10 3}
-#            set arrowShape {[expr  {$optA(-startarrowlength) + $optA(-strokewidth)}] [expr  {$optA(-startarrowlength) + $optA(-strokewidth)}]  $optA(-startarrowwidth) }
-            set arrowShape {$optA(-startarrowlength)  $optA(-startarrowlength)  $optA(-startarrowwidth) }
+	    set pq "[expr {int ($optA(-startarrowlength) / $optA(-startarrowfill))}].0"
+            set arrowShape {$optA(-startarrowlength) $pq  $optA(-startarrowwidth)}
+#puts "arrowShape=$arrowShape pq=$pq"
+	    set pq1 "[expr {int ($optA(-endarrowlength) / $optA(-endarrowfill))}].0"
+            set arrowShapeEnd {$optA(-endarrowlength) $pq1  $optA(-endarrowwidth)}
+#puts "arrowShape=$arrowShape arrowShapeEnd=$arrowShapeEnd"
             set fillValue $optA(-stroke)
         if {!$argsA(-reusedefs) || 1 || \
           ![info exists defsArrowMarkerArr($arrowKey)]} {
@@ -671,7 +678,7 @@ puts "can2svg::svgasxmllist: optA(-state) ERROR"
 #puts "can2svg::svgasxmllist: MakeArrowMarker 2"
 
             set defsArrowMarkerArr($arrowKey)  \
-              [eval {MakeArrowMarker} $arrowShape {$fillValue} $optA(-strokewidth)]
+              [eval {MakeArrowMarker} $arrowShape $arrowShapeEnd {$fillValue} $optA(-strokewidth)]
             set xmlLL \
               [concat $xmlLL $defsArrowMarkerArr($arrowKey)]
         }
@@ -1372,15 +1379,20 @@ proc can2svg::MakeStyleList {type opts args} {
         	}
         	-startarrowlength {
             	    set a $value
-            	    set b $value
-        	}
-        	-endarrowlength {
-            	    set b1 $value
         	}
         	-startarrowwidth {
+            	    set b $value
+        	}
+        	-startarrowfill {
             	    set c $value
         	}
+        	-endarrowlength {
+            	    set a1 $value
+        	}
         	-endarrowwidth {
+            	    set b1 $value
+        	}
+        	-endarrowfill {
             	    set c1 $value
         	}
         	-startarrow {
@@ -1415,7 +1427,13 @@ proc can2svg::MakeStyleList {type opts args} {
 #puts "can2svg::MakeStyleList: fontsvg=$fontsvg"
                 array set styleArr [MakeFontStyleList $fontsvg]
 	}
-	set arrowShape [list $a $b $c]
+	
+	set pq [expr {int($a / $c) * 1.0}]
+        set arrowShape [list $a $pq  $b]
+	set pq1 [expr {int($a1 / $c1) * 1.0}]
+        set arrowShapeEnd [list $a1 $pq1  $b1]
+set optA(-arrowshapeEnd) $arrowShapeEnd
+#	set arrowShape [list $a $b $c]
 #puts "can2svg::MakeStyleAttr ARROW: opts=$opts"    
     } else {
 
@@ -1432,6 +1450,7 @@ proc can2svg::MakeStyleList {type opts args} {
             }
             -arrowshape {
                 set arrowShape $value
+                set arrowShapeEnd $value
             }
             -capstyle {
                 if {[string equal $value "projecting"]} {
@@ -1497,20 +1516,21 @@ proc can2svg::MakeStyleList {type opts args} {
     }
     # If any arrow specify its marker def url key.
     if {[info exists arrowValue]} {
-#puts "ARROWSHAPE=$arrowShape"
+#puts "arrowShape=$arrowShape arrowShapeEnd=$arrowShapeEnd"
         if {[info exists arrowShape]} {        
             foreach {a b c} $arrowShape break
 #LISSI
 	    set colM [string range $fillCol  1 end]
 	    set arrowIdKey "arrowMarkerDef_${colM}_${a}_${b}_${c}"
 #puts "can2svg::MakeStyleList colM=\"$colM\""
-	    set arrowIdKeyLast "arrowMarkerLastDef_${colM}_${a}_${b}_${c}"
+            foreach {a1 b1 c1} $arrowShapeEnd break
+	    set arrowIdKeyLast "arrowMarkerLastDef_${colM}_${a1}_${b1}_${c1}"
 
         } else {
             set arrowIdKey "arrowMarkerDef_${fillCol}"
             set arrowIdKeyLast $arrowIdKey
         }
-        
+#puts "arrowIdKey=$arrowIdKey arrowIdKeyLast=$arrowIdKeyLast"
         switch -- $arrowValue {
             first {
                 set styleArr(marker-start) "url(#$arrowIdKey)"
@@ -2040,11 +2060,13 @@ proc can2svg::ParseSplineToPath {type coo} {
 # Results:
 #       a list of xmllists of the marker def elements, both start and last.
 
-proc can2svg::MakeArrowMarker {a b c col strokewidth} {
+proc can2svg::MakeArrowMarker {a b c a1 b1 c1 col strokewidth} {
     variable formatArrowMarker
     variable formatArrowMarkerLast
     unset -nocomplain formatArrowMarker
-    
+#puts "a=$a b=$b c=$c" 
+#puts "a1=$a1 b1=$b1 c1=$c1 strokewidth=$strokewidth" 
+
     if {![info exists formatArrowMarker]} {
         
         # "M 0 c, b 0, a c, b 2*c Z" for the start marker.
@@ -2075,20 +2097,27 @@ proc can2svg::MakeArrowMarker {a b c col strokewidth} {
     set colM [string range $col  1 end]
     set idKey "arrowMarkerDef_${colM}_${a}_${b}_${c}"
 #puts "can2svg::MakeArrowMarker col=$col colM=\"$colM\""
-    set idKeyLast "arrowMarkerLastDef_${colM}_${a}_${b}_${c}"
+    set idKeyLast "arrowMarkerLastDef_${colM}_${a1}_${b1}_${c1}"
     
     # Figure out the order of all %s substitutions.
     if {$strokewidth > $c} {
 	set c $strokewidth
     }
+    if {$strokewidth > $c1} {
+	set c1 $strokewidth
+    }
     
     set markerXML [format $formatArrowMarker $idKey  \
-      $b [expr 2*$c] $b $c  \
+      $b [expr 2*$c] 0 $c  \
       $c $b $a $c $b [expr 2*$c] $col $col]
+#puts "idKey=$idKey"
+#puts "markerXML=$markerXML"
     set markerLastXML [format $formatArrowMarkerLast $idKeyLast  \
-      $b [expr 2*$c] 0 $c \
-      $b $c [expr 2*$c] [expr $b-$a] $c $col $col]
-    
+      $b1 [expr 2*$c1] $b1 $c1 \
+      $b1 $c1 [expr 2*$c1] [expr $b1-$a1] $c1 $col $col]
+#puts "idKeyLast=$idKeyLast"
+#puts "markerLastXML=$markerLastXML"
+
     return [list $markerXML $markerLastXML]
 }
 
@@ -2102,7 +2131,6 @@ proc can2svg::MakeGrayStippleDef {stipple} {
     
     set pathList [MakeXMLList "path" -attrlist  \
       [list "d" $stippleDataArr($stipple) "style" "stroke: black; fill: none;"]]
-#      [list "d" $stippleDataArr($stipple) "style" "stroke: black; fill: none;"]]
     set patterAttr [list "id" "tile$stipple" "x" 0 "y" 0 "width" 4 "height" 4 \
       "patternUnits" "userSpaceOnUse"]
     set defElemList [MakeXMLList "defs" -subtags  \
@@ -2999,7 +3027,12 @@ proc svg2can::ParseEllipse {xmllist paropts transformL args} {
     set cy 0
     set rx 0
     set ry 0
-    array set attrA $args
+##########
+puts "svg2can::ParseEllipse 1 args=$args"
+#    array set attrA $args
+    array set attrA [lindex $args 0]
+#########
+
     array set attrA [getattr $xmllist]
     set tags {}
     if {[llength $transformL]} {
@@ -3330,7 +3363,7 @@ proc svg2can::ParseLineEx {xmllist paropts transAttr args} {
 
 proc svg2can::ParsePath {xmllist paropts transformL args} {
     variable tmptag
-    
+#puts "svg2can::ParsePath $xmllist $paropts $transformL $args"
     set cmdList {}
     set opts {}
     set presAttr {}
@@ -3338,13 +3371,20 @@ proc svg2can::ParsePath {xmllist paropts transformL args} {
     set styleList {}
     set lineopts {}
     set polygonopts {}
-    array set attrA $args
+#puts "svg2can::ParsePath 1 args=$args"
+#    array set attrA $args
+    array set attrA [lindex $args 0]
+
+#puts "svg2can::ParsePath 2"
+#parray attrA
     array set attrA [getattr $xmllist]
+#puts "svg2can::ParsePath 3"
+#parray attrA
     set tags {}
     if {[llength $transformL]} {
         lappend tags $tmptag
     }
-    
+#parray attrA
     foreach {key value} [array get attrA] {
         
         switch -- $key {
