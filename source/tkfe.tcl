@@ -1205,7 +1205,7 @@ FCQgIOCPkIcQIwrRgcLDiRVbQFQYAOCPjyAgQ4rMEUJDFi5dtDgJ0PHPjh4wY8a0YeKDhRJaDhgg0HKR
     pack [ttk::separator $fm.sepbut0] -side bottom -fill x -expand 0 -pady 0
     pack $fm.filter -anchor ne -expand 0 -fill both -side bottom
     grid $fm.files.t $fm.files.y -sticky ns
-    grid $fm.files.x -sticky we
+    grid $fm.files.x -sticky we 
     grid columnconfigure $fm.files 0 -weight 1
     grid rowconfigure $fm.files 0 -weight 1
     

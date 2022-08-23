@@ -1228,13 +1228,25 @@ proc TP_FontGetSelected {} {
     return $rtnval
 }
 
-
+# С grid лучше, т.к. запоминается где был - grid remove
+proc hidescroll {sb  first last} {
+    if {($first <= 0.0) && ($last >= 1.0)} {
+    # Since I used the grid manager above, I will here too.
+    # The grid manager is nice since it remembers geometry when widgets are hidden.
+    # Tell the grid manager not to display the scrollbar (for now).
+	grid remove $sb
+    } else {
+    # Restore the scrollbar to its prior status (visible and in the right spot).
+	grid $sb
+    }
+    $sb set $first $last
+}
 
 #Edit ptext
 proc ShowWindow.tpcmdedit { id} {
-global TPtxtCmd
-global TPcurCanvas
-set TPcurCanvas ".c"
+  global TPtxtCmd
+  global TPcurCanvas
+  set TPcurCanvas ".c"
   catch "destroy .tpcmdedit"
 
   toplevel .tpcmdedit   -background {gray86}  -highlightbackground {gray86}
@@ -1243,7 +1255,7 @@ set TPcurCanvas ".c"
   wm positionfrom .tpcmdedit program
   wm sizefrom .tpcmdedit program
   wm maxsize .tpcmdedit 2560 1024
-  wm minsize .tpcmdedit 424 210
+  wm minsize .tpcmdedit 524 210
   wm protocol .tpcmdedit WM_DELETE_WINDOW {DestroyWindow.tpcmdedit}
 
   # bindings
@@ -1253,13 +1265,24 @@ set TPcurCanvas ".c"
   frame .tpcmdedit.frame3  -borderwidth {2}  -relief {ridge}  -background {gray86}  -height {24}  -highlightbackground {gray86}  -width {364}
 
   if { $id > -1} {
-    wm title .tpcmdedit {TKsvgpaint: Edit ptext}
-    set TPtxtCmd [subst "$TPcurCanvas itemconfigure $id -text "]
+    set tx [.c itemcget $id -text]
+    if {$tx == ""} {
+	set tit "[mc {Enter text}]"
+    } else {
+	set tit "[mc {Edit text}]"
+    }
+    wm title .tpcmdedit "TKsvgpaint: $tit"
+    set TPtxtCmd [subst ".c itemconfigure $id -text "]
     button .tpcmdedit.frame3.button4  -activebackground {gray75}  -background {gray86}  -command {
     global TPtxtCmd
     set TPtemp [.tpcmdedit.frame.text2 get 1.0 end-1chars]
     catch "$TPtxtCmd \{$TPtemp\}"
-    DestroyWindow.tpcmdedit }  -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text {Done}  -width {6}
+    Message "Click start point or edit text"
+    DestroyWindow.tpcmdedit }  -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text "[mc {Done}]"  -width {6}
+    button .tpcmdedit.frame3.button8  -activebackground {gray75}  -background {gray86}  -command {
+	Message "Click start point or edit text"
+	DestroyWindow.tpcmdedit
+    } -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text "[mc {Cancel}]"  -width {6}
   } else {
     wm title .tpcmdedit {TKsvgpaint: Create path}
     button .tpcmdedit.frame3.button4  -activebackground {gray75}  -background {gray86}  -command {
@@ -1273,22 +1296,38 @@ set TPcurCanvas ".c"
 	    set ss [string range $TPtemp $i $i]
 	    if {$ss == ","} {
 		append dpath " "
+	    } elseif {$ss == "-"} {
+		append dpath "  $ss"
 	    } elseif {[string is alpha $ss]} {
-		append dpath "$ss "
+		append dpath " $ss "
 	    } else {
 		append dpath "$ss"
 	    }
 	    incr i
 	}
-	set id [.c create path  "$dpath" -tags "Path obj svg"]
+	if {[llength $dpath] < 4 } {
+	    tk_messageBox -title "[mc {Error create path}]" -icon error -message "[mc {Attribute d path specification too short}]\n"
+	    return
+	}
+        if {[catch {set id [.c create path  "$dpath" -tags "Path obj svg"]} result] !=0 } {
+	    tk_messageBox -title "[mc {Error create path}]" -icon error -message "$result"
+	    return
+	}
 	set utag [Utag assign $id]
 	History add [getObjectCommand $utag 1]
 	Undo add ".c delete $utag"
+	TPselectAction .svg.button13_1
+	Message "Your path is done"
 	DestroyWindow.tpcmdedit } \
-    -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text {Done}  -width {6}
+    -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text "[mc {Done}]"  -width {6}
+
+    button .tpcmdedit.frame3.button8  -activebackground {gray75}  -background {gray86}  -command {
+	TPselectAction .svg.button13_1;	
+	Message $Message(0);
+	DestroyWindow.tpcmdedit
+    } -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text "[mc {Cancel}]"  -width {6}
   }
 
-  button .tpcmdedit.frame3.button8  -activebackground {gray75}  -background {gray86}  -command {DestroyWindow.tpcmdedit}  -font {Helvetica 10}  -highlightbackground {gray86}  -padx {4}  -pady {2}  -text {Cancel}  -width {6}
 
   frame .tpcmdedit.frame  -relief {raised}  -background {gray86}  -highlightbackground {gray86}
 
@@ -1303,9 +1342,14 @@ set TPcurCanvas ".c"
   pack configure .tpcmdedit.frame3.button8  -side right
 
   # pack master .tpcmdedit.frame
-  pack configure .tpcmdedit.frame.scrollbar1  -fill y  -side left
-  pack configure .tpcmdedit.frame.text2  -expand 1  -fill both
-  pack configure .tpcmdedit.frame.scrollbar3  -fill x
+    grid .tpcmdedit.frame.scrollbar1 .tpcmdedit.frame.text2 -sticky wns
+    grid .tpcmdedit.frame.scrollbar3 -column 1 -sticky we -columnspan 1
+    grid columnconfigure .tpcmdedit.frame 0 -weight 0
+    grid columnconfigure .tpcmdedit.frame 1 -weight 1
+    grid rowconfigure .tpcmdedit.frame 0 -weight 1
+    grid .tpcmdedit.frame.text2 -sticky news -padx {2 0} -pady {0 0}
+    .tpcmdedit.frame.text2 configure -xscroll [list hidescroll .tpcmdedit.frame.scrollbar3 ]
+    .tpcmdedit.frame.text2 configure -yscroll [list hidescroll .tpcmdedit.frame.scrollbar1 ]
 
   # pack master .tpcmdedit
   pack configure .tpcmdedit.frame3  -fill x
@@ -1314,6 +1358,10 @@ set TPcurCanvas ".c"
   wm iconphoto .tpcmdedit tkpaint_icon
   .tpcmdedit.frame.text2 insert end [.c itemcget $id -text]
 update
+  focus .tpcmdedit.frame.text2
+  if {[.c type $id] != "ptext"} {
+    Message "Enter the d attribute of the path teg"
+  }
   grab set .tpcmdedit
 
 }
@@ -1845,7 +1893,7 @@ proc ShowWindow.tprotate { args} {
 	if {[idissvg $id]} {
 	    .c itemconfigure $id -m $Rotate($id,matrix); 
 	} {
-puts "tprotate Cancel TK=$id"
+#puts "tprotate Cancel TK=$id"
 	    set idor [lindex $Rotate(groupOrig) $i]
 	    .c coords $id "$Rotate($idor,coords)"
 	}
@@ -2293,7 +2341,7 @@ proc TP_saveGroupToPicture {type } {
 		    {{All files} * }
 	}
         set type    "png"
-        set title  "[mc {Select file for image group}]"
+        set title  "[mc {Select file for image group 1}]"
         set defaultName "tk_$newimg.png"
 	if {[tk windowingsystem] == "win32"} {
 	    set command tk_getSaveFile
@@ -2331,8 +2379,11 @@ proc TP_saveGroupToFileOrImage {type {cur ""}} {
     global macos
     global Image
 #puts "Необходимо подождать! type=$type"
-  set idgroup [.c find withtag Selected]
-  if {[llength $idgroup] == 0} {return}
+    set idgroup [.c find withtag Selected]
+    if {[llength $idgroup] == 0} {
+	Message "First you need to select a group of objects!"
+	return
+    }
 
     set yesps 0
     if {$macos && [info exists ::freewrap::patchLevel]} {
@@ -2585,16 +2636,25 @@ if {$typeP == 2} {
 	}
 	set cmdpar [subst {-title "$title" -filetypes "$File(img,types)" -defaultextension ".$type" -initialfile "$defaultName" -initialdir "$initdir" $geom}]
 	set filename [eval $command $cmdpar]
-        if {$filename==""} {return 0}
+        if {$filename==""} {
+	    Message "Operation canceled"
+    	    return 0
+    	}
 
-    	$newimg write $filename -format "png"
+	if {[catch {$newimg write $filename -format "png"} ret]} {
+    	    tk_messageBox -title "Save group/area to file" -message "Cannot open file for write:\n$filename" -detail $ret -icon error
+	    return ""
+	}
 	image delete $newimg
+    	tk_messageBox -title "Save group/area " -message "[mc {The image of the group/area is saved in a file}]:\n$filename"  -icon info
+	Message "The image of the group/area is saved in a file"
     } else {
 	global TPimage
 #Данные сразу в проект
         set defaultName "tk_$newimg"
 	set Image(name) $newimg
 	$Image(name) configure -data [$Image(name) data -format "png"]
+	Message "The image of the group/area is saved in a canvas (pimage)"
 ################################ START
     if {$type == 2} {
 	global cmddel
@@ -2665,6 +2725,7 @@ return
 		set Graphics(mode) {}
 	    }
 	}
+	Message "Click to insert image in canvas"
     }
 ###################################### END
   }
@@ -2674,31 +2735,31 @@ proc TP_saveOneImage {type} {
     set TPtoolpath ".c"
     set cur [.c find withtag Selected]
     if {[llength $cur] != 1} {
-        tk_messageBox -title "Save Area" -message "Missing highlighted area"  -icon info
+	Message "First you need to select the canvas area."
+#        tk_messageBox -title "[mc {Save Area}]" -message "[mc {Missing highlighted area}]"  -icon info
 	return
     }
     set tobj [.c type $cur]
 #    puts "TP_saveOneImage: Current=$cur type=$tobj utags=[.c itemconfigure $cur -tags]"
     if {$tobj == "image" || $tobj == "pimage"} { 
 	unselectGroup
-        tk_messageBox -title "Save Area" -message "Incorrect area (image) selection"  -icon info
+        tk_messageBox -title "[mc {Save Area}]" -message "[mc {Incorrect area (image) selection}]"  -icon info
 	return
     }
     if {![idissvg $cur]} {
         .c  itemconfigure $cur -outline {}
     } else {
 	unselectGroup
-        tk_messageBox -title "Save Area" -message "Incorrect area selection"  -icon info
+        tk_messageBox -title "[mc {Save Area}]" -message "[mc {Incorrect area selection}]"  -icon info
 	return
     }
 #    puts "TP_saveOneImage: Current=$cur type=$type utags=[.c itemconfigure $cur -tags]"
 #Информация о задержки
     catch {destroy .waitimage}
-    label .waitimage -text "Wait. Image formation is underway." -anchor w -justify left -bg yellow -font {Times 16 bold italic}  -foreground blue
+    label .waitimage -text "[mc {Wait. Image formation is underway.}]" -anchor w -justify left -bg yellow -font {Times 16 bold italic}  -foreground blue
     place .waitimage -in .mbar.edit -relx 0.0 -rely 1.0
     tk busy hold ".tools"
     tk busy hold ".svg"
-
     set ret [TP_saveGroupToFileOrImage $type $cur]
     tk busy forget ".tools"
     tk busy forget ".svg"
@@ -2728,6 +2789,7 @@ proc TP_freehandSelect {} {
       ]
 #             -fill  $Graphics(line,color) 
 #             -capstyle $Graphics(line,capstyle) 
+      Message "Hold down the mouse button and move it by circling a area"
   }
 
   bind .c <B1-Motion> {
@@ -2737,6 +2799,7 @@ proc TP_freehandSelect {} {
         set lastPoint [lrange $freeHand(coords) [expr $n-2] end]
         eval .c create line $lastPoint $x $y $freeHand(tmp_options)
         lappend freeHand(coords) $x $y
+	Message "To finish, release the mouse button"
   }
 
   bind .c <B1-ButtonRelease> {
@@ -2761,9 +2824,10 @@ proc TP_freehandSelect {} {
      set bbox [.c bbox Selected]
      drawBoundingBox
      setEditGroupMode
+     Message "The area is highlighted"
 #puts "TP_saveOneImage:Graphics(shape)=$Graphics(shape) Graphics(mode)=$Graphics(mode) utag=$utag  + Selected"
   }
-  Message "Never scare your users!"
+  Message "Click start point"
 }
 proc TP_unfreehandSelect {} {
   global selectBox
@@ -3197,7 +3261,7 @@ after 250
 	exec $::importcmd -s -b -d 0 -o $asn
 	Message "[mc {Snapshot save to file}]:$asn"
     } else {
-	Message "[mc {File not selected}]"
+	Message "[mc {Operation canceled}]"
     }
 }
 proc TP_saveAreaOrWin {} {
@@ -3317,7 +3381,7 @@ proc TP_DialogScreenshot {w} {
     set vrr [FE::fe_getsavefile -x 4 -y $yw  -typew frame -widget $w.f.fe -sepfolders 1 -initialdir $tekdir -filetypes $msk -relheight 0 -height $hfe -initialfile "screenshot.png"]
     if {$vrr == ""} {
 	destroy $w
-	Message "[mc {File not selected}]"
+	Message "[mc {Operation canceled}]"
 	return $vrr
     }
     $wbox.lafile configure -text "[mc {The snapshot will be saved in a file}] \n$vrr "
@@ -3432,7 +3496,7 @@ proc TP_BuildColorSelector {w} {
     ttk::label $wcolsel -compound image -image colorSelector -background gray86
     label $wfg   -image bwrect -bd 0 -width 34 -height 24 -bg $fg
     bind  $wfg  <Enter> {
-        balloon %W  [mc "Choose fill color"]
+        balloon %W  [mc "Choose line color"]
     }
     bind  $wfg  <Leave> {catch {
     	    after cancel $Balloon(%W,job1)
@@ -3444,7 +3508,7 @@ proc TP_BuildColorSelector {w} {
     label $wbg1  -image bwrect -bd 0 -width 14 -height 12 -bg $bg
     label $wbg2  -image bwrect -bd 0 -width 34 -height 12 -bg $bg
     bind  $wbg2  <Enter> {
-        balloon %W  [mc "Line color"]
+        balloon %W  [mc "Fill color"]
     }
     bind  $wbg2  <Leave> {catch {
     	    after cancel $Balloon(%W,job1)
@@ -3477,27 +3541,19 @@ proc TP_BuildColorSelector {w} {
     # The ttk::label seems to put an extra 2 pixel border. @@@ BAD
     set off 2
     grid  $wtool.f  -  -padx {0 4}
-#     -sticky ew
     pack  $wcolsel  -side top
     place $wfg   -x [expr {6+$off}]  -y [expr {5+$off}]
     place $wbg1  -x [expr {42+$off}] -y [expr {19+$off}]
     place $wbg2  -x [expr {22+$off}] -y [expr {31+$off}]
     place $wbw   -x  4 -y 33
     place $wswap -x 46 -y  3
-    set Canv(fill,color) black
+    set Canv(fill,color) white
     set Canv(line,color) white
     set Canv(fgCol) black
     set Canv(bgCol) white
-bind $wfg   <Button-1> {TP_OnColorSelector}
-bind $wbw   <Button-1> {TP_OnColorSelectorReset}
-bind $wswap <Button-1> {TP_OnColorSelectorSwitch}
-if {0} {
-    if {![string equal $opts(-state) "disabled"]} {
-	bind $wfg   <Button-1> [list [namespace current]::OnColorSelector $w]
-	bind $wbw   <Button-1> [list [namespace current]::OnColorSelectorReset $w]
-	bind $wswap <Button-1> [list [namespace current]::OnColorSelectorSwitch $w]
-    }
-}
+    bind $wfg   <Button-1> {TP_OnColorSelector}
+    bind $wbw   <Button-1> {TP_OnColorSelectorReset}
+    bind $wswap <Button-1> {TP_OnColorSelectorSwitch}
     set Canv(colSel)    $wfg
     set Canv(colSelBg1) $wbg1
     set Canv(colSelBg2) $wbg2
@@ -3508,9 +3564,11 @@ proc TP_OnColorSelector {} {
     set col [tk_chooseColor -initialcolor $Canv(fill,color)]
     if {$col ne ""} {
 	set Canv(fgCol) $col
-	set Canv(fill,color) $Canv(fgCol)
-	set Graphics(fill,color) $col
-	$Canv(colSel) configure -bg $Canv(fill,color)
+	set Canv(line,color) $col
+	if {$Graphics(line,color) != ""} {
+	    set Graphics(line,color) $Canv(line,color)
+	}
+	$Canv(colSel) configure -bg $Canv(line,color)
     }
 }
 proc TP_OnColorSelectorSwitch {} {
@@ -3519,12 +3577,16 @@ proc TP_OnColorSelectorSwitch {} {
     $Canv(colSel)    configure -bg $Canv(bgCol)
     $Canv(colSelBg1) configure -bg $Canv(fgCol)
     $Canv(colSelBg2) configure -bg $Canv(fgCol)
-    set tmp $Canv(fgCol)
-    set Canv(fgCol) $Canv(bgCol)
-    set Canv(fill,color) $Canv(fgCol)
-    set Graphics(fill,color) $Canv(fgCol)
-    set Canv(bgCol) $tmp
-    set Graphics(line,color) $Canv(bgCol)
+    set tmp $Canv(bgCol)
+    set Canv(bgCol) $Canv(fgCol)
+    set Canv(fill,color) $Canv(bgCol)
+    if {$Graphics(fill,color) != ""} {
+	set Graphics(fill,color) $Canv(bgCol)
+    }
+    set Canv(fgCol) $tmp
+    if {$Graphics(line,color) != ""} {
+	set Graphics(line,color) $Canv(fgCol)
+    }
 }
 proc TP_OnColorSelectorReset {} {
     global Canv
@@ -3533,11 +3595,14 @@ proc TP_OnColorSelectorReset {} {
     $Canv(colSel)    configure -bg black
     $Canv(colSelBg1) configure -bg white
     $Canv(colSelBg2) configure -bg white
-    set Canv(fgCol) white
-    set Canv(fill,color) $Canv(fgCol)
-    set Graphics(fill,color) $Canv(fgCol)
+    
+    set Canv(fgCol) black
     set Canv(bgCol) white
-    set Graphics(line,color) black
+    set Canv(fill,color) $Canv(bgCol)
+    set Canv(line,color) white
+    if {$Graphics(fill,color) != ""} {
+	set Graphics(fill,color) $Canv(bgCol)
+    }
 }
 proc TP_opacityFromStyle {style} {
     global Graphics

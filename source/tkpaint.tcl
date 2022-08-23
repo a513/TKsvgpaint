@@ -134,6 +134,8 @@ proc setDefaultGlobals {} {
 #LISSI
    global lineJoin
    set lineJoin miter
+   global lineCap
+   set lineCap butt
 
    array set Graphics {
      line,width      1
@@ -454,7 +456,8 @@ proc Zoom {z} {
 
   set Zoom(button,text) "[expr int($z*100)]%"
   if {$Zoom(factor)==$z} {
-    Message "Current zoom factor is $Zoom(button,text)."
+    set mes "[mc {Current zoom factor is}]"
+    Message "$mes $Zoom(button,text)."
     return
   }
 
@@ -566,6 +569,9 @@ proc Zoom {z} {
     Undo add "uplevel #0 set Zoom(caller) Undo \; Zoom $old_factor"
   }
   set Zoom(caller) ""
+#LISSI
+    set mes "[mc {Current zoom factor is}]"
+    Message "$mes $Zoom(button,text)."
 }
 
 proc loadPreferences {file} {
@@ -760,9 +766,20 @@ B  dumm  0 12 select1obj.gif   {select1object}
 B  dumm  1 12 freeselection.gif  {TP_freehandSelect}
 R  mode  0 13 callout.gif  {set Graphics(type) "SVG" ; .mbar.shape.menu  invoke "Callout"}
 R  mode  1 13 bwrect  {puts "[mc {Reserve}]"}
-B  dumm  0 14 withoutfilling.gif {set Graphics(fill,color) ""; .svg.button14_0 configure -bg chocolate1; .svg.button14_1 configure -bg gray86}
-B  dumm  1 14 withfill.gif   	 {set Graphics(fill,color) $Canv(fill,color); .svg.button14_1 configure -bg chocolate1; .svg.button14_0 configure -bg gray86}
+B  dumm  0 14 withoutfilling.gif {TP_fill "no"}
+B  dumm  1 14 withfill.gif   	 {TP_fill "yes"}
 }
+proc TP_fill {fill} {
+    global Graphics Canv
+    if {$fill == "no"} {
+	set Graphics(fill,color) ""; .svg.button14_0 configure -bg chocolate1; .svg.button14_1 configure -bg gray86
+	Message "Creating forms without filling"
+    } else {
+	set Graphics(fill,color) $Canv(fill,color); .svg.button14_1 configure -bg chocolate1; .svg.button14_0 configure -bg gray86
+	Message "Creating shapes with fill"
+    }
+}
+
 set ButtonsSVG_ORIG { 
 R  mode  0  0  rectangle.gif   {set Graphics(type) "SVG" ; .mbar.shape.menu invoke Rectangle}
 R  mode  0  1  roundrect.gif   {set Graphics(type) "SVG" ; .mbar.shape.menu invoke "Round rectangle"}
@@ -1507,14 +1524,11 @@ set s1 "100 %"
 
 .mbar.fill.menu add command -label [mc {Color}] -command {
 	if {[chooseFillColor] != "" } {
-	    .svg.button14_1 configure -bg chocolate1; .svg.button14_0 configure -bg gray86
+	    TP_fill "yes"
 	}
     }
 
-.mbar.fill.menu add command -label [mc "No Color"] -command {
-          set Graphics(fill,color) {}
-	.svg.button14_0 configure -bg chocolate1; .svg.button14_1 configure -bg gray86
-}
+.mbar.fill.menu add command -label [mc "No Color"] -command { TP_fill "no"}
 
 #### EDIT MENU:
 
@@ -1907,7 +1921,7 @@ proc startCallout {} {
            -strokedasharray  $Graphics(linesvg,dash) \
            -fill    $Graphics(fill,color) \
            -fillopacity $fillstyle -strokeopacity $linestyle \
-           -tags    {Callout obj svg}       \
+           -tags    {Callout obj svg spline}       \
        ]
        Message "Now hold and drag the mouse!"
     }
@@ -3508,7 +3522,7 @@ proc setReshapeHandles {} {
   if {$svg == 1} {
 
 #Сделать разбор и добавить set Reshape($i,type) - это M,  L, Q, C, T, и т.д
-puts "setReshapeHandles: utagid=$utagid type=$Reshape(type)"
+#puts "setReshapeHandles: utagid=$utagid type=$Reshape(type)"
 if { $Reshape(type) == "polyline" || $Reshape(type) == "ppolygon"} {
 #puts "setReshapeHandles: utagid=$utagid type=$Reshape(type) UX"
     foreach {x y} $lcoords {
@@ -4052,7 +4066,7 @@ proc select1object {} {
      setEditGroupMode
   }
 #  Message "Use mouse and \"Group\"(!) menu to act on the object"
-  Message "Use mouse to drag, resize. More acts click \"Group\""
+  Message "Click on it to allocate an object"
 }
 
 proc unselectGroup {} {
@@ -5403,7 +5417,7 @@ proc editGroupFillColor {} {
 # GROUP LINE WIDTH:
 proc editGroupLineWidth {} {
    global glwidth glw_undo Font
-   global lineJoin linedash
+   global lineJoin linedash lineCap
    set have_line 0
 
    set glw_undo [getGroupCommand 1]
@@ -5420,11 +5434,18 @@ proc editGroupLineWidth {} {
 		    if {[lsearch $utagid "svg"] > -1} {
         		set glwidth [.c itemcget $id -strokewidth]
         		set lineJoin [.c itemcget $id -strokelinejoin]
+        		set lineCap [.c itemcget $id -strokelinecap]
         		set stroke [.c itemcget $id -stroke]
         		set ldash [.c itemcget $id -strokedasharray]
         	    } else {
 			set glwidth [.c itemcget $id -width]
-        		set stroke [.c itemcget $id -fill]
+			if {$type == "line"} {
+        		    set stroke [.c itemcget $id -fill]
+        		    set lineJoin [.c itemcget $id -joinstyle]
+        		    set lineCap [.c itemcget $id -capstyle]
+        		} else {
+        		    set stroke [.c itemcget $id -outline]
+        		}
         		set ldash [.c itemcget $id -dash]
         	    }
         	    if {$ldash == "" } {
@@ -5457,13 +5478,15 @@ proc editGroupLineWidth {} {
           -anchor nw \
           -text [mc "Group Line Width"] \
           -font $Font(groupLineWidthDemo)
-       
+#puts "editGroupLineWidth: stroke=$stroke joinstyle=$lineJoin capstyle=$lineCap width=$glwidth"
    .grouplw.widthcanvas create line 2.0c 1.5c 5.0c 1.5c 3.0c 3.5c 6.0c 3.5c \
           -tags demoGroupLine \
           -fill $stroke \
           -joinstyle $lineJoin \
+          -capstyle $lineCap \
           -width $glwidth
 #          -dash $ldash 
+
 
    scale .grouplw.widthscale -orient horiz \
           -resolution 1 -from 0 -to 60 \
@@ -5488,6 +5511,16 @@ proc editGroupLineWidth {} {
    ttk::radiobutton .grouplw.labeljoin.bevel -command "updateGroupLineWidth $glwidth"  -variable lineJoin -value "bevel" -text [mc {Bevel}] -style Me.TRadiobutton
    ttk::radiobutton .grouplw.labeljoin.round -command "updateGroupLineWidth $glwidth"  -variable lineJoin -value "round" -text [mc {Round}] -style Me.TRadiobutton
    pack .grouplw.labeljoin.miter .grouplw.labeljoin.bevel .grouplw.labeljoin.round -side left -fill x -expand 1 -pady {0 5} -padx 1
+
+   labelframe .grouplw.labelcap -text [mc {Line cap type}] -labelanchor n -font $Font(groupLineWidthDemo)  -background gray86
+    ttk::style configure Me.TRadiobutton -background gray86
+
+   pack .grouplw.labelcap -side top -fill x -expand true -pady {2m 0} -padx 1m
+   ttk::radiobutton .grouplw.labelcap.butt -command "updateGroupLineWidth $glwidth" -variable lineCap -value "butt" -text [mc {Butt}] -style Me.TRadiobutton
+   ttk::radiobutton .grouplw.labelcap.project -command "updateGroupLineWidth $glwidth"  -variable lineCap -value "projecting" -text [mc {Projecting}] -style Me.TRadiobutton
+   ttk::radiobutton .grouplw.labelcap.round -command "updateGroupLineWidth $glwidth"  -variable lineCap -value "round" -text [mc {Round}] -style Me.TRadiobutton
+   pack .grouplw.labelcap.butt .grouplw.labelcap.project .grouplw.labelcap.round -side left -fill x -expand 1 -pady {0 5} -padx 1
+
    labelframe .grouplw.labeldash -text [mc {Line dash style}] -labelanchor n -font $Font(groupLineWidthDemo)  -background gray86
    pack .grouplw.labeldash -side top -fill x -expand true -pady {2m 0} -padx 1m
    frame .grouplw.dashstyle -relief groove -bd 2 -height 2 -background gray86
@@ -5541,7 +5574,7 @@ proc updateGroupLineWidth {glw} {
    global Graphics
    global TPcolor
 #LISSI
-   global lineJoin glwidth linedash
+   global lineJoin lineCap glwidth linedash
     set svgdash {}
     set tkdash) {}
   if {$linedash == "solid"} {
@@ -5558,7 +5591,7 @@ proc updateGroupLineWidth {glw} {
     set tkdash {-.}
   }
 
-   .grouplw.widthcanvas itemconfigure demoGroupLine -width $glwidth -joinstyle $lineJoin -dash $tkdash
+   .grouplw.widthcanvas itemconfigure demoGroupLine -width $glwidth -joinstyle $lineJoin -capstyle $lineCap -dash $tkdash
    foreach id [.c find withtag Selected] {
        set type [.c type $id]
        switch -exact -- $type {
@@ -5569,9 +5602,9 @@ proc updateGroupLineWidth {glw} {
           line   {
 		set utagid [.c itemcget $id -tags]
 		if {[lsearch $utagid "svg"] != -1} {
-            	    .c itemconfigure $id -strokewidth $glwidth -strokelinejoin $lineJoin -strokedasharray $svgdash
+            	    .c itemconfigure $id -strokewidth $glwidth -strokelinejoin $lineJoin -strokelinecap $lineCap -strokedasharray $svgdash
             	} else {
-    		    .c itemconfigure $id -width $glw -joinstyle $lineJoin -dash $tkdash
+    		    .c itemconfigure $id -width $glwidth -joinstyle $lineJoin -capstyle $lineCap -dash $tkdash
             	}
           }
           default   {
@@ -5593,10 +5626,10 @@ proc updateGroupLineWidth {glw} {
              }
              if {$glw >= 0} {
                 if {$svg == 1} {
-		.c itemconfigure $id -strokewidth $glwidth -strokelinejoin $lineJoin -strokedasharray $svgdash
+		.c itemconfigure $id -strokewidth $glwidth -strokelinejoin $lineJoin -strokelinecap $lineCap -strokedasharray $svgdash
                  # -stroke $outline
                 } else {
-                 .c itemconfigure $id -width $glw -outline $outline -dash $tkdash
+                 .c itemconfigure $id -width $glwidth -outline $outline -dash $tkdash
                 }
 		drawBoundingBox
              } else {
@@ -5680,6 +5713,11 @@ proc editGroupFont {} {
 # X-REFLECT GROUP:
 proc reflect {mode} {
    global BBox
+   global Graphics
+   if {$Graphics(mode) == "Create PATH"} {
+	return
+   }
+
    set group [.c find withtag Selected]
    if {[llength $group]==0} {
      Message "First you need to select a group of objects!"
@@ -5991,6 +6029,7 @@ proc TextMode {} {
    .c bind text <Control-f> {TextMoveRight}
    .c bind text <Key-Left> {TextMoveLeft}
    .c bind text <Control-b> {TextMoveLeft}
+    Message "Click start point or edit text"
 }
 
 proc TextFocus {x y} {
@@ -6003,13 +6042,14 @@ proc TextFocus {x y} {
    if {$Text(utag) != ""} {
 #LISSI
     if {[idissvg $Text(utag)] } {
+	Message "Edit text and press button Done or Cancel"
         foreach opt {text textanchor fontfamily fontsize fontweight fill fillopacity tags} {
             set Text($opt)  [.c itemcget $Text(utag) -$opt]
         } 
         ShowWindow.tpcmdedit $Text(utag)
 	return
     } else {
-    
+	Message "Edit text"
         foreach opt {text font fill stipple anchor tags} {
             set Text($opt)  [.c itemcget $Text(utag) -$opt]
     
@@ -6047,7 +6087,8 @@ if {0} {
                          -tags {text obj svg dup}]
 }
 	} else {
-         set id [.c create text $x $y -text "" \
+	    Message "Enter text"
+            set id [.c create text $x $y -text "" \
                          -font    $Text(font) \
                          -fill    $Text(color) \
                          -stipple $Text(stipple) \
@@ -6059,6 +6100,7 @@ if {0} {
 #puts "Отдельное окно"
             set Text(utag) [Utag assign $id]
             set TextInfo($Text(utag)) {}
+	    Message "Enter text and press button Done or Cancel"
 	    ShowWindow.tpcmdedit $id
 	    return
 	}
@@ -6595,7 +6637,7 @@ switch -exact -- $cmnd {
     	    if {$mode=="open"} { 
     		set command "::FE::fe_getopenfile" 
     	    }
-	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+	    set geom " -width 650 -height 500 -sepfolders 1 -details 1 "
         }
 	set cmdpar [subst {-title "$title" -filetypes "$File($type,types)" -initialfile "$defaultNameTail" -defaultextension ".$type" -initialdir "$initdir" $geom}]
 	set filename [eval $command $cmdpar]
@@ -7108,7 +7150,6 @@ if {$colsvg < 13} {
        destroy $Balloon(%W,name)
       }
    }
-if {1} {
 if {$colsvg < 12 } {
     if {$row == 1 && $colsvg == 11} {
 	set text "[mc {Create PATH}] (svg)"
@@ -7121,7 +7162,6 @@ if {$colsvg < 12 } {
    bind $wsvg <Enter> "$wsvg configure -highlightbackground {deepskyblue};[list balloon %W $text]"
    bind $wsvg  <Leave>  "$wsvg configure -highlightbackground {gray86}; [list catch {after cancel $Balloon(%W,job1); after cancel $Balloon(%W,job2); destroy $Balloon(%W,name)}]"
 }   
-}
 
 }
 set ButtonsHelpSVG { 
