@@ -44,6 +44,22 @@ if {[string equal $::tcl_platform(platform) "unix"]} {
 	set cmdscreenshot "TP_imagicScreen"
     }
 }
+set typesys [tk windowingsystem]
+global ::myHOME
+set ::myHOME ""
+switch $typesys {
+  win32        {
+    source [file join [file dirname [info script]] ru.msg]
+    set ::myHOME $::env(USERPROFILE)
+    #Заменяем обратную косую в пути на нормальную косую
+    set ::myHOME [string map {"\\" "/"} $myHOME]
+    encoding dirs "/tcl8.6/encoding"
+    set ::myHOME [encoding convertfrom cp1251 $::myHOME]
+  }
+  default {
+    set ::myHOME $::env(HOME)
+  }
+}
 if {![llength $::importcmd]} {
     source [file join [file dirname [info script]] screenshot.tcl]
 }
@@ -97,8 +113,6 @@ set Font(about) [Platform {"Times New Roman" 12 bold} {Helvetica 12 bold}]
 set Font(zoomEntry) [Platform {Arial 10} {Helvetica 10}]
 set Font(dash) [Platform {Consolas 12 bold} {Consolas 12 bold}]
 #Разбираемся с Виндой
-set typesys [tk windowingsystem]
-global ::myHOME
 
 wm title . "TKsvgpaint $tksvgpaint_ver"
 wm iconphoto . tkpaint_icon
@@ -109,21 +123,6 @@ wm protocol . WM_DELETE_WINDOW {File exit}
 wm state . normal
 wm geometry . 450x150+100+50
 update
-
-set ::myHOME ""
-switch $typesys {
-  win32        {
-    source [file join [file dirname [info script]] ru.msg]
-    set ::myHOME $::env(USERPROFILE)
-    #Заменяем обратную косую в пути на нормальную косую
-    set ::myHOME [string map {"\\" "/"} $myHOME]
-    encoding dirs "/tcl8.6/encoding"
-    set ::myHOME [encoding convertfrom cp1251 $::myHOME]
-  }
-  default {
-    set ::myHOME $::env(HOME)
-  }
-}
 
 ###### DEFAULT VALUES OF GLOBAL VARIABLES
 

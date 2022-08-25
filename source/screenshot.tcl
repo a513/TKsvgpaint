@@ -754,7 +754,8 @@ namespace eval ::screenshot {
 			set wmenu $m0
 
 			if {[tk windowingsystem] ne "x11"} {
-				$m add checkbutton -label "Keep on Top" \
+				set ml "[msgcat::mc {Keep on Top}]"
+				$m add checkbutton -label $ml \
 					-underline 8 -accelerator "t" \
 					-variable [namespace current]::woptions(-topmost) \
 					-command "[namespace code {my configure}] -topmost $[namespace current]::woptions(-topmost)"
@@ -762,7 +763,7 @@ namespace eval ::screenshot {
 				bind $wcanvas <Key-t> [list $m invoke "Keep on Top"]
 			}
 
-			set ml "[mc {Show Grid}]"
+			set ml "[msgcat::mc {Show Grid}]"
 			$m add checkbutton -label $ml \
 				-accelerator "g" -underline 5 \
 				-variable [namespace current]::woptions(-grid) \
@@ -771,7 +772,7 @@ namespace eval ::screenshot {
 			bind $wcanvas <Key-g> [list $m invoke "Show Grid"]
 		
 			set m1 [menu $m.opacity -tearoff 0]
-			set ml [mc "Opacity"]
+			set ml [msgcat::mc "Opacity"]
 			$m add cascade -label $ml -menu $m1 -underline 0
 			for {set i 10} {$i <= 100} {incr i 10} {
 				set aval [expr {$i/100.}]
@@ -783,7 +784,7 @@ namespace eval ::screenshot {
 
 			$m add separator
 
-			set ml "[mc {Screenshot now}]"
+			set ml "[msgcat::mc {Screenshot now}]"
 			$m add command \
 				-label $ml \
 				-accelerator ${CTRL}s \
@@ -792,7 +793,7 @@ namespace eval ::screenshot {
 				-background $woptions(-background)
 
 			set m2 [menu $m.timeout -tearoff 0]
-			set ml "[mc {Screenshot with Timeout...}]"
+			set ml "[msgcat::mc {Screenshot with Timeout...}]"
 			$m add cascade -label $ml -menu $m2 -underline 0
 			for {set i 0} {$i <= $timeout_max} {incr i 4} {
 				$m2 add radiobutton -label "${i} sec" \
@@ -802,7 +803,7 @@ namespace eval ::screenshot {
 			}
 				
 			$m add separator
-			set ml "[mc {Close Window}]"
+			set ml "[msgcat::mc {Close Window}]"
 			$m add command \
 				-label $ml \
 				-accelerator "ESC" \
