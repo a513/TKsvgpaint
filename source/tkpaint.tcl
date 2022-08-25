@@ -4657,15 +4657,12 @@ proc shape2spline {id} {
    set Options(-tags)     [.c itemcget $id -tags]
 #LISSI
    set utagid [.c itemcget $id -tags]
-   if {![idissvg $id] } {
-	set Options(-width)    [.c itemcget $id -width]
-	set Options(-stipple)  [.c itemcget $id -stipple]
-#	set Options(-dash)  [.c itemcget $id -dash]
-   } else {
+   if {[idissvg $id] } {
 	set Options(-strokewidth)  [.c itemcget $id -strokewidth]
 	set Options(-strokedasharray)  [.c itemcget $id -strokedasharray]
 	set Options(-fillopacity)  [.c itemcget $id -fillopacity]
 	set Options(-fill)  [.c itemcget $id -fill]
+	set Options(-m)  [.c itemcget $id -m]
    }
 
    lappend Options(-tags) spline
@@ -4675,6 +4672,7 @@ proc shape2spline {id} {
    switch -exact -- $type {
       text      -
       line      -
+      polyline      -
       image     -
       bitmap    -
       polygon   { .c addtag spline withtag $id
@@ -4996,7 +4994,7 @@ proc deformObj {side utag} {
 	incr ind
 	set svg [lsearch [lindex $deformInfo($utag,options) $ind] "svg"]
     }
-    if {$svg > -1} {
+   if {$svg > -1} {
     set csvg $deformInfo($utag,coords)
     set i 0
     set coords1 $deformInfo($utag,coords)
@@ -5088,7 +5086,7 @@ proc deformObj {side utag} {
 	set new_coords "\"$new_coords\""
       }
     }
-    } else {
+   } else {
 
     switch $side {
       s  {
@@ -5151,6 +5149,7 @@ proc deformHandlePress {side} {
   }
   set deformInfo(undo) [getGroupCommand 1]
 
+set mat ""
   foreach id [.c find withtag Selected] {
      if {[idissvg $id]} {
         set tg [.c gettags $id]
@@ -5193,7 +5192,7 @@ proc deformHandlePress {side} {
      set u [Utag find [shape2spline $id]]
      set deformInfo($u,type) [.c type $u]
      set deformInfo($u,coords) [.c coords $u]
-     set deformInfo($u,options) [getObjectOptions $u 2]
+     set deformInfo($u,options) [getObjectOptions $u 2] 
   }
 }
 
@@ -5817,20 +5816,17 @@ set utags [list]
 
 ###################### SECTION:  ARROWS
 
-proc drawArrowHandle {x y w svg} {
+proc drawArrowHandle {x y w id} {
   set r [expr $w+5]
+puts "drawArrowHandle x=$x y=$y w=$w id=$id"
   set coords [list [expr $x-$r] [expr $y-$r] \
                    [expr $x-$r] [expr $y+$r] \
                    [expr $x+$r] [expr $y+$r] \
                    [expr $x+$r] [expr $y-$r] ]
-    if {$svg == 1} {
-	set options [list -outline black -width 1 -fill {} -smooth 1 \
-                    -tags {arrowHandle svg}]
-	return [eval .c create polygon $coords $options]
-#	set options [list -stroke black -strokewidth 1 -fill #000000 -fillopacity 0.0 
-	set options [list -stroke black -strokewidth 1 -fill {} -strokedasharray {} \
-                    -tags {arrowHandle svg}]
-	return [eval .c create circle $x $y -r $r $options]
+    if {[idissvg $id]} {
+	set m1 [.c itemcget $id -m]
+	set options [list -stroke black -strokewidth 1 -fill red -fillopacity 0.0 -tags {arrowHandle svg} -m "$m1"]
+	return [eval .c create circle $x $y $options -rx $r]
     } else {
 	set options [list -outline black -width 1 -fill {} -smooth 1 \
                     -tags arrowHandle]
@@ -5849,7 +5845,8 @@ proc arrowsMode {} {
       set type [.c type $id]
 	set utagid [.c itemcget $id -tags]
     if {[lsearch $utagid "svg"] != -1} {
-      if {$type=="line" || $type=="pline" || $type=="polyline"} {
+      set isLine [lsearch $utagid "Line"]
+      if {$type=="line" || $type=="pline" || $type=="polyline" || ($isLine != -1)} {
         lappend arrowsInfo(lines) $id
       }
     } else {
@@ -5869,14 +5866,20 @@ proc arrowsMode {} {
      set line [Utag find $line]
      set coords [.c coords $line]
      set n [llength $coords]
-     set x1 [lindex $coords 0]
-     set y1 [lindex $coords 1]
-     set x2 [lindex $coords [expr $n-2]]
-     set y2 [lindex $coords [expr $n-1]]
+     if {[idissvg $line] && [string is alpha [lindex $coords 0]]} {
+        set x1 [lindex $coords 1]
+        set y1 [lindex $coords 2]
+        set x2 [lindex $coords [expr $n-2]]
+        set y2 [lindex $coords [expr $n-1]]
+     } else {
+        set x1 [lindex $coords 0]
+        set y1 [lindex $coords 1]
+        set x2 [lindex $coords [expr $n-2]]
+        set y2 [lindex $coords [expr $n-1]]
+     }
      
 #LISSI
     set utagid [.c itemcget $line -tags]
-    set svg 0
     if {[lsearch $utagid "svg"] != -1} {
 	set sar [.c itemcget $line -startarrow]
 	set ear [.c itemcget $line -endarrow]
@@ -5890,24 +5893,21 @@ proc arrowsMode {} {
     	    set arrowsConfig "last"
         }
         set width [.c itemcget $line -strokewidth]
-	set svg 1
     } else {
 	set arrowsConfig [.c itemcget $line -arrow]
 	set width [.c itemcget $line -width]
     }
 
 #LISSI
-#     set id1 [drawArrowHandle $x1 $y1 $width]
-     set id1 [drawArrowHandle $x1 $y1 $width $svg]
-     
+     set id1 [drawArrowHandle $x1 $y1 $width $line]
+
      set arrowsInfo($id1,point) first
      set arrowsInfo($id1,line) $line
      set arrowsInfo($id1,option) $arrowsConfig
      .c bind $id1 <Button-1> "toggleArrow $id1"
 
 #LISSI
-#     set id2 [drawArrowHandle $x2 $y2 $width]
-     set id2 [drawArrowHandle $x2 $y2 $width $svg]
+     set id2 [drawArrowHandle $x2 $y2 $width $line]
 
      set arrowsInfo($id2,point) last
      set arrowsInfo($id2,line) $line
@@ -5950,7 +5950,7 @@ proc toggleArrow {id} {
     foreach {a b c d} $arrowsInfo(mapsvg) {
      if {$arrowsInfo($id,point)==$a && $arrowsInfo($id,option)==$b} {
 ##############
-puts "arrowsInfo(mapsvg)=$a $b $c $d"
+#puts "arrowsInfo(mapsvg)=$a $b $c $d"
 	    foreach {aa ba ca } $Graphics(arrowshape) {break}
 	    set aa [expr {1.0 * $aa}]
 	    set ba [expr {1.0 * $ba}]

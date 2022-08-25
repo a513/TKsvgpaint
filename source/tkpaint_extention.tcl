@@ -466,6 +466,7 @@ proc scaleid2xy {id x y {retm 0}} {
     foreach {xe ye} [id2coordscenter $id] {break}
 #Возвращаем объект в исходную точку 
     moveid2dxdy $id [expr {$xc - $xe}] [expr {$yc - $ye}]
+#    movecoords2dxdy $id [expr {$xc - $xe}] [expr {$yc - $ye}]
     return
 }
 #skewy id - сдвиг по оси y
@@ -533,27 +534,111 @@ set mOrig [.c itemcget $id -m]
     return
 }
 #move id - переместить по оси x и y на dx и dy
-#Tckb retm != 0, то возвращается созданная матрица
-proc moveid2dxdy {id dx dy {retm 0}} {
-#    moveGroupSVG $dx $dy
-#return
-
-#Матрица для оси X
-    set m1 [::tkp::matrix move $dx $dy]
-	if {$retm != 0} {
-	    return $m1
-	}
-#puts "rotateid2angle id=$id deg=$deg phi=$phi coors=$xr $yr m=$m1"
+proc moveid2dxdy {id dx dy } {
 #Читаем что было
-set mOrig [.c itemcget $id -m]
-#puts "rotateid2angle: m1=$m1\n\tmOrig=$mOrig"
-    if {$mOrig != ""} {
-	    set m1 [::tkp::matrix mult $m1 $mOrig]
-#puts "rotateid2angle Full: m1=$m1\n\tmOrig=$mOrig"
+    set mOrig [.c itemcget $id -m]
+    if {$mOrig == ""} {
+#	return
+	id2angle0 $id
+	set mOrig [.c itemcget $id -m]
     }
-    .c itemconfigure $id -m $m1
+    foreach {x y} [lindex $mOrig 2] {break}
+    set xnew [expr {$x + $dx}]
+    set ynew [expr {$y + $dy}]
+    set co3 "$xnew $ynew"
+    set mnew [list "[lindex $mOrig 0]" "[lindex $mOrig 1]" "$co3"]
+    .c itemconfigure $id -m $mnew
     if {$id == "Selected"} {
 	drawBoundingBox
+    }
+    return
+}
+proc TP_movecoordspath {id dx dy} {
+    set j 0
+    if {[.c type $id] != "path"} {return ""}
+    set lcoords [.c coords $id]
+    set co1 $lcoords
+    set nco ""
+#puts "TP_movecoordspath: coorig=$lcoords"
+    set starta [.c itemcget $id -startarrow]
+    set enda [.c itemcget $id -endarrow]
+    .c itemconfigure $id -startarrow 0
+    .c itemconfigure $id -endarrow 0
+    foreach t $co1 {
+	incr j
+        if {[string is alpha $t]} {
+    	    set co2 [lrange $co1 $j end]
+    	    set aco2 ""
+    	    switch $t {
+        	M {
+		    set aco2 [lrange $co2 0 1]
+        	}
+        	L {
+		    set aco2 [lrange $co2 0 1]
+        	}
+        	Q {
+		    set aco2 [lrange $co2 0 3]
+        	}
+        	C {
+		    set aco2 [lrange $co2 0 5]
+        	}
+        	A {
+		    append t " [lrange $co2 0 4]"
+		    set aco2 [lrange $co2 5 6]
+        	}
+        	Z {
+		    set aco2 ""
+        	}
+        	default {
+		    puts "Unknown typeType=$t"
+		    return 0
+        	}
+    	    }
+	    append nco " $t "
+    	    foreach {x y } $aco2 {
+		append nco " [expr {$x + $dx}]"
+		append nco " [expr {$y + $dy}]"
+    	    }
+	}
+    }
+#puts "TP_movecoordspath: nco=$nco"
+    .c coords $id "$nco" 
+    .c itemconfigure $id -startarrow $starta
+    .c itemconfigure $id -endarrow $enda
+    if {$id == "Selected"} {
+	drawBoundingBox
+    }
+    return 1
+}
+
+proc movecoords2dxdy {id dx dy } {
+    set tt [.c type $id]
+    if {$tt == ""} {return}
+    
+    set coords ""
+    if {$tt != "path"} {
+	if {$tt == "polyline"} {
+	    set starta [.c itemcget $id -startarrow]
+	    set enda [.c itemcget $id -endarrow]
+	    .c itemconfigure $id -startarrow 0
+	    .c itemconfigure $id -endarrow 0
+	}
+	foreach {x y} [.c coords $id] {
+	    append coords " [expr {$x + $dx}]"
+	    append coords " [expr {$y + $dy}]"
+	}
+	.c coords $id "$coords"
+	if {$tt == "polyline"} {
+	    .c itemconfigure $id -startarrow $starta 
+	    .c itemconfigure $id -endarrow $enda
+	}
+	if {$id == "Selected"} {
+	    drawBoundingBox
+	}
+    } else {
+	    if {[TP_movecoordspath $id $dx $dy] == 0} {
+		moveid2dxdy $id $dx $dy
+	    }
     }
     return
 }
@@ -576,23 +661,11 @@ proc moveGroupSVG {x y} {
 #Сохраняем угол поворота
 	set tid [idissvg $id]
 	if {$tid == 1} {
-#SVG-объект
-	    set mv [::tkp::matrix move $dx $dy]
-	    set mOrig [.c itemcget $id -m]
-	    if {$mOrig != ""} {
-#puts "moveGroupSVG: mv=$mv"
-#puts "moveGroupSVG: mOrig=$mOrig"
-		set m_Mult [::tkp::matrix mult $mv $mOrig]
-		.c itemconfigure $id -m $m_Mult
-	    } else {
-		.c itemconfigure $id -m $mv
-	    }
-
+	    moveid2dxdy $id $dx $dy
 	} else {
 	    .c move $id $dx $dy
 	}
     }
-
     drawBoundingBox
     if {[info exists lastX]} {
 	set lastX $x
@@ -2993,8 +3066,9 @@ proc TP_skewX { {deg 0} } {
     skewxid2angle $id  [expr {$degX - $Rotate(skewXlast)}]
     set Rotate(skewXlast) $Rotate(skewX)
     foreach {cx1 cy1} [id2coordscenter $id] {break}
-#moveid2dxdy $id [expr {$x0 - $cx0}] [expr {$y0 - $cy0}] 
     moveid2dxdy $id [expr {-1.0 * ($cx1 - $cx0)}] [expr {-1.0 * ($cy1 - $cy0)}] 
+#    movecoords2dxdy $id [expr {-1.0 * ($cx1 - $cx0)}] [expr {-1.0 * ($cy1 - $cy0)}] 
+
     set Rotate(matrixLast) [.c itemcget $id -m]
     drawBoundingBox
 }
@@ -3018,6 +3092,8 @@ proc TP_skewY { {deg 0} } {
     set Rotate(skewYlast) $Rotate(skewY)
     foreach {cx1 cy1} [id2coordscenter $id] {break}
     moveid2dxdy $id [expr {-1.0 * ($cx1 - $cx0)}] [expr {-1.0 * ($cy1 - $cy0)}] 
+#    movecoords2dxdy $id [expr {-1.0 * ($cx1 - $cx0)}] [expr {-1.0 * ($cy1 - $cy0)}] 
+
     set Rotate(matrixLast) [.c itemcget $id -m]
     drawBoundingBox
 }
