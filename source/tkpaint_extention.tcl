@@ -3327,7 +3327,7 @@ proc updateRadiusRoundRect {glw} {
 
 #######################SCREENSHOT###########################################
 proc TP_imagicScreen {display} {
-  Message "[mc {Take Snapshot}]"
+  Message "[mc {Take Snapshot. Select file for snapshot.}]"
     set asn [TP_DialogScreenshot ".imagic"]
     update
     if {$asn != ""} {
@@ -3342,8 +3342,8 @@ after 250
 }
 proc TP_saveAreaOrWin {} {
     variable ddelay1
-    variable varescTS; destroy $::winscreen
-    set varescTS 0
+    variable varescTS; 
+    destroy $::winscreen
     update
     after 400
     set ddelay1 [expr {$::ddelay * 1000}]
@@ -3353,7 +3353,23 @@ proc TP_saveAreaOrWin {} {
     set tube [ open |$command r+]
     fconfigure $tube -buffering line
     set ::varexec 0
+    switch $varescTS {
+	0 {
+	    Message "Cancel"
+	}
+	1 {
+	    Message "Snapshot full screen"
+	}
+	2 {
+	    Message "Click on a window"
+	}
+	3 {
+	    Message "Drag a rectangular area for scrennshot"
+	}
+    }
+    set varescTS -1
     fileevent $tube readable "set ::varexec 1"
+
     vwait ::varexec
     fileevent $tube readable ""
     gets $tube res
@@ -3373,6 +3389,7 @@ proc TP_saveAreaOrWin {} {
 
 proc TP_DialogScreenshot {w} {
     variable ::filescreen
+    global Font
     toplevel $w
     wm iconphoto $w tkpaint_icon
     wm geometry $w 400x500+200+100
@@ -3386,7 +3403,7 @@ proc TP_DialogScreenshot {w} {
     ttk::label $wbox.la -text "[mc {Select the file for the snapshot}]:" -style Small.TLabel -padding {0 0 0 6} -justify left
     pack $wbox.la -side top -anchor w -padx 2
 
-    ttk::label $wbox.lafile -text "[mc {The snapshot will be saved in a file}] \n xaxaxa " -padding {0 0 0 6} -justify left
+    ttk::label $wbox.lafile -text "[mc {The snapshot will be saved in a file}] \n xaxaxa " -padding {0 0 0 6} -justify left -font $Font(button)
     #-style Small.TLabel
     pack $wbox.lafile -side top -anchor w -padx {2 0}
 
@@ -3398,8 +3415,12 @@ proc TP_DialogScreenshot {w} {
     
     eval [subst "spinbox $wbox.fdel.spinbox  -background {white} -textvariable ::ddelay -borderwidth {1} -buttonbackground {#d6d2d0} -foreground {#221f1e} -highlightthickness {0} -increment {1} -to {60.0} -width {3}"]
     pack $wbox.fdel.spinbox -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
-    ttk::labelframe $wbox.lfr0 -text "[mc {Taking a picture}]" -labelanchor n -style ME.TLabelframe
-    ttk::radiobutton $wbox.lfr0.cbs0 -text "[mc {We wait}]" -value 0 -variable varescTS -command {puts "We wait"}
+    ttk::labelframe $wbox.lfr0 -text "[mc {Select type area for snapshot}]" -labelanchor n -style ME.TLabelframe
+    ttk::radiobutton $wbox.lfr0.cbs0 -text "[mc {Close Window}]" -value 0 -variable varescTS -command {
+	destroy $::winscreen
+	set varescTS -1
+	Message "Cancel"
+    }
     set ::winscreen $w
     set fscr [mc "Automatic"]
     ttk::radiobutton $wbox.lfr0.cbs1 -text "[mc {Full screen}] ($fscr)" -value 1 -variable varescTS -command \
@@ -3415,13 +3436,13 @@ proc TP_DialogScreenshot {w} {
     set wclick [mc "Click on a window"]
     ttk::radiobutton $wbox.lfr0.cbs2 -text "[mc {Window}] ($wclick)" -value 2 -variable varescTS -command {TP_saveAreaOrWin} 
 
-    set adrag [mc "Drag a rectangular area for scrennshot"]
-    ttk::radiobutton $wbox.lfr0.cbs3 -text "[mc {Screen area}] ($adrag)" -value 3 -variable varescTS -command {TP_saveAreaOrWin}
-    grid $wbox.lfr0.cbs1 -row 0 -column 0 -sticky w -padx 4 -pady {0 0}
-    grid $wbox.lfr0.cbs2 -row 1 -column 0 -sticky w -padx 4 -pady {0 0}
-    grid $wbox.lfr0.cbs3 -row 2 -column 0 -sticky w -padx 4 -pady {0 0}
+    ttk::radiobutton $wbox.lfr0.cbs3 -text "[mc {Screen area}]" -value 3 -variable varescTS -command {TP_saveAreaOrWin}
+    grid $wbox.lfr0.cbs0 -row 0 -column 0 -sticky w -padx 4 -pady {0 0}
+    grid $wbox.lfr0.cbs1 -row 1 -column 0 -sticky w -padx 4 -pady {0 0}
+    grid $wbox.lfr0.cbs2 -row 2 -column 0 -sticky w -padx 4 -pady {0 0}
+    grid $wbox.lfr0.cbs3 -row 3 -column 0 -sticky w -padx 4 -pady {0 0}
 
-    pack $wbox.lfr0 -side top -anchor w -fill none -padx 10 -pady 10
+    pack $wbox.lfr0 -side top -anchor w -fill x -padx 10 -pady 10
     if {[tk windowingsystem] == "x11"} {
 	$wbox.lfr0 configure -style RoundedLabelFrame
     }
@@ -3460,9 +3481,11 @@ proc TP_DialogScreenshot {w} {
 	Message "[mc {Operation canceled}]"
 	return $vrr
     }
+    wm geometry $w 400x280+200+100
     $wbox.lafile configure -text "[mc {The snapshot will be saved in a file}] \n$vrr "
 #    catch {destroy $w}   
-    Message "[mc {Select file for take Snapshot}]:$vrr"
+    set mes "[mc {Select file for take Snapshot}]"
+    Message "$mes: $vrr"
     set ::filescreen $vrr
 #    return $vrr
 }

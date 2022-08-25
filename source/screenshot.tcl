@@ -762,7 +762,8 @@ namespace eval ::screenshot {
 				bind $wcanvas <Key-t> [list $m invoke "Keep on Top"]
 			}
 
-			$m add checkbutton -label "Show Grid" \
+			set ml "[mc {Show Grid}]"
+			$m add checkbutton -label $ml \
 				-accelerator "g" -underline 5 \
 				-variable [namespace current]::woptions(-grid) \
 				-command "[namespace code {my configure}] -grid $[namespace current]::woptions(-grid)"
@@ -770,7 +771,8 @@ namespace eval ::screenshot {
 			bind $wcanvas <Key-g> [list $m invoke "Show Grid"]
 		
 			set m1 [menu $m.opacity -tearoff 0]
-			$m add cascade -label "Opacity" -menu $m1 -underline 0
+			set ml [mc "Opacity"]
+			$m add cascade -label $ml -menu $m1 -underline 0
 			for {set i 10} {$i <= 100} {incr i 10} {
 				set aval [expr {$i/100.}]
 				$m1 add radiobutton -label "${i}%" \
@@ -781,15 +783,17 @@ namespace eval ::screenshot {
 
 			$m add separator
 
+			set ml "[mc {Screenshot now}]"
 			$m add command \
-				-label "Screenshot now" \
+				-label $ml \
 				-accelerator ${CTRL}s \
 				-underline 7 \
 				-command "[namespace code {my ScreenShotCmd}]" \
 				-background $woptions(-background)
 
 			set m2 [menu $m.timeout -tearoff 0]
-			$m add cascade -label "Screenshot with Timeout..." -menu $m2 -underline 0
+			set ml "[mc {Screenshot with Timeout...}]"
+			$m add cascade -label $ml -menu $m2 -underline 0
 			for {set i 0} {$i <= $timeout_max} {incr i 4} {
 				$m2 add radiobutton -label "${i} sec" \
 					-variable [namespace current]::timeout \
@@ -798,8 +802,9 @@ namespace eval ::screenshot {
 			}
 				
 			$m add separator
+			set ml "[mc {Close Window}]"
 			$m add command \
-				-label "Close Window" \
+				-label $ml \
 				-accelerator "ESC" \
 				-command "[namespace code {my hide}]"
 #LISSI

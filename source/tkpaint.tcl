@@ -1473,7 +1473,7 @@ foreach s {butt projecting round} {
 menu .mbar.image.menu -tearoff 0
 if {$ImgAvaliable} {
 set imageInfo {
-  RegionScreenshot {$cmdscreenshot display}
+  RegionScreenshot {if {$cmdscreenshot != "TP_imagicScreen"} {Message "Usage Size grip for resize and right click"} ;$cmdscreenshot display}
   FreeSelectionArea {TP_freehandSelect}
   UnFreeSelectArea {TP_unfreehandSelect}
   SaveGroupToFile {TP_saveGroupFromRGB 0}
