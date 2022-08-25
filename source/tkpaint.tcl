@@ -2823,17 +2823,19 @@ proc makeArc {x y} {
 	set flags "$f1 $f2 $f3"
 
 
+	set atags "arc $Graphics(shape) obj svg"
         if {$Graphics(shape) == "pieslice" } {
 	    set arcsvg [subst "\"M $Arc(p1) A $rad $rad $flags $Arc(p2) L $coordsR Z\""]
         } elseif {$Graphics(shape) == "chord" } {
 	    set arcsvg [subst "\"M $Arc(p1) A $rad $rad $flags $Arc(p2) Z\""]
         } else {
 	    set arcsvg [subst "\"M $Arc(p1) A $rad $rad $flags $Arc(p2)\""]
+	    append atags " Line"
 	}
 	set fillstyle [TP_opacityFromStyle $Graphics(fill,style)]
 	set linestyle [TP_opacityFromStyle $Graphics(line,style)]
 	set Arc(id) [eval .c create path  $arcsvg \
-	    { -tags "arc $Graphics(shape) obj svg" -stroke $Graphics(line,color) -fill $Graphics(fill,color) -strokewidth $Graphics(line,width) -strokedasharray $Graphics(linesvg,dash) -fillopacity $fillstyle -strokeopacity $linestyle }
+	    { -tags $atags -stroke $Graphics(line,color) -fill $Graphics(fill,color) -strokewidth $Graphics(line,width) -strokedasharray $Graphics(linesvg,dash) -fillopacity $fillstyle -strokeopacity $linestyle }
 	    ]
   } else {
 
@@ -5817,7 +5819,7 @@ set utags [list]
 
 proc drawArrowHandle {x y w id} {
   set r [expr $w+5]
-puts "drawArrowHandle x=$x y=$y w=$w id=$id"
+#puts "drawArrowHandle x=$x y=$y w=$w id=$id"
   set coords [list [expr $x-$r] [expr $y-$r] \
                    [expr $x-$r] [expr $y+$r] \
                    [expr $x+$r] [expr $y+$r] \
