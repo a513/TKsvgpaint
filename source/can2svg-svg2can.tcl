@@ -1336,6 +1336,8 @@ proc can2svg::MakeStyleAttr {type opts} {
 	    }
 	    if {$key  == "-fillopacity"} {
 		set key "-fill-opacity"
+	    } elseif {$key  == "-fillrule"} {
+		set key "-fill-rule"
 	    }
 
 	    if {$value == ""} {
