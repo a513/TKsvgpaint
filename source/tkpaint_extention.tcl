@@ -2025,6 +2025,8 @@ proc ShowWindow.tpcolorsel { type } {
   if {$type == "image"} {
     wm title .tpcolorsel "Image tintcolor selection"
     wm iconphoto .tpcolorsel tkpaint_icon
+  } elseif {$type == "bgcanvas"} {
+    wm title .tpcolorsel "[mc {Fill color canvas}]"
   } else {
     wm title .tpcolorsel "$type color selection"
   }
@@ -2276,6 +2278,7 @@ if {[string length $rgb] > 0 && $tfill == "color"} {
   } {
       set rgb \#[format "%.2X%.2X%.2X" $TPcolor(red) $TPcolor(green) $TPcolor(blue)]
     }
+#puts "rgbor=$rgbor rgb=$rgb"
 if {![catch {winfo rgb . $rgb}]} {
 #LISSI
     if {$TPcolorCmd == ".c configure -background"} {
@@ -2332,7 +2335,8 @@ if {![catch {winfo rgb . $rgb}]} {
 	    .tpcolorsel.top.right.color itemconfigure $id -fill [subst $$TPcolor(rgb)]
 	} else {
 #puts "TP_ColorSetSample not grad: FILL=$TPcolor(rgb) id=$id "
-	    .tpcolorsel.top.right.color itemconfigure $id -fill $TPcolor(rgb)
+#	    .tpcolorsel.top.right.color itemconfigure $id -fill $TPcolor(rgb)
+	    .tpcolorsel.top.right.color itemconfigure $id -fill $rgb
 	}
 
 	if {$TPcolorCmd != ".c configure -background"} {

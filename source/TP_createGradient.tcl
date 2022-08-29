@@ -1,6 +1,5 @@
 package require tkpath 0.3.3
 
-
 proc ShowWindow.tpgradient { id grad} {
   global TPcolor
   global Gradient
@@ -130,19 +129,19 @@ pack .tpgradient.frameFirst.frame0.frame2 -anchor n -expand 0 -fill x -ipadx 0 -
     pack $wtrlb.l1 -side left
     label $wtrlb.l2 -background {#d6d2d0} -borderwidth {0} -foreground {#221f1e} -relief {flat} -text {x0:}
     pack $wtrlb.l2 -anchor center -expand 0 -side left
-    spinbox $wtrlb.e2 -background {white} -textvariable Gradient(x0) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.1} -to {1.0} -width {3} -command {changetransition .tpgradient.frameFirst.canvas18}
+    spinbox $wtrlb.e2 -background {white} -textvariable Gradient(x0) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.01} -to {1.0} -width {4} -command {changetransition .tpgradient.frameFirst.canvas18}
     pack $wtrlb.e2 -anchor center -expand 0 -padx 1 -side left -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 
     label $wtrlb.l3 -background {#d6d2d0} -borderwidth {0} -foreground {#221f1e} -relief {flat} -text {x1:}
     pack $wtrlb.l3 -anchor center -expand 0 -side left
-    spinbox $wtrlb.e3 -background {white} -textvariable Gradient(x1) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.1} -to {1.0} -width {3} -command {changetransition .tpgradient.frameFirst.canvas18}
+    spinbox $wtrlb.e3 -background {white} -textvariable Gradient(x1) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.01} -to {1.0} -width {4} -command {changetransition .tpgradient.frameFirst.canvas18}
     pack $wtrlb.e3 -anchor center -expand 0 -padx 1 -side left
     label $wtrlb.l4 -background {#d6d2d0} -borderwidth {0} -foreground {#221f1e} -relief {flat} -text {y0:}
     pack $wtrlb.l4 -anchor center -expand 0 -side left
-    spinbox $wtrlb.e4 -background {white} -textvariable Gradient(y0) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.1} -to {1.0} -width {3} -command {changetransition .tpgradient.frameFirst.canvas18}
+    spinbox $wtrlb.e4 -background {white} -textvariable Gradient(y0) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.01} -to {1.0} -width {4} -command {changetransition .tpgradient.frameFirst.canvas18}
     pack $wtrlb.e4 -anchor center -expand 0 -padx 1 -side left
     label $wtrlb.l5 -background {#d6d2d0} -borderwidth {0} -foreground {#221f1e} -relief {flat} -text {y1:}
     pack $wtrlb.l5 -anchor center -expand 0 -side left
-    spinbox $wtrlb.e5 -background {white} -textvariable Gradient(y1) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.1} -to {1.0} -width {3} -command {changetransition .tpgradient.frameFirst.canvas18}
+    spinbox $wtrlb.e5 -background {white} -textvariable Gradient(y1) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.01} -to {1.0} -width {4} -command {changetransition .tpgradient.frameFirst.canvas18}
     pack $wtrlb.e5 -anchor center -expand 0 -padx 1 -side left
 #Radial transition
     set wtrrb ".tpgradient.frameFirst.frame0.fbboxr"
@@ -151,30 +150,30 @@ pack .tpgradient.frameFirst.frame0.frame2 -anchor n -expand 0 -fill x -ipadx 0 -
     pack $wtrrb.l1 -side left
     label $wtrrb.l2 -background {#d6d2d0} -borderwidth {0} -foreground {#221f1e} -relief {flat} -text {cx:}
     pack $wtrrb.l2 -anchor center -expand 0 -side left
-    spinbox $wtrrb.e2 -background {white} -textvariable Gradient(cx) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.1} -to {1.0} -width {3} -command {changetransition .tpgradient.frameFirst.canvas18}
+    spinbox $wtrrb.e2 -background {white} -textvariable Gradient(cx) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.01} -to {1.0} -width {4} -command {changetransition .tpgradient.frameFirst.canvas18}
     pack $wtrrb.e2 -anchor center -expand 0 -padx 1 -side left
     label $wtrrb.l3 -background {#d6d2d0} -borderwidth {0} -foreground {#221f1e} -relief {flat} -text {cy:}
     pack $wtrrb.l3 -anchor center -expand 0 -side left
-    spinbox $wtrrb.e3 -background {white} -textvariable Gradient(cy) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.1} -to {1.0} -width {3} -command {changetransition .tpgradient.frameFirst.canvas18}
+    spinbox $wtrrb.e3 -background {white} -textvariable Gradient(cy) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.01} -to {1.0} -width {4} -command {changetransition .tpgradient.frameFirst.canvas18}
     pack $wtrrb.e3 -anchor center -expand 0 -padx 1 -side left
     label $wtrrb.l4 -background {#d6d2d0} -borderwidth {0} -foreground {#221f1e} -relief {flat} -text {r:}
     pack $wtrrb.l4 -anchor center -expand 0 -side left
-    spinbox $wtrrb.e4 -background {white} -textvariable Gradient(r) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.1} -to {1.0} -width {3} -command {changetransition .tpgradient.frameFirst.canvas18}
+    spinbox $wtrrb.e4 -background {white} -textvariable Gradient(r) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.01} -to {1.0} -width {4} -command {changetransition .tpgradient.frameFirst.canvas18}
     pack $wtrrb.e4 -anchor center -expand 0 -padx 1 -side left
     label $wtrrb.l5 -background {#d6d2d0} -borderwidth {0} -foreground {#221f1e} -relief {flat} -text {fx:}
     pack $wtrrb.l5 -anchor center -expand 0 -side left
-    spinbox $wtrrb.e5 -background {white} -textvariable Gradient(fx) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.1} -to {1.0} -width {3} -command {changetransition .tpgradient.frameFirst.canvas18}
+    spinbox $wtrrb.e5 -background {white} -textvariable Gradient(fx) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.01} -to {1.0} -width {4} -command {changetransition .tpgradient.frameFirst.canvas18}
     pack $wtrrb.e5 -anchor center -expand 0 -padx 1 -side left
     label $wtrrb.l6 -background {#d6d2d0} -borderwidth {0} -foreground {#221f1e} -relief {flat} -text {fy:}
     pack $wtrrb.l6 -anchor center -expand 0 -side left
-    spinbox $wtrrb.e6 -background {white} -textvariable Gradient(fy) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.1} -to {1.0} -width {3} -command {changetransition .tpgradient.frameFirst.canvas18}
+    spinbox $wtrrb.e6 -background {white} -textvariable Gradient(fy) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -increment {0.01} -to {1.0} -width {4} -command {changetransition .tpgradient.frameFirst.canvas18}
     pack $wtrrb.e6 -anchor center -expand 0 -padx 1 -side left
 
-label .tpgradient.frameFirst.frame0.label1 -background {#d6d2d0} -foreground {#221f1e} -relief {flat} -text {Type Gradient}
+label .tpgradient.frameFirst.frame0.label1 -background {#d6d2d0} -foreground {#221f1e} -relief {flat} -text "[mc {Type Gradient}]"
 
 pack .tpgradient.frameFirst.frame0.label1 -anchor n -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 
-label .tpgradient.frameFirst.frame0.label5 -background {#d6d2d0} -foreground {#221f1e} -relief {flat} -text {Components of the gradient}
+label .tpgradient.frameFirst.frame0.label5 -background {#d6d2d0} -foreground {#221f1e} -relief {flat} -text "[mc {Components of the gradient}]"
 
 pack .tpgradient.frameFirst.frame0.label5 -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 
@@ -404,10 +403,10 @@ proc createstop {wfr i} {
 	set max 1.0
     }
 #puts "lll Gradient(offset$l)=$Gradient(offset$l) j=$j j_gr=$Gradient(offset$j)"
-    eval [subst "spinbox $w.spinbox1 -background {white} -textvariable Gradient(offset$i) -from $min  -increment {0.1} -to $max  -width {3} -command {changestops .tpgradient.frameFirst.canvas18 $i $wfr.frame}"]
+    eval [subst "spinbox $w.spinbox1 -background {white} -textvariable Gradient(offset$i) -from $min  -increment {0.01} -to $max  -width {4} -command {changestops .tpgradient.frameFirst.canvas18 $i $wfr.frame}"]
 
     pack $w.spinbox1 -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 4 -pady 0 -side left
-    eval [subst "spinbox $w.spinbox2 -background {white} -textvariable Gradient(opacity$i) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -highlightthickness {0} -increment {0.1} -to {1.0} -width {3} -command {changestops .tpgradient.frameFirst.canvas18}"]
+    eval [subst "spinbox $w.spinbox2 -background {white} -textvariable Gradient(opacity$i) -borderwidth {0} -buttonbackground {#d6d2d0} -foreground {#221f1e} -highlightthickness {0} -increment {0.01} -to {1.0} -width {4} -command {changestops .tpgradient.frameFirst.canvas18}"]
 
     pack $w.spinbox2 -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
 

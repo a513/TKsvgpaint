@@ -2853,6 +2853,7 @@ proc makeArc {x y} {
                    }
      ]
   }
+  Message "Now hold and drag the mouse!"
 }
 
 ###### FREE HAND SECTION
@@ -3069,11 +3070,13 @@ puts "proc Image - УБРАТЬ 0"
 		set worig [image width $Image(name)]
 		set k 1.0
 		set k1 1.0
-		if {$worig > 450 } {
-		    set k [expr {$worig / 450.0}]
+		set wcan [expr {[winfo width .c] * 1.0}]
+		set hcan [expr {[winfo height .c] * 1.0}]
+		if {$worig > $wcan } {
+		    set k [expr {$worig / $wcan}]
 		} 
-		if {$horig > 150 } {
-		    set k1 [expr {$horig / 150.0}]
+		if {$horig > $hcan } {
+		    set k1 [expr {$horig / $hcan}]
 		} 
 		if {$k1 > $k } {
 		    set $k $k1
