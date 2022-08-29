@@ -760,10 +760,10 @@ C  grid,size 1  7  grid.gif    {set Graphics(grid,on) 1}
 R  mode  1 8  reconf.gif       {.mbar.group.menu invoke 0}
 B  dumm  1 9 undo.gif          {Undo exec}
 B  dumm  1 10 unundo.gif       {History repeat}
-B  dumm  1 11 createpath.gif   {.mbar.shape.menu invoke "Create PATH"}
-B  dumm  0 12 select1obj.gif   {select1object}
+B  dumm  1 11 select1obj.gif   {select1object}
+R  mode  0 12 callout.gif  {set Graphics(type) "SVG" ; .mbar.shape.menu  invoke "Callout"}
 B  dumm  1 12 freeselection.gif  {TP_freehandSelect}
-R  mode  0 13 callout.gif  {set Graphics(type) "SVG" ; .mbar.shape.menu  invoke "Callout"}
+B  dumm  0 13 createpath.gif   {.mbar.shape.menu invoke "Create PATH"}
 R  mode  1 13 bwrect  {puts "[mc {Reserve}]"}
 B  dumm  0 14 withoutfilling.gif {TP_fill "no"}
 B  dumm  1 14 withfill.gif   	 {TP_fill "yes"}
@@ -7166,10 +7166,10 @@ if {$colsvg < 12 } {
 
 }
 set ButtonsHelpSVG { 
-  1  11  createpath.gif   "Create PATH"
-  0  12  select1obj.gif "Select one object"
+  1  11  select1obj.gif "Select one object"
+  0  12  callout.gif "Drawing callouts"
   1  12  freeselection.gif "Free selection of the area"
-  0  13  callout.gif "Drawing callouts"
+  0  13  createpath.gif   "Create PATH"
   1  13  callout.gif "Reserve"
   0  14  withoutfilling "Without filling"
   1  14  withfill "With fill"

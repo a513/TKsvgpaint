@@ -1371,6 +1371,8 @@ proc ShowWindow.tpcmdedit { id} {
 		append dpath " "
 	    } elseif {$ss == "-"} {
 		append dpath "  $ss"
+	    } elseif {$ss == "\\"} {
+		append dpath "  "
 	    } elseif {[string is alpha $ss]} {
 		append dpath " $ss "
 	    } else {
