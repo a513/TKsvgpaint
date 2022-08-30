@@ -4093,17 +4093,12 @@ proc drawSelectionBox {x y} {
 }
 
 proc drawGrayBox {x1 y1 x2 y2 col stip tag} {
-#LISSI
-    set g3 [.c gradient create linear -stops {{0 "#f60"} } -lineartransition {0 0 0 1}]
-    return [.c create prect $x1 $y1 $x2 $y2 -fill $col -fillopacity 0.2 -stroke {}  -tags "graybox $tag"]
-#    return [.c create prect $x1 $y1 $x2 $y2 -fill $g3 -fillopacity 0.2 -stroke {}  -tags "graybox $tag"]
-
-
-  return [.c create rectangle $x1 $y1 $x2 $y2 \
-                -outline {} \
-                -fill $col \
-                -stipple $stip \
-                -tags "graybox $tag"]
+    if {$tag == "mainBBox"} {
+	set fopat 0.2
+    } else {
+	set fopat 0.5
+    }
+    return [.c create prect $x1 $y1 $x2 $y2 -fill $col -fillopacity $fopat -stroke {}  -tags "graybox $tag"]
 #  .c raise gridObject
 }
 

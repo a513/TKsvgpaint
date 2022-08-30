@@ -43,7 +43,7 @@ namespace eval ttk::theme::Breeze {
 #LISSI
 variable I
 array set I []
-set I(checkbox-checked-insensitive) [image create photo  -data {
+set I(checkbox-checked-insensitive) [image create photo breeze_1  -data {
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAAB3RJTUUH4wIBDBQWTRhs6QAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl
 YXRlZCB3aXRoIEdJTVBkLmUHAAAAhElEQVQoz2N8+uz5vXv3f/z4wUAIsLKyKSsr
@@ -52,7 +52,7 @@ Mh4+eoyFmUVMVJSLmxu/hlcvX7x7/4Hpx/cfxKhmYGAQE5f48+cPCwMDA0T1lStX
 BDWws7Hz8PIAAOrPKVFW/hqaAAAAAElFTkSuQmCC
 }]
 
-set I(arrow-up-insens) [image create photo  -data {
+set I(arrow-up-insens) [image create photo breeze_2 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAnElEQVQokWNgGBCgp2clpqdnJYZNjhmb4n8sv23+M/2TkxBVePvy5eOv
 ODUYGhqK/mX+a8Pwi+UYK9Pvh3+Z/9qICcu9f/Xq6VcMDYaGhqK/GRltGH6xHrty
@@ -60,7 +60,7 @@ ODUYGhqK/mX+a8Pwi+UYK9Pvh3+Z/9qICcu9f/Xq6VcMDYaGhqK/GRltGH6xHrty
 ftsw/fm5Eyqgx0045AirGSAAAF+6TLqSnAj4AAAAAElFTkSuQmCC
 }]
 
-set I(button-focus) [image create photo  -data {
+set I(button-focus) [image create photo breeze_3 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gwaCQYvn1brgwAAAHVJ
 REFUOMtj3PH4o9DMw0/evvrxl4EcIMbBzJBuKyPMGLjs6v+nn74ysIvJk2XQz1cP
@@ -68,7 +68,7 @@ GaT5uBmYXv34S7YhDAwMDOxi8gyvfvxlYGKgEhg1aNSgUYPoZJAYBzPDz1cPyTYA
 ppdxyoXXDHuvvfpPScH2clGFGQA4JyludaEdxQAAAABJRU5ErkJggg==
 }]
 
-set I(scale-slider) [image create photo  -data {
+set I(scale-slider) [image create photo breeze_4 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAACAklEQVQ4jZ3UwW4SQRgH8G9nEnC3ZVkWVg9FLdC+gSXhDYQIxpfw
 Io1Jr2yY7AY89lA56FsoGJY+gtX0WA8t2Fp60N3uLiywQDKLFzBGIVD+x8nkl5nJ
@@ -84,7 +84,7 @@ GmFZLpmIxYOCOK0R0+42v7c6w1Vq5O8oiuJzXfcJYPxoep8fLMt+XVRsvwEA4+2/
 bFDHrgAAAABJRU5ErkJggg==
 }]
 
-set I(arrow-left) [image create photo  -data {
+set I(arrow-left) [image create photo breeze_5 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAApElEQVQokWNgwAMMLCwU0MWYcCu2cWD8x3wKXRNWDUZm1raM//6vZGT4
 H3HhxIkHyHKM2BT/Z2BYw8jwP/LcqWP70OUZSVGM4iQDCxuH/wwMa/8zMYbjUozT
@@ -92,14 +92,14 @@ D/gAM4zx4smjB9Iy8scZ/v9fLSUte+7508f38WpgYGBgeP700SNpGfkT/xkYVuHS
 xIwuQEgTRrDCACTi/q/6z/TXDD0ucAJsSQMAFAxNNV1ljE4AAAAASUVORK5CYII=
 }]
 
-set I(arrow-down-small) [image create photo  -data {
+set I(arrow-down-small) [image create photo breeze_6 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAABmJLR0QA/wD/AP+g
 vaeTAAAAaUlEQVQYlY2OsQmAQBRDE13EEQ4E/cUvbgrBFUVXEAsRuULcR7xvYaEI
 wqVMyEuAFDmR4s+jEykY82AZm32dpztUz2idZWdFAChr1Wg2ENYCPAzoCWu3sIx8
 kHcLAN60z656J+qTjifrArMaJQwlwdAIAAAAAElFTkSuQmCC
 }]
 
-set I(slider-vert-insens) [image create photo  -data {
+set I(slider-vert-insens) [image create photo breeze_7 -data {
 iVBORw0KGgoAAAANSUhEUgAAAA0AAAAcCAYAAAC6YTVCAAAABHNCSVQICAgIfAhk
 iAAAAAlwSFlzAAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3Nj
 YXBlLm9yZ5vuPBoAAACOSURBVDiN7dQxCoNAEAXQPyHEdkGEHC7BUxiskiJVco0c
@@ -108,7 +108,7 @@ TMhN1Qig9N1hjghcg/Ui+XQMEIDzVreENhNRRBHti5qF7ruKBPwEhL9d8BsNQ3p3
 zkDIxYMsSx/rB++VEXQiLMNb4JDyAAAAAElFTkSuQmCC
 }]
 
-set I(scrollbar-slider-insens) [image create photo  -data {
+set I(scrollbar-slider-insens) [image create photo breeze_8 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gwcCgIqrH07jQAAAGlJ
 REFUSMft1sEJgDAQRNG/agVqF+nHIu0nXSTYQEg8iIiga1DwtHPbgXnnFZS42dO3
@@ -116,21 +116,21 @@ I8h2CxBTwE/udtNo4NAdGEDZOyUqWCq7avBNDDTQQAMNNNDA/0D5Al6N88PvoIIx
 hRMqwJKiCq47KxE+Y3DNVgAAAABJRU5ErkJggg==
 }]
 
-set I(arrow-up-small-insens) [image create photo  -data {
+set I(arrow-up-small-insens) [image create photo breeze_9 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAABmJLR0QA/wD/AP+g
 vaeTAAAAbElEQVQYlWNgoCrQ07MS09OzEkMWY0aW/Mfy2+Y/0z85CVGFty9fPv4K
 V2BoaCj6l/mvDcMvlmOsTL8f/mX+ayMmLPf+1aunXxn19PS4/7GwuzP9YT1y6dKx
 V8imMf35uRNqvB43pnswxbACAKumJqoFm1acAAAAAElFTkSuQmCC
 }]
 
-set I(arrow-down-small-insens) [image create photo  -data {
+set I(arrow-down-small-insens) [image create photo breeze_10 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAABmJLR0QA/wD/AP+g
 vaeTAAAAb0lEQVQYlWNgIAbo6elx4xJj1tPT4/7Hwu4uIarw9uXLx18hklZi/1gY
 nSRERR4xMjAwMBgaGor+ZmS0YfjFeoyV9dc/GPvKlZMvGRFGWon9Y/ltw8DAwMD0
 h/XIpUvHXmFxi5WYnp6VGFEOJxoAAKNBIGUZVYmsAAAAAElFTkSuQmCC
 }]
 
-set I(entry) [image create photo  -data {
+set I(entry) [image create photo breeze_11 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAABmJLR0QA/wD/AP+g
 vaeTAAAAnElEQVQ4je3UsQ6DMAwE0DNKVMaQpUGF/v93ARJ0Ic5IE8kMoA7tQFqp
 G7c/yTf4yHPAr1EARGSaHjNzivEYKG0r49yViMhzGMepLC9tcyOiQywiXT8sy7Ou
@@ -138,7 +138,7 @@ XQFgZs6UAIjo3jYzM4ACQIoxU778VrDIN5858Yn/j5XSIpJvREQrvWNbma4fMv32
 kpU1AMhz2MfAc0rfj0H+wW9ZAQTbTWWTVwQkAAAAAElFTkSuQmCC
 }]
 
-set I(radio-unchecked) [image create photo  -data {
+set I(radio-unchecked) [image create photo breeze_12 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAB+klEQVQ4jZ3UvW4aQRSG4e/M8BcgbGJIkcLIWnAV30Agaem5D8cF
 EAnJSAiJggK2IL4PqN0GwxWkY1YWkdIEHO+Gf9g9aUIUORCM33rm0UxxDjEzdlUs
@@ -154,21 +154,21 @@ EB1FwuEVANjjsRfMd67rNH0ez6f/rpGH5UulY+m6cWD/YvsF9VEE5DDOt3oAAAAA
 SUVORK5CYII=
 }]
 
-set I(notebook-tab-top) [image create photo  -data {
+set I(notebook-tab-top) [image create photo breeze_13 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAWCAYAAAD0OH0aAAAABmJLR0QAywDMAM6D
 7+ImAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4gwcCQIb/+WF7gAAADlJ
 REFUOMtjPH3m3H8G4sCFp8+edjARqZiBh5dXhYGBIYdoDV8+f+ZhYGCwIVoDDIxq
 GNUwqoGeGgAWkgtw6lHz0gAAAABJRU5ErkJggg==
 }]
 
-set I(scrollbar-trough-vert-active_ME) [image create photo  -data {
+set I(scrollbar-trough-vert-active_ME) [image create photo breeze_14 -data {
 R0lGODlhFAA4AIABAK+vr////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEKAAEA
 LAAAAAAUADgAAAJojB+gi93LnIRKTmodBfnhfmxg+I3imJTgaaodu7oZ/MoWPdsX
 hKY8irvpNEPPr3WMJWvLXFP43EWQU2WVeXVmoVtpBVhEBL0ccJR4NnbRa/WX+rbG
 sXNtnXsn98bsfL8MBygnSEdoUAAAOw==
 }]
 
-set I(scrollbar-trough-vert-active) [image create photo  -data {
+set I(scrollbar-trough-vert-active) [image create photo breeze_15 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAA4CAYAAAD959hAAAAABmJLR0QA/wD/AP+g
 vaeTAAAAsUlEQVRYhe3XoQ7CMBQF0NuNUgzZFPwACswcFrsvnsXiZkDxA6BYMJSy
 DoNYUtYtDYbsPnn77kntA0Y3om9hlecqud6XAFAt5pdzUehgMMt2aTPVWwDyExnx
@@ -177,7 +177,7 @@ kCBBgn8FChHZIdlgEHVdOZm1nZdoP/iaHQGYVmJg1MlX+fkBPsJ5A6faL2J/SI4T
 AAAAAElFTkSuQmCC
 }]
 
-set I(transparent) [image create photo  -data {
+set I(transparent) [image create photo breeze_16 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gwcCgIqrH07jQAAAGlJ
 REFUSMft1sEJgDAQRNG/agVqF+nHIu0nXSTYQEg8iIiga1DwtHPbgXnnFZS42dO3
@@ -185,7 +185,7 @@ I8h2CxBTwE/udtNo4NAdGEDZOyUqWCq7avBNDDTQQAMNNNDA/0D5Al6N88PvoIIx
 hRMqwJKiCq47KxE+Y3DNVgAAAABJRU5ErkJggg==
 }]
 
-set I(arrow-up) [image create photo  -data {
+set I(arrow-up) [image create photo breeze_17 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAl0lEQVQokWNgGBBgYGHjYGBh44BNjhGbYsZ//1cxMDAw/GdiDLtw4sgB
 ZHkmZI6RmbUt47//KxkZ/kcwMTIGMf77v9LIzMoJWQ0zsuL/DAxrGBn+R547dWzf
@@ -193,12 +193,12 @@ ZHkmZI6RmbUt47//KxkZ/kcwMTIGMf77v9LIzMoJWQ0zsuL/DAxrGBn+R547dWzf
 oAIWCjiDDK6JsJoBAgCDC0TdOaVozgAAAABJRU5ErkJggg==
 }]
 
-set I(empty) [image create photo  -data {
+set I(empty) [image create photo breeze_18 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAYAAACprHcmAAAADklEQVQY02NgGAUj
 CAAAAe8AAZYMGBwAAAAASUVORK5CYII=
 }]
 
-set I(radio-checked-insensitive) [image create photo  -data {
+set I(radio-checked-insensitive) [image create photo breeze_19 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAACNElEQVQ4ja2UQW7aQBiFvxljO0yCHUBqIjWrhBs0UhbZEImNN80F
 coPkOOkNcoF24w1S2LBAojdAWWWBKgVqEwy2YaYLTJsqgXTRt/znf2+e/nn/CGMM
@@ -215,14 +215,14 @@ G/Y6kOPpmLQYrGs7VItAaqMZDAd5tsjC1unFJbxIdjl1ruYi7w2Gg8ZR7cj2lY+v
 Kaoh4zEpAAAAAElFTkSuQmCC
 }]
 
-set I(treeheading-prelight) [image create photo  -data {
+set I(treeheading-prelight) [image create photo breeze_20 -data {
 iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4gwcDyY3OFh0GQAAAD9J
 REFUSMdjPH3m3P+TLLIM9ATmfx4zMDEMEBi1eNTiUYtHLR61eNTiUYtHLR61eNTi
 UYtHLR5CFrPAOlH0BgBGrQi4XsR1pQAAAABJRU5ErkJggg==
 }]
 
-set I(arrow-left-insens) [image create photo  -data {
+set I(arrow-left-insens) [image create photo breeze_21 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAr0lEQVQokWNgwAP09PS40cWYcCu2EvvHwu6OrgmrBkNDQ9F/LD+sGX4x
 Hb106dJXZDlGbIp/MzLaMPxiPXblysmX6PKMpChmYGBgYEZ2819mBlumP+xHL18+
@@ -231,7 +231,7 @@ LP+scWliRhcgpAlDA0yThKjiu/+sf20kREUevXz58jdRHsSWNADX+VDujWZOMwAA
 AABJRU5ErkJggg==
 }]
 
-set I(scrollbar-slider-vert-active) [image create photo  -data {
+set I(scrollbar-slider-vert-active) [image create photo breeze_22 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAABmJLR0QA/wD/AP+g
 vaeTAAAAkElEQVRIie3WsQ3CMBCF4d8I4d64gBkyU2ALoAoRjJKZMgJUwb3TmMqi
 uZwEtPe6e9L73NqhpB/HzXaOdwotUAoMyU9d3zTz0matgSHHG3Cqt4NzyBHgsrRZ
@@ -239,7 +239,7 @@ aaCDg9AdtY0KAnuh2/0Dfh0DDTTQQAMNNLDmKXSPn8ECg9AK3Sfq3yb5qQs54qCt
 DyT/umqbN9ezHkQrVDt+AAAAAElFTkSuQmCC
 }]
 
-set I(arrow-right-insens) [image create photo  -data {
+set I(arrow-right-insens) [image create photo breeze_23 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAnUlEQVQokWNgQAN6enrc6GLIgAld8T8Wdnc9PSsxXBqYkTkvX778LS0h
 /uYv818bMWG5969ePf2KVwMDAwPDixcvvklLSLz9x/LPGpsmDA2ENGHVANMkIar4
@@ -247,7 +247,7 @@ vaeTAAAAnUlEQVQokWNgQAN6enrc6GLIgAld8T8Wdnc9PSsxXBqYkTkvX778LS0h
 A5aI+83IYsv0h+MoNsVYAaGkAQA2eE/mQUocvgAAAABJRU5ErkJggg==
 }]
 
-set I(arrow-left-prelight) [image create photo  -data {
+set I(arrow-left-prelight) [image create photo breeze_24 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAiklEQVQokWNgwAMc1j9XQBdjwqXYZv1zh7//mU6ha8KqwX7DK1vG/0wr
 GRn+RxwIlHyALMeITfG/f//XMDL8jzwUJLEPXZ6RFMUoGmzWP3dg/M+06j/jv7Aj
@@ -255,7 +255,7 @@ gZIHcPkNp6dxARQn2ax7ZcPI8H8tUU4iVhOGBkKasGpgYEAEAjPjPzP0uMAJsCUN
 ALM2R+0dZr2yAAAAAElFTkSuQmCC
 }]
 
-set I(arrow-down) [image create photo  -data {
+set I(arrow-down) [image create photo breeze_25 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAApElEQVQokc2PTQqCUBSFz9Vd9Axdghi8HvgEVxG4Ra0tRIPIn4G2g8AU
 GzaPvE0fGdUk6Iy/73AO8J/xlfK+ZchXyqPRrtii1bHY717DOqaRU7bu0r503VU4
@@ -263,7 +263,7 @@ bg7mbCbm9dCfTyYcyDACIyNw0pR5YwPA0LetcNyCgdSUAhlGDKwJnNTVYQsAZLYt
 llqPzBsCJwDdnuGJYO4FgHe/JpKvdPwR/Eke6FFKPMIYKegAAAAASUVORK5CYII=
 }]
 
-set I(arrow-down-prelight) [image create photo  -data {
+set I(arrow-down-prelight) [image create photo breeze_26 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAk0lEQVQokc2PsQ3CMBRE/32WwF2moDJgsUFSIBgxCGImQBaiYop0RlkB
 4aMCWQkCGiSuPL13+l/kP+N8LL5l4HwsbtQzkZan0oRXsPXRgboZIU00lKaloAK1
@@ -271,7 +271,7 @@ njWXRR+e77spqDWEq1CaFs+VprMQ7iBcH6vx4QGnxG3eIV/LJahe+/BAyO8VEXn3
 10CyPrqP4E9yB2s4SU1wZK6JAAAAAElFTkSuQmCC
 }]
 
-set I(checkbox-unchecked-insensitive) [image create photo  -data {
+set I(checkbox-unchecked-insensitive) [image create photo breeze_27 -data {
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAAB3RJTUUH4wIBDBodREmY7wAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl
 YXRlZCB3aXRoIEdJTVBkLmUHAAAAcUlEQVQoz+3LORJAQBBA0Z5Bj7KEllS5/ykU
@@ -280,7 +280,7 @@ A0AYxcwsAUDnvpLwsh98FSDiMk8667pvtlKi7fqyrJj5EShUnu+dV54lyUcnqr4A
 AAAASUVORK5CYII=
 }]
 
-set I(button-insensitive) [image create photo  -data {
+set I(button-insensitive) [image create photo breeze_28 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+g
 vaeTAAABAUlEQVQ4je2UMU7DUBAFZ9e2sF0YRSkjtyh3AQkOAIpocwtOQUdJnwPk
 IBGdgZIodkRspPgvFYnT5YPT8aRtR7Pa1YOeIwBmFhev74+uba+BgRdAWKoGszwf
@@ -290,7 +290,7 @@ zLMVOmNmOHOrHVA1mNVNjTN/nDOom5pyVc6BbQiQ56PpYvFy9tU0l6rBuc+KzrVl
 WVbzyeTuAai6pSXAEMg4ePijsgUq4OMbLtR3vDD/joIAAAAASUVORK5CYII=
 }]
 
-set I(arrow-down-insens) [image create photo  -data {
+set I(arrow-down-insens) [image create photo breeze_29 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAqUlEQVQokc2QsQrCMBiErybBoaMmBgriE/yQtXZy8cWl4OLQ9gkUoSmW
 Tjq0JjiJWoW6CN78fcdxwH+GiMJvGUZEoefjtZaL2trD+TMcK8+DlZbTPbPWdpGe
@@ -299,21 +299,21 @@ b7sDQrS+D78Jj71dAgCjq9hkWVoNHQKiWBHFahD8SW5gekeBcxjv0wAAAABJRU5E
 rkJggg==
 }]
 
-set I(notebook-tab-top-hover) [image create photo  -data {
+set I(notebook-tab-top-hover) [image create photo breeze_30 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAWCAYAAAD0OH0aAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4gwcCDYdrG65GwAAADxJ
 REFUOMtjnHL+9X8GRgZiwBEGBobVLAxEAh1+ZpsrH/8KMBGr4crHvwwMDAw6RGuA
 gVENoxpGNdBTAwB5kQsleWZcPwAAAABJRU5ErkJggg==
 }]
 
-set I(arrow-up-small) [image create photo  -data {
+set I(arrow-up-small) [image create photo breeze_31 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAABmJLR0QA/wD/AP+g
 vaeTAAAAaUlEQVQYla2OMQqDQBRE32wu4hEWi+UTFcQjWIhXNKdIYSFWuVD220RY
 MKVTvmEeA7cmWttHa/uSqSyV/QXgQdNnW98AAaBOTafsi/A5SKOyL3V6DgCKZpXy
 Yy9Xp83DN/30Vl3/XNnfHBHGIM1zRfxVAAAAAElFTkSuQmCC
 }]
 
-set I(radio-checked-active) [image create photo  -data {
+set I(radio-checked-active) [image create photo breeze_32 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAACRElEQVQ4ja2Uu09UURDGf+fcl/s6AdyQ0KwsoEYrEkwoxXITI6Gn
 siAxLH8Na0worOiJxmRLsdwYEioiShC3MSACuSxc977GYlmzhsda+DWn+eabOTPf
@@ -330,7 +330,7 @@ rdW1IrZW3B1wAWi2okSh6tBpNnEqtV0/tA6CmDt5hwcDHtYVn+6M36OUd9gPYnb9
 kauw3DgyAEvTQ/5NvN+JCTTAA9NELQAAAABJRU5ErkJggg==
 }]
 
-set I(arrow-right-prelight) [image create photo  -data {
+set I(arrow-right-prelight) [image create photo breeze_33 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAl0lEQVQokY2STQrCMBCFZ+YQYnceJLXFGzQLf25oQdueQIpk5SncVXIH
 81wVQkzSfsvHfDCPGaKAup92YeYj4fAX8lL9VK8SxqZ4g1gzpN13n0NM4FioOquY
@@ -338,7 +338,7 @@ cGfC5am3j0UhJ0lKMHpjwO4E4qvfKSmkSArVYEuGtEw4m6YY5zzaoRps6Rxuq0rn
 hv+E+XBgd/TXyLL0Gj81HUnvHA7VsQAAAABJRU5ErkJggg==
 }]
 
-set I(entry-active) [image create photo  -data {
+set I(entry-active) [image create photo breeze_34 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAACXBIWXMAAAsTAAAL
 EwEAmpwYAAAAB3RJTUUH4gwbBTMW08Q/PAAAAI5JREFUOMvt1DEKwzAMBdD/nXgK
 ZCilk+8R6NKzdynkHp5Kqe1AJjdVBoPXigQ65Y9CD6RBYogJW9MCyF95vD5+FqVx
@@ -346,7 +346,7 @@ Ha/n1hoyxHR/5pPl4PqG/CkXkdFP7yy3izUA/CxKCaAhB9eXMU0t6VetzQY7cuAD
 /wUvInpTm025z9FPSl9O0nUEwBDTrmeweecVJRxBZzWVy/4AAAAASUVORK5CYII=
 }]
 
-set I(scale-slider-pressed) [image create photo  -data {
+set I(scale-slider-pressed) [image create photo breeze_35 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAB60lEQVQ4jZ3Uv2sTYRzH8c/zPe5SL7VyydmYxgYpgkGymP7QSRBc
 VIwScHdyiclf4Og/YGyGbu4FoVF0EYRs/b2UmoIUSZucifmBbe5sLt7zONhIqdc2
@@ -361,7 +361,7 @@ O62SJdCwndUP9662CQDKFnueLXR2eB8WF0C20CmWTUoBAAFAPqEbuy0nlSnY1V6w
 zm8qfkWfIi7CAMCJFet2beWkYfsDShDtPvMkVksAAAAASUVORK5CYII=
 }]
 
-set I(entry-insensitive) [image create photo  -data {
+set I(entry-insensitive) [image create photo breeze_36 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+g
 vaeTAAAAr0lEQVQ4je3VOw6DMBAE0Fk7RexLE+U43AgWOqC1XfBp8KRIEaWIFD4l
 c4CnlUaalRATcWJuAEAS4zhiWRbkNW8CjDVwzsF7DxEBQkzs+oFVpUVZlnbrRSRt
@@ -370,7 +370,7 @@ jo6DsfIBnXNQ1WIPStKqto/73QMAJMREkpimCfM8Hx5YOfsFvADodGzDQoRaTAAA
 AABJRU5ErkJggg==
 }]
 
-set I(scale-trough-horizontal) [image create photo  -data {
+set I(scale-trough-horizontal) [image create photo breeze_37 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+g
 vaeTAAAAe0lEQVQ4je3OsQ3CMBhE4btfEXVAViTYDdgi6RIpVJnDM3kFFyGgLBBd
 OnqwO/wN8PSAovgaQwiH5+v9AHgFcP6xEyX6xtV9NS/rSLJNHLuQ6uZlhZG6JcY+
@@ -378,7 +378,7 @@ SN0NgHIFIWwm0efq0eCtcXUvcQIQE1pR4uROxyHXXPFXdjoTI/gtsBivAAAAAElF
 TkSuQmCC
 }]
 
-set I(notebook-tab-top-active) [image create photo  -data {
+set I(notebook-tab-top-active) [image create photo breeze_38 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAWCAYAAAD0OH0aAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4gwcCDEHHk3WpgAAAE5J
 REFUOMtjPH3mXB4DA4MxAwNDHAN+cISBgaGOhYGBIZSHl9dGQlwMr+oXL1/ZfPn8
@@ -386,7 +386,7 @@ OYOJgYGBoGIGBgYGqJowJgYSwaiGUQ2jGuipAQC32Q0l82twswAAAABJRU5ErkJg
 gg==
 }]
 
-set I(radio-unchecked-insensitive) [image create photo  -data {
+set I(radio-unchecked-insensitive) [image create photo breeze_39 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAB0ElEQVQ4jZ3UPWvbUBTG8edcWS+2QErdJQrEhLpbuyYgCsZZ9GnS
 LPkcWdx8GhOIMQVD0o4d1QYXbGdxrUuvLevtdGjSNg6q7fznq5+uQOcQM6Osy8+X
@@ -401,7 +401,7 @@ msuZnejnwO//CL7vL5BlQTgJI6miDZAI4SSMkGWB7/sLoGxoa47rvSwb2snPmYpk
 QMEAAAAASUVORK5CYII=
 }]
 
-set I(checkbox-unchecked-pressed) [image create photo  -data {
+set I(checkbox-unchecked-pressed) [image create photo breeze_40 -data {
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAAB3RJTUUH4wIBDBwOlq1+twAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl
 YXRlZCB3aXRoIEdJTVBkLmUHAAAAu0lEQVQ4y+2TsQrCUAxFT9r6aKXoIC4OboKu
@@ -411,14 +411,14 @@ uMmqrbPXqgg4ANBo+22crlv4A34GoK/z/E4oTgfuMbZZgfGFwKOxjSfsziUDI+4b
 Dyeryf5Kjk8bH6owNMLSWJ75pEsmp8tTfgAAAABJRU5ErkJggg==
 }]
 
-set I(arrow-down-small-prelight) [image create photo  -data {
+set I(arrow-down-small-prelight) [image create photo breeze_41 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAABmJLR0QA/wD/AP+g
 vaeTAAAAbklEQVQYlY2OMQqDUBBEZ34uoZ2nSLXFXkELwSuKyd4gBLHyIgu5QvCv
 laCF8F/5YB4DlKDmzZ2jmjdbpDWY+6WtvwAg5spI44P5SQCQ90+IeBExMKV/zjER
 Mcxd9eGRPFYAcK5dEHMVcy06XswOlbsrCjnZZ+UAAAAASUVORK5CYII=
 }]
 
-set I(arrow-up-prelight) [image create photo  -data {
+set I(arrow-up-prelight) [image create photo breeze_42 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAj0lEQVQokcWPsQ3CQBAEd48mIHMVRG/8ogMcIFOiEfhdAUKIiEYefQ/8
 OUMv65DIvNndzul2gUXkQvQuRG95tGCqnAFAmY/Pw+Ze+lIOzZhqqvSEdgq2VOl3
@@ -426,14 +426,14 @@ w3tvfmjGVOesF0JPj3Z9AwA3JEfotdzxF/yNODuiD7H6qLysvPNeK+YtAMCHWFlg
 qX+YhTQBvQ9IOfBgFW4AAAAASUVORK5CYII=
 }]
 
-set I(arrow-up-small-prelight) [image create photo  -data {
+set I(arrow-up-small-prelight) [image create photo breeze_43 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAABmJLR0QA/wD/AP+g
 vaeTAAAAbElEQVQYla2OsQ2DQBAEZ48qyKjC0WO/6MAOLFqEgHcJDhzRyCN6MEdk
 6WURMuGsdrVwKiHlGFKOpVMZym0EcG3Pz71+AxjA7bW2chuE944echuu09IBKKbc
 fN3msvVbq7RdAIgpN/9/jtwhO3iRKDdemFwMAAAAAElFTkSuQmCC
 }]
 
-set I(button-hover) [image create photo  -data {
+set I(button-hover) [image create photo breeze_44 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gwZFwkmZR9ufAAAAKdJ
 REFUOMtj3P/qFc/HD0x7Xn//a/rjLwMTAwmAk5nxrwgn02l+gX+ujBtuvTkuxMpo
@@ -442,7 +442,7 @@ BkYNGjVomBrEycz4l1JDOJgZ/jGJcDKdPv/2F9mGnHv7i4H//49LjPtfveJ58/rP
 gQ9/mA1JLQk4mBn+8f7/ebkjKyIBAGQhPa+gMClkAAAAAElFTkSuQmCC
 }]
 
-set I(radio-checked) [image create photo  -data {
+set I(radio-checked) [image create photo breeze_45 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAACYUlEQVQ4jZWUPU8UURSGn3MvO7NAyFCgC7uJFCTESjuDigSDLAUE
 t9YfYCig5TfYQoF/QOoNipEFIuIXsdPGhMSGuAuLFEwIsDPrzLFYIBA+Vk9zi3vP
@@ -460,7 +460,7 @@ igGlg5r46SZL9siQYaSMffKr24fx26XH10bPgE4i0mi6Jm/Vici3vepO5WxEzodW
 Vn8dAAAAAElFTkSuQmCC
 }]
 
-set I(scrollbar-trough-horiz-active) [image create photo  -data {
+set I(scrollbar-trough-horiz-active) [image create photo breeze_46 -data {
 iVBORw0KGgoAAAANSUhEUgAAADgAAAAUCAYAAADY6P5TAAAABmJLR0QA/wD/AP+g
 vaeTAAAAy0lEQVRYhe3TuwrCQBAF0DsTQxQNsfHV24mSD7CwzT9bWPgBabRKaaGC
 jyCCGDdro5IoFkI0BuZ0O9PcyzKAEEII8RY9D1x3VEfp1INhOFrHnEeoTxFxDKVC
@@ -468,20 +468,20 @@ XMoz35/skzsj+eh6nmWej0MQVQH9Uv5/aQJRBYbq2IP+YhsE6r5J/ZC9DNsAzJ/n
 y47prA+t5CBVkJn1b/N8X6pg2LRXAKKcsmQhunV4SN3gNghUp9HdEKsaMVtFuUMi
 jknrHUWWP5+Oj3nnEUIIURhXog40I5tPlhsAAAAASUVORK5CYII=
 }]
-set I(scrollbar-trough-horiz-active_ME) [image create photo  -data {
+set I(scrollbar-trough-horiz-active_ME) [image create photo breeze_47 -data {
 R0lGODlhOAAUAIABAK+vr////yH+EUNyZWF0ZWQgd2l0aCBHSU1QACH5BAEKAAEA
 LAAAAAA4ABQAAAIvjI+py+0Po5y02ouz3rz7LwHiSJbmiabqyrbuC8fyTNf2jecr
 yPf+DwwKh8QirwAAOw==
 }]
 
-set I(notebook-client) [image create photo  -data {
+set I(notebook-client) [image create photo breeze_48 -data {
 iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4gwcCB0t/Md03gAAAEJJ
 REFUSMft1zERACAMxdAPhxPq3wgcClot4IGhXRIDb05b+1wVNCTJbKai7qGuooCB
 gYGBgYGBgYGBgT/fyT3S4Qf5IQk5B+vqwwAAAABJRU5ErkJggg==
 }]
 
-set I(button-toggled) [image create photo  -data {
+set I(button-toggled) [image create photo breeze_49 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gwaCRkSCmSpDAAAAHxJ
 REFUOMvt08ENgkAUhOGZF8MZzYYAvSld6A0TPVHH1rQlsAdAQgdjA17c9WT4Cvjz
@@ -489,13 +489,13 @@ REFUOMvt08ENgkAUhOGZF8MZzYYAvSld6A0TPVHH1rQlsAdAQgdjA17c9WT4Cvjz
 /W8oZleE0ST67O83eKtc2UscEi+LEgd3Ot7f3IokEHPMb7oAAAAASUVORK5CYII=
 }]
 
-set I(treeview) [image create photo  -data {
+set I(treeview) [image create photo breeze_50 -data {
 iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAARElEQVRIx+3XsRUA
 EBAE0eWpQSTSf0sucQlN0IPAJTMN/HjSmOsooCJJvdWvqPlWVlDAwMDAwMDAwMDA
 wMCP72S+v8MXvT4JlNhEZUMAAAAASUVORK5CYII=
 }]
 
-set I(checkbox-unchecked-active) [image create photo  -data {
+set I(checkbox-unchecked-active) [image create photo breeze_51 -data {
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAAB3RJTUUH4wIBDAwy8wAQYQAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl
 YXRlZCB3aXRoIEdJTVBkLmUHAAAAdUlEQVQoz2N8++nTjsc/3v38z0AICLAweMpy
@@ -504,7 +504,7 @@ gUQwqmGoahBgYbj25isxSu98+C3IxsD45v3HbQ+/fvzHTFCDEBuDIesnAE3cJiD1
 JFxnAAAAAElFTkSuQmCC
 }]
 
-set I(arrow-right) [image create photo  -data {
+set I(arrow-right) [image create photo breeze_52 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABmJLR0QA/wD/AP+g
 vaeTAAAAnklEQVQokWNgQAMGFhYK6GLIgAldMeM/5lMGFjYOuDQwI3NePHnyQVpG
 /jjD//+rpaRlzz1/+vg+Xg0MDAwMz58+eiQtI3/iPwPDKmyaMDQQ0oRVA0yThKz8
@@ -512,14 +512,14 @@ GYb/DCslZOVPv3jy6AEDA5qniQGMuCSMzKxt/zMwrGFk+B957tSxfXg14FKMVQM+
 xRgaYBH3n4kx7MKJIweI8BLhpAEAP1hOKHR1it8AAAAASUVORK5CYII=
 }]
 
-set I(book-tab-top) [image create photo  -data {
+set I(book-tab-top) [image create photo breeze_53 -data {
 iVBORw0KGgoAAAANSUhEUgAAAAwAAAAWCAYAAAD0OH0aAAAABmJLR0QAywDMAM6D
 7+ImAAAACXBIWXMAAA3XAAAN1wFCKJt4AAAAB3RJTUUH4gwcCQIb/+WF7gAAADlJ
 REFUOMtjPH3m3H8G4sCFp8+edjARqZiBh5dXhYGBIYdoDV8+f+ZhYGCwIVoDDIxq
 GNUwqoGeGgAWkgtw6lHz0gAAAABJRU5ErkJggg==
 }]
 
-set I(scrollbar-slider-horiz-active) [image create photo  -data {
+set I(scrollbar-slider-horiz-active) [image create photo breeze_54 -data {
 iVBORw0KGgoAAAANSUhEUgAAAB4AAAAUCAYAAACaq43EAAAABmJLR0QA/wD/AP+g
 vaeTAAAAeUlEQVRIie3SMRKCMBBA0b8ZBvqYRu6G3kI7dOAoORNXoEL6OOMsDXoC
 k4Z9F/jNB2PMn8hzmurTO4woHXDO3JsV4tosfeVTGIBb5uBXK3D3KeAELoWiPwJX
@@ -527,7 +527,7 @@ B2jpMPBxCrF8V2O1NkvvU0CgA9rMxX2u1yNzx5gj2QA2vRzmr3lMjwAAAABJRU5E
 rkJggg==
 }]
 
-set I(entry-focus) [image create photo  -data {
+set I(entry-focus) [image create photo breeze_55 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAIAAAAC64paAAAABmJLR0QA/wD/AP+g
 vaeTAAAAtElEQVQ4je3UPQ6CQBCG4W+WHyWxwkZKY6LXMNzCxHA3KfQS6j0o1FJs
 XGgkgLtjQyhsWEnsePsnmeYbklmOvtkAas37qzo/lCy5E/guhYHYzG1HEMksjy/1
@@ -536,19 +536,19 @@ lxR3j7FNMU9H1OAwEHFSGHrFvEuK9UwAIJnltebD7X2+62f1+zMwP/irDwMNTWK1
 SHt+AAAAAElFTkSuQmCC
 }]
 
-set I(labelframe_ORIG) [image create photo  -data {
+set I(labelframe_ORIG) [image create photo breeze_56 -data {
 iVBORw0KGgoAAAANSUhEUgAAAA8AAAATCAIAAADAoMD9AAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAB3RJTUUH4gwbBS0PY+6oIwAAAB1p
 VFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAALElEQVQoz2M8
 cOgIA9GAhYGBQV9PlxilFy9dZmIgBYyqHlU9tFSzQJI5kaoBtHEH5h1zTEYAAAAA
 SUVORK5CYII=
 }]
-set I(labelframe) [image create photo  -data {
+set I(labelframe) [image create photo breeze_57 -data {
 R0lGODlhDwATAIABAMDCxP///yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAADwAT
 AAACIoSPCcHtbZ5kcb5q4cqadx9gnJiRljmhknptHuvA36vURgEAOw==
 }]
 
-set I(scrollbar-slider-vert) [image create photo  -data {
+set I(scrollbar-slider-vert) [image create photo breeze_58 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAABmJLR0QA/wD/AP+g
 vaeTAAAAmElEQVRIie3WsQ3CMBCF4d9gMQB2ATNkH7rAFkAVJBglHftkBKgSBogs
 jsoSCslJQHuvuye9z60dSoprs1jO4wVHCYiDuktt1WyKfmrjNTD4eBbY51vgEHwE
@@ -556,7 +556,7 @@ OE5tZhoosB3pdtpGBYH1SLf6B/w6BhpooIEGGmhgzn1YOLj9DDqoh90T+ejeo/5t
 utRWwUcEyvzAI3UnbfMCMEIfS/u3nUUAAAAASUVORK5CYII=
 }]
 
-set I(radio-unchecked-pressed) [image create photo  -data {
+set I(radio-unchecked-pressed) [image create photo breeze_59 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAB3RJTUUH4wIDBCYaDcTtgAAAAj9J
 REFUOMutk81OE0AURs+dKbRNW2gViohGYgsbWIgkSpQlCW9A2LISwTdw6yOI4kqX
@@ -574,7 +574,7 @@ KrrkPS9UZXr8rPafnGeZHdn8lDXXe+/WlQr5UCQWP/i88O7oyo20H+tpPiXKd1TW
 /hYSGTZ9AAAAAElFTkSuQmCC
 }]
 
-set I(checkbox-checked) [image create photo  -data {
+set I(checkbox-checked) [image create photo breeze_60 -data {
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAAB3RJTUUH4wIBDAIJ3IjUywAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl
 YXRlZCB3aXRoIEdJTVBkLmUHAAAAg0lEQVQoz2N8+eFTxZkfdz79ZyAEFLgZekw5
@@ -583,7 +583,7 @@ HtXb3KAmMjGQCEY1DA4NLJhxScAGRW6Grfe/EqN017PfKjwMjC/ffSw5+fXBd2aC
 GlR4GIrlPwEARYApx4EpM+MAAAAASUVORK5CYII=
 }]
 
-set I(button-active) [image create photo  -data {
+set I(button-active) [image create photo breeze_61 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAAsTAAAL
 EwEAmpwYAAAAB3RJTUUH4gwZFx8h5+NOCAAAAH5JREFUOMtj3PH4o9C9B8/fvvvy
 nYEcIMTDyaCkICnMOO3wjf+/2HkYWNjYyTLoz6+fDGw/vzAwvfvynWxDGBgYGFjY
@@ -591,7 +591,7 @@ nYEcIMTDyaCkICnMOO3wjf+/2HkYWNjYyTLoz6+fDGw/vzAwvfvynWxDGBgYGFjY
 3dvXZBdsS1pLzQDAwie4f6eltwAAAABJRU5ErkJggg==
 }]
 
-set I(scale-slider-active) [image create photo  -data {
+set I(scale-slider-active) [image create photo breeze_62 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAB1klEQVQ4jZ3UzU4TURwF8HPvTMcZ+6FlahtEGkJYGXRhtfAA7vUR
 jDFdOfgIhkcQ3Ggw8RV071qmihsIK0LIIDYdGUhnWmeYj/t3oTUEp7XOWd7c/HJz
@@ -606,7 +606,7 @@ CuPx7cr74fnYGZnWWLkk/5oRNyav4084I+ezugvlWmjfJc7rAMCEsL4r1c+jhu0n
 CiLrBWDiM9IAAAAASUVORK5CYII=
 }]
 
-set I(checkbox-checked-active) [image create photo  -data {
+set I(checkbox-checked-active) [image create photo breeze_63 -data {
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAAB3RJTUUH4wIBDAQrX7IyqQAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl
 YXRlZCB3aXRoIEdJTVBkLmUHAAAAg0lEQVQoz2N8++nTjsc/3v38z0AICLAweMpy
@@ -615,7 +615,7 @@ MC698kqK8ZumCCc3Nzd+DVfffL314S/Tu1//iVHNwMCgLcL98R8zCwMDA0T1gltf
 1CDExmDI+gkA5sQptXv45EgAAAAASUVORK5CYII=
 }]
 
-set I(scale-slider-insensitive) [image create photo  -data {
+set I(scale-slider-insensitive) [image create photo breeze_64 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAB3UlEQVQ4jaXUPW/TUBQG4Pdef1wbxxVO+FANjaBiYgICKUtQqg5R
 J1j6F5hIf0xh4TdkokvFUBEpUwpBTJ1QBSl1RCExSmLs66/LUCJVxYE0vOPV0aOj
@@ -630,7 +630,7 @@ jjYO6qt3H21P3qfXCJHLhm5YTNFOaiQKRp7vuYmYoUZOp7HfUAte4b4gtHgymHb7
 Rv/dtGL7BV8I9DcQv8E/AAAAAElFTkSuQmCC
 }]
 
-set I(scrollbar-slider-horiz) [image create photo  -data {
+set I(scrollbar-slider-horiz) [image create photo breeze_65 -data {
 iVBORw0KGgoAAAANSUhEUgAAAB4AAAAUCAYAAACaq43EAAAABmJLR0QA/wD/AP+g
 vaeTAAAAfElEQVRIie3NsRHCMBAAwXtZQwFICW6BmgxdmMzMQCnK6IcWHFlUIHgH
 DFSAlPCbXHhgjPkR2d/um20XrwgDsKv8mwVSLsvkg48XhbHy8KNXOAUfcQqHRtMv
@@ -638,7 +638,7 @@ haN7ty2BpxNIrccvNPlclin4iMIA9JWfs0B6lHyu/DHmn6xkVh1tCWue8gAAAABJ
 RU5ErkJggg==
 }]
 
-set I(button) [image create photo  -data {
+set I(button) [image create photo breeze_66 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gwZFwoSb4bJCgAAAKRJ
 REFUOMtjfPXqFc/T5y/2fP36zfTPnz9MDCQAFhaWv1zc3KdlJMVdGc9dvHycj5fH
@@ -647,14 +647,14 @@ GBg1aNSgYWoQCwvLX0oNYWVh+cfExc19+tnz52Qb8uz5cwZmZqZLjK9eveK5/+jJ
 gd+/fhmSUbD9Y2RiulxaVJAAAKKnPtVz7xSlAAAAAElFTkSuQmCC
 }]
 
-set I(button-empty) [image create photo  -data {
+set I(button-empty) [image create photo breeze_67 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wUbFTYKYNiFkgAAACBJ
 REFUOMtjfP/h438GKgAmBiqBUYNGDRo1aNSgwWIQAOWDA/P8dVDBAAAAAElFTkSu
 QmCC
 }]
 
-set I(radio-checked-pressed) [image create photo  -data {
+set I(radio-checked-pressed) [image create photo breeze_68 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAABmJLR0QA/wD/AP+g
 vaeTAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAB3RJTUUH4wIDBCcWHWmQ6gAAAtlJ
 REFUOMutk0FvG2UQhp8Z76537dZOoY6slFONahsQOUCLiAoCKb+BXDlCAImfglQI
@@ -675,7 +675,7 @@ xdYCsQ9NaJrNbRejlZl86ZF//v7T9cXe7/Lb/p4233g3Gh2mhcJCMmp9e2f6Qn3Z
 f7T8/N8s/ROMRWFi0Fb5jQAAAABJRU5ErkJggg==
 }]
 
-set I(checkbox-checked-pressed) [image create photo  -data {
+set I(checkbox-checked-pressed) [image create photo breeze_69 -data {
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAAB3RJTUUH4wIBDBc1xFJOWAAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl
 YXRlZCB3aXRoIEdJTVBkLmUHAAAA40lEQVQ4y+2TQU4CQRBFX3W3PdOTji7YsXAn
@@ -686,7 +686,7 @@ sTrsu5yBHM/KwbAXWyRRMAj6DYgWnqcNt50Kb9v4Fl4/1lx6yd/4Pks6epuzwNIm
 g6pw5YWBT3wBuVpCx5tbUFkAAAAASUVORK5CYII=
 }]
 
-set I(checkbox-unchecked) [image create photo  -data {
+set I(checkbox-unchecked) [image create photo breeze_70 -data {
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAAAB3RJTUUH4wIBDAo31TBDaAAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl
 YXRlZCB3aXRoIEdJTVBkLmUHAAAAdUlEQVQoz2N8++7dgoWLXrx4wUAIiIuKxSfE
@@ -695,7 +695,7 @@ IBGMahiqGsTExE6dPk2M0vMXLkiIizO+fvNm3vwFb968IahBQkLC08MdAHjMJVak
 DqSJAAAAAElFTkSuQmCC
 }]
 
-set I(scale-trough-vertical) [image create photo  -data {
+set I(scale-trough-vertical) [image create photo breeze_71 -data {
 iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+g
 vaeTAAAAlElEQVQ4je2UMQ7CMBAEdyNEbSkhgjf4TQm/AKogwVPyJj8hFMZErmmO
 KhIiyUmEEm93I824M6HMObe+P/orwAqAiLAtC9NYa59zzkoL+hAvJA/DTcrRhwgA
@@ -703,7 +703,7 @@ pzkn04Kk1BNsrzlqEMBugm1/CX69FEzBFPyP4G1EBN3ioAjbT8YMI/Y+9ccuC9P4
 EEFKNTywyc1Zc1507iXaqPFxfAAAAABJRU5ErkJggg==
 }]
 
-set I(radio-unchecked-active) [image create photo  -data {
+set I(radio-unchecked-active) [image create photo breeze_72 -data {
 iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAA7EAAAO
 xAGVKw4bAAABxElEQVQ4jZ2UT28SQRiHf+87A4FdC0hiG6glHLyV1rPRXv0cnhWb
 mH6OxgTRePRzeMZ48iBtjyYEzZJqwp8tu0tgZ14vYFp0BfqcJ89MJnl+JCJIovFl
