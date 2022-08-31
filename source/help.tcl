@@ -12,7 +12,7 @@ proc Help { } {
    focus .help
    wm title .help "Tkpaint Help"
    wm protocol .help WM_DELETE_WINDOW {destroy .msg .help}
-   wm iconphoto .help tkpaint_icon
+#   wm iconphoto .help tkpaint_icon
    set font {Helvetica 12}
    #set font {"Times New Roman" 12}
 

@@ -1329,6 +1329,7 @@ proc ShowWindow.tpcmdedit { id} {
   wm sizefrom .tpcmdedit program
   wm maxsize .tpcmdedit 2560 1024
   wm minsize .tpcmdedit 524 210
+  wm iconphoto .tpcmdedit tkpaint_icon
   wm protocol .tpcmdedit WM_DELETE_WINDOW {DestroyWindow.tpcmdedit}
 
   # bindings
@@ -1430,7 +1431,6 @@ proc ShowWindow.tpcmdedit { id} {
   pack configure .tpcmdedit.frame3  -fill x
   pack configure .tpcmdedit.frame  -expand 1  -fill both
 
-  wm iconphoto .tpcmdedit tkpaint_icon
   .tpcmdedit.frame.text2 insert end [.c itemcget $id -text]
 update
   focus .tpcmdedit.frame.text2
@@ -1825,7 +1825,8 @@ proc ShowWindow.tpskew { args} {
   wm maxsize .tpskew 600 220
   wm minsize .tpskew 600 220
   wm geometry .tpskew 600x220+200+100
-  wm title .tpskew {TKpaint skew angle}
+  wm iconphoto .tpskew tkpaint_icon
+  wm title .tpskew "TKsvgpaint: [mc {skewx, skewy and rotate}]"
 
   frame .tpskew.top  -background {gray86}  -highlightbackground {gray86}
 
@@ -1839,12 +1840,11 @@ proc ShowWindow.tpskew { args} {
   frame .tpskew.frame0  -borderwidth {2}  -relief {ridge}  -background {gray86}  -height {34}  -highlightbackground {gray86}  -width {280}
 
   button .tpskew.frame0.button1  -activebackground {gray75}  -background {gray86}  -command {global Rotate; \
-    if {0} {TP_saveImage $Rotate(id) "skew"}; \
     destroy .tpskew; 
 #    unselectGroup; 
     unset Rotate; 
   } \
-    -font {Helvetica 10}  -highlightbackground {gray86}  -text {OK}  -width {5}
+    -font {Helvetica 10}  -highlightbackground {gray86}  -text "[mc {OK}]"  -width {5}
 
   button .tpskew.frame0.button2  -activebackground {gray75} -command {global Rotate; \
     .c itemconfigure $Rotate(id) -m $Rotate(matrix); \
@@ -1852,7 +1852,7 @@ proc ShowWindow.tpskew { args} {
 #    unselectGroup; 
     unset Rotate; 
   } \
-     -background {gray86} -font {Helvetica 10}  -highlightbackground {gray86}  -text {Cancel}
+     -background {gray86} -font {Helvetica 10}  -highlightbackground {gray86}  -text "[mc {Cancel}]"
 
   # pack master .tpskew.top
   pack configure .tpskew.top.left  -fill both  -side left -padx 0
@@ -1889,7 +1889,6 @@ proc rotateGroupSVG {} {
     foreach id  $Rotate(group) {
 	if {![idissvg $id]} {
 	    set Rotate($id,coords) [.c coords $id ]
-#return
 	    continue
 	}
 	set svg 1
@@ -1902,30 +1901,7 @@ proc rotateGroupSVG {} {
 	ShowWindow.tprotate
 	tkwait window .tprotate
     }
-return
-
-    foreach id  $Rotate(group) {
-	catch {unset Rotate}
-	if {![idissvg $id]} {
-    	    rotateGroupMode
-	    continue
-	}
-	set Rotate(id) $id
-	set Rotate(matrix) [.c itemcget $id -m]
-	foreach {Rotate(xi) Rotate(yi)} [id2coordscenter $id] {break}
-	if {$Rotate(matrix) != ""} {
-	    set dmat [decomposeMatrix $Rotate(matrix)]
-	    array set amM $dmat
-	    set Rotate(angleOrig) $amM(rotate)
-	    unset dmat
-	    unset amM
-	} else {
-	    set Rotate(angleOrig) ""
-	}
-	set Rotate(angle) 0
-	ShowWindow.tprotate
-	tkwait window .tprotate
-    }
+    return
 }
 
 proc ShowWindow.tprotate { args} {
@@ -1944,12 +1920,13 @@ proc ShowWindow.tprotate { args} {
   wm maxsize .tprotate 280 140
   wm minsize .tprotate 280 140
   wm geometry .tprotate 280x140+200+100
-  wm title .tprotate {TKsvgpaint angle rotate}
+  wm iconphoto .tprotate tkpaint_icon
+  wm title .tprotate "TKsvgpaint: [mc {angle rotate}]"
 
   frame .tprotate.top  -background {gray86}  -highlightbackground {gray86}
 
   frame .tprotate.top.left  -background {gray86}  -highlightbackground {gray86}
-  scale .tprotate.top.left.red  -activebackground {gray86} -command {TP_imagerotate}  -background {gray86}   -font {Helvetica 10}  -highlightbackground {gray86} -length {280}  -label {Angle:}  -orient {horizontal} -from {-180.0}  -to {180.0}  -troughcolor {red} -variable {Rotate(angle)}
+  scale .tprotate.top.left.red  -activebackground {gray86} -command {TP_imagerotate}  -background {gray86}   -font {Helvetica 10}  -highlightbackground {gray86} -length {280}  -label "[mc {Angle}]:"  -orient {horizontal} -from {-180.0}  -to {180.0}  -troughcolor {red} -variable {Rotate(angle)}
 
   frame .tprotate.frame0  -borderwidth {2}  -relief {ridge}  -background {gray86}  -height {34}  -highlightbackground {gray86}  -width {280}
 
@@ -1959,7 +1936,7 @@ proc ShowWindow.tprotate { args} {
     drawBoundingBox
     unset Rotate; 
   } \
-    -font {Helvetica 10}  -highlightbackground {gray86}  -text {OK}  -width {5}
+    -font {Helvetica 10}  -highlightbackground {gray86}  -text "[mc {OK}]"  -width {5}
 
   button .tprotate.frame0.button2  -activebackground {gray75} -command {
     global Rotate; 
@@ -1978,7 +1955,7 @@ proc ShowWindow.tprotate { args} {
     drawBoundingBox
     unset Rotate;
   } \
-     -background {gray86} -font {Helvetica 10}  -highlightbackground {gray86}  -text {Cancel}
+     -background {gray86} -font {Helvetica 10}  -highlightbackground {gray86}  -text "[mc {Cancel}]"
 
   # pack master .tprotate.top
   pack configure .tprotate.top.left  -fill both  -side left

@@ -126,7 +126,7 @@ namespace eval ::screenshot {
 	}
 	
 	proc resizeHandle {win resizeWin args} {
-		eval label [concat $win $args -image resizeHandle:image]
+		eval label [concat $win $args -image resizeHandle:image -bg red]
 		
 		bind $win <ButtonPress-1> "[namespace current]::Event_ButtonPress1 $win $resizeWin %X %Y"
 		bind $win <B1-Motion> "[namespace current]::Event_B1Motion $win $resizeWin 0 %X %Y"

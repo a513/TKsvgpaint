@@ -111,6 +111,7 @@ proc arrowShapeTool {} {
   catch {destroy $w}
   toplevel $w
   wm title $w "[mc {Arrowhead Editor}]"
+  wm iconphoto $w tkpaint_icon
   wm iconname $w "arrow"
   #positionWindow $w
   #bind $w <FocusOut> "raise $w; focus -force $w"
