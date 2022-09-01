@@ -1,6 +1,7 @@
 #puts "XAXA RU"
 namespace import -force msgcat::mcset
 mcset ru "Copyright 2022 Vladimir Orlov, all rights reserved" "Copyright 2022 Владимир Орлов, все права защищены"
+mcset ru "Open a Tcl pic file" "Открыть проект на tcl (расширение *.pic)"
 mcset ru "Grid" "Сетка"
 mcset ru "Grid selector" "Настройка сетки"
 mcset ru "Zoom" "Масштаб"

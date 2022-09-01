@@ -232,6 +232,9 @@ namespace eval ::screenshot {
 			}
 
 			pack [frame $path.f] -side bottom -anchor e
+#LISSI
+#label $path.f.label1 -text "XAXAXAUXUX"
+#pack $path.f.label1 [::screenshot::resizeHandle $path.f.label $t] -side left
 			pack [::screenshot::resizeHandle $path.f.label $t] -side left
 			
 			canvas $path.c \
