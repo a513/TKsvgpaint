@@ -766,7 +766,7 @@ B  dumm  1 11 select1obj.gif   {select1object}
 R  mode  0 12 callout.gif  {set Graphics(type) "SVG" ; .mbar.shape.menu  invoke "Callout"}
 B  dumm  1 12 freeselection.gif  {TP_freehandSelect}
 B  dumm  0 13 createpath.gif   {.mbar.shape.menu invoke "Create PATH"}
-R  mode  1 13 bwrect  {puts "[mc {Reserve}]"}
+R  mode  1 13 loadpicture.gif  {Image pimage}
 B  dumm  0 14 withoutfilling.gif {TP_fill "no"}
 B  dumm  1 14 withfill.gif   	 {TP_fill "yes"}
 }
@@ -3001,9 +3001,10 @@ proc Image {type} {
 	    set geom ""	
     } else {
     	    set command "::FE::fe_getopenfile" 
-	    set geom " -width 450 -height 500 -sepfolders 1 -details 1 "
+	    set geom " -width 600 -height 500 -sepfolders 1 -details 1 "
     }
-    set cmdpar [subst {-title "Image file" -filetypes "$Image(types)" -defaultextension "$default_ext" -initialdir "$initdir" $geom}]
+    set tima "[mc {Image file}]"
+    set cmdpar [subst {-title "$tima" -filetypes "$Image(types)" -defaultextension "$default_ext" -initialdir "$initdir" $geom}]
     set Image(file) [eval $command $cmdpar]
   if {$Image(file)==""} {return}
 
@@ -7172,7 +7173,7 @@ set ButtonsHelpSVG {
   0  12  callout.gif "Drawing callouts"
   1  12  freeselection.gif "Free selection of the area"
   0  13  createpath.gif   "Create PATH"
-  1  13  callout.gif "Reserve"
+  1  13  loadpicture.gif "Load Image"
   0  14  withoutfilling "Without filling"
   1  14  withfill "With fill"
 }
