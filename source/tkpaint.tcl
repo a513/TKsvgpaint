@@ -4376,8 +4376,6 @@ proc scaleGroup {x y} {
    set lastX2 $BBox(x2)
    set lastY2 $BBox(y2)
 
-#Большой вопрос
-set del 2.0
    switch -exact -- $BBox(action) {
       none  { return }
       n    { set BBox(y1) $y
@@ -4385,8 +4383,6 @@ set del 2.0
              set yOrigin $BBox(y2)
              set xScale  1.0
              set yScale  [getRatio $lastY2 $lastY1 $BBox(y2) $BBox(y1)]
-set dx 0
-set dy [expr {($BBox(y1) - $lastY1) / $del}]
       }
 
       s    { set BBox(y2) $y
@@ -4394,8 +4390,6 @@ set dy [expr {($BBox(y1) - $lastY1) / $del}]
              set yOrigin $BBox(y1)
              set xScale  1.0
              set yScale  [getRatio $lastY2 $lastY1 $BBox(y2) $BBox(y1)]
-set dx 0
-set dy [expr {($BBox(y2) - $lastY2) / $del}]
       }
 
       w    { set BBox(x1) $x
@@ -4403,8 +4397,6 @@ set dy [expr {($BBox(y2) - $lastY2) / $del}]
              set yOrigin $BBox(y1)
              set xScale  [getRatio $lastX2 $lastX1 $BBox(x2) $BBox(x1)]
              set yScale  1.0
-set dx [expr {($BBox(x1) - $lastX1) / $del}]
-set dy 0
       }
 
       e    { set BBox(x2) $x
@@ -4412,8 +4404,6 @@ set dy 0
              set yOrigin $BBox(y1)
              set xScale  [getRatio $lastX2 $lastX1 $BBox(x2) $BBox(x1)]
              set yScale  1.0
-set dx [expr {($BBox(x2) - $lastX2) / $del}]
-set dy 0
       }
 
       ne   { set BBox(y1) $y
@@ -4422,8 +4412,6 @@ set dy 0
              set xScale  [getRatio $lastY2 $lastY1 $BBox(y2) $BBox(y1)]
              set yScale  $xScale
              set BBox(x2) [expr $lastX1+($lastX2-$lastX1)*$xScale]
-set dx [expr {($BBox(x2) - $lastX2) / $del}]
-set dy [expr {($BBox(y1) - $lastY1) / $del}]
       }
 
       nw   { set BBox(y1) $y
@@ -4432,8 +4420,6 @@ set dy [expr {($BBox(y1) - $lastY1) / $del}]
              set xScale  [getRatio $lastY2 $lastY1 $BBox(y2) $BBox(y1)]
              set yScale  $xScale
              set BBox(x1) [expr $lastX2-($lastX2-$lastX1)*$xScale]
-set dx [expr {($BBox(x1) - $lastX1) / $del}]
-set dy [expr {($BBox(y1) - $lastY1) / $del}]
       }
 
       se   { set BBox(y2) $y
@@ -4442,8 +4428,6 @@ set dy [expr {($BBox(y1) - $lastY1) / $del}]
              set xScale  [getRatio $lastY2 $lastY1 $BBox(y2) $BBox(y1)]
              set yScale  $xScale
              set BBox(x2) [expr $lastX1+($lastX2-$lastX1)*$xScale]
-set dx [expr {($BBox(x2) - $lastX2) / $del}]
-set dy [expr {($BBox(y2) - $lastY2) / $del}]
       }
 
       sw   { set BBox(y2) $y
@@ -4452,37 +4436,43 @@ set dy [expr {($BBox(y2) - $lastY2) / $del}]
              set xScale  [getRatio $lastY2 $lastY1 $BBox(y2) $BBox(y1)]
              set yScale  $xScale
              set BBox(x1) [expr $lastX2-($lastX2-$lastX1)*$xScale]
-set dx [expr {($BBox(x1) - $lastX1) / $del}]
-set dy [expr {($BBox(y2) - $lastY2) / $del}]
       }
    }
  
-#   .c scale Selected $xOrigin $yOrigin $xScale $yScale
    set BBox(xscale) [expr $xScale*$BBox(xscale)]
-#puts "xOrigin=$xOrigin yOrigin=$yOrigin xScale=$xScale yScale=$yScale"
 
    foreach id [.c find withtag Selected] {
 #LISSI 
+      if {[catch {.c itemcget $id -strokewidth} result]==0} {
+	set stw [.c itemcget $id -strokewidth]
+        .c itemconfig $id -strokewidth [expr {$stw * $yScale * $xScale}]
+      }
+
       set type [.c type $id]
-      if {$type != "pimage" && $type != "polyline"} {
+      if {$type != "pimage" && $type != "polyline" && $type != "path"} {
 	    .c scale $id $xOrigin $yOrigin $xScale $yScale
-      } elseif {$type == "polyline"} {
+      } elseif {$type == "polyline" || $type == "path"} {
+#	set stw [.c itemcget $id -strokewidth]
 	set st [.c itemcget $id -startarrow]
 	set et [.c itemcget $id -endarrow]
+	set aw [.c itemcget $id -startarrowwidth]
+	set al [.c itemcget $id -startarrowlength]
+	set af [.c itemcget $id -startarrowfill]
+	
 	.c itemconfigure $id -startarrow 0
 	.c itemconfigure $id -endarrow 0
 	.c scale $id $xOrigin $yOrigin $xScale $yScale
-	.c itemconfigure $id -startarrow $st
-	.c itemconfigure $id -endarrow $et
+	.c itemconfigure $id  -startarrow $st -startarrowlength [expr {$al * $xScale}] -startarrowwidth [expr {$aw * $yScale}] 
+# -strokewidth [expr {$stw * $yScale}]
+# -startarrowfill [expr {$af * $xScale}] 
+	.c itemconfigure $id -endarrow $et -endarrowlength [expr {$al * $xScale}] -endarrowwidth [expr {$aw * $yScale}]
+#-endarrowfill [expr {$af * $xScale}] 
       }
 #Добавить в tksvgpaint
       if {$type == "prect"} {
 	set rx [.c itemcget $id -rx]
 	set ry [.c itemcget $id -ry]
 	.c itemconfigure $id -rx [expr {$rx * $xScale}] -ry [expr {$ry * $yScale}]
-      }
-      if {$type == "pathXAXA"} {
-	.c move $id $dx $dy
       }
       if {$type == "pimage"} {
 	set name [.c itemcget $id  -image]
@@ -4502,29 +4492,54 @@ set dy [expr {($BBox(y2) - $lastY2) / $del}]
 		set xScaleLast 1
 	    } else {
 		set xScaleLast [expr $wimg / $wreg]
-		if {$xScaleLast < 0.1} {
-		    set xScaleLast 0.1
+		if {$xScaleLast < 0.01} {
+		    set xScaleLast 0.01
 		}
 	    }
 	    if {$himg == 0} {
 		set yScaleLast 1
 	    } else {
-		set yScaleLast [expr $himg / $hreg]
-		if {$yScaleLast < 0.1} {
-		    set yScaleLast 0.1
+		set yScaleLast [expr {(1.0 * $himg) / (1.0 * $hreg)}]
+		if {$yScaleLast < 0.01} {
+		    set yScaleLast 0.01
 		}
 	    }
 	}
 	set iwidth [expr {$width * $xScale * $xScaleLast}]
 	set iheight [expr {$height * $yScale * $yScaleLast}]
-#	.c move $id $dx $dy
-	.c itemconfigure $id  -width $iwidth -height $iheight -srcregion [list 1  1  $width $height]
-#	 -anchor $anch
-	.c move $id $dx $dy
 
-#	drawBoundingBox
-#	return
-      }
+	foreach {mx0  my0 mx1 my1} [.c bbox mainBBox] {break}
+	foreach {xc  yc} [id2coordscenter $id] {break}
+	.c itemconfigure $id  -width $iwidth -height $iheight -srcregion [list 1  1  $width $height]
+	switch -exact -- $BBox(action) {
+    	    none  { return }
+    	    e -
+    	    s -
+    	    se {
+		set xc1 [expr {($xc - $mx0) * $xScale + $mx0}]
+		set yc1 [expr {($yc - $my0) * $yScale + $my0}]
+    	      }
+    	    n -
+    	    ne {
+		set xc1 [expr {($xc - $mx0) * $xScale + $mx0}]
+		set yc1 [expr {($yc - $my1) * $yScale + $my1}]
+    	    
+    	      }
+	    w -
+	    nw {
+		set xc1 [expr {($xc - $mx1) * $xScale + $mx1}]
+		set yc1 [expr {($yc - $my1) * $yScale + $my1}]
+	      }
+	    sw {
+		set xc1 [expr {($xc - $mx1) * $xScale + $mx1}]
+		set yc1 [expr {($yc - $my0) * $yScale + $my0}]
+	    }
+	    default {
+		return
+	    }
+	}
+	.c move $id [expr {$xc1 - $xc}] [expr {$yc1 - $yc}]
+    }
 
       if {[catch {.c itemcget $id -font} result]==0} {
         set u [Utag find $id]
